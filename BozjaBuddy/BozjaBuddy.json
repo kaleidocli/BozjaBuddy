@@ -1,0 +1,15 @@
+{
+    "Author": "KahoCli",
+    "Name": "Bozja Buddy",
+    "Punchline": "Improve your Bozja sufferring. Maybe.",
+    "Description": "Features:\n• Info about Lost Actions, Fragments, FATEs/CE e.g. location, drops, fate chains, mettle rewards, exp rewards, etc.",
+    "InternalName": "bozjaBuddy",
+    "ApplicableVersion": "any",
+    "Tags": [
+        "bozja",
+        "buddy",
+        "zadnor",
+        "foray",
+        "fate"
+    ]
+}

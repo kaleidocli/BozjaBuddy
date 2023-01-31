@@ -1,0 +1,257 @@
+,Obtained,Skill,Fragment,Tank,Healer,Melee,Ranged,Caster,Basic Spell Effect,"Cast, Recast, Available",Full Spell Effect
+,,Offensive,,,,,,,,,
+,TRUE,Lost Focus,Violence,TRUE,TRUE,TRUE,TRUE,TRUE,Stacking damage boost on next weaponskill.,Instant | 2.5s | 32 uses,"Grants a stack of Boost, up to a maximum of 16. Boost Bonus: Increases potency of next weaponskill by 15% per stack Duration: 30s Effect ends upon using another lost action. Shares a recast timer with all other weaponskills and spells."
+,TRUE,Lost Font of Magic,Sagacity,FALSE,TRUE,FALSE,FALSE,FALSE,"Damage +70%, drains MP, 30s
+Sot Veteran: -50% Magic Damage Taken, 15s",Instant | 120s | 10 uses,"Increases damage dealt by 70%, draining MP while in use. Duration: 30s
+Spirit of the Veteran Effect: Grants Spell Shield to self
+Spell Shield Effect: Reduces magic damage taken by 50%
+Duration: 15s
+Can only be executed while in combat."
+,TRUE,Lost Font of Power,Sagacity,TRUE,FALSE,TRUE,TRUE,FALSE,"Damage +30%, Crit +40%, 30s
+Sot Irregular: Damage +40%
+Sot Platebearer: -50% Physical Damage Taken, 15s
+",Instant | 120s | 10 uses,Increases damage dealt by 30% and critical hit rate by 40%. Duration: 30s Spirit of the Irregular Effect: Damage bonus effect is increased to 40% Spirit of the Platebearer Effect: Grants Solid Shield to self Solid Shield Effect: Reduces physical damage taken by 50% Duration: 15s Can only be executed while in combat.
+,TRUE,Lost Slash,Violence,TRUE,FALSE,TRUE,TRUE,FALSE,"800 Potency AOE cone
+Crit Potency Tripled",Instant | 90s | 10 uses,"Delivers an attack with a potency of 800 to all enemies in a cone before you. When critical damage is dealt, potency is tripled. This action does not share a recast timer with any other actions. Furthermore, the recast timer cannot be affected by other actions."
+,TRUE,Lost Death,Violence,TRUE,TRUE,TRUE,TRUE,TRUE,"KOs target, less health greater success
+Sot Ordained: Greater chance of success",5s | 60s | 10 uses,"KOs target. The less the target's HP, the greater the chance of success. Spirit of the Ordained Effect: Chance of success is increased This action does not share a recast timer with any other actions. Furthermore, the recast timer cannot be affected by other actions."
+,TRUE,Banner of Noble Ends,Resolve,TRUE,TRUE,TRUE,TRUE,TRUE,"Damage +50%, reduces HP recovery to self by 100%, 15s",Instant | 90s | 10 uses,"Storm the field under the Banner of Noble Ends, increasing damage dealt by 50% while reducing own HP recovery via most healing actions by 100%. Duration: 15s Can only be executed while in combat. Effect cannot be stacked with other Banner actions."
+,TRUE,Banner of Honored Sacrifice,Resolve,TRUE,TRUE,TRUE,TRUE,TRUE,"Damage +55%, drains HP, 15s
+PEot Duelist: Buffed, Less HP drain",Instant | 90s | 10 uses,"Storm the field under the Banner of Honored Sacrifice, increasing damage dealt by 55% while draining your HP. Duration: 15s Can only be executed while in combat. Effect cannot be stacked with other Banner actions."
+,TRUE,Bannner of Honed Acuity,Resolve,TRUE,TRUE,TRUE,TRUE,TRUE,"Stacking buff from dodging attacks, take 10% more damage per stack, up to 3 stacks
+3 stacks: Crit +30%, Haste +20%, 180s",Instant | 180s | 10 uses,"Storm the field under the Banner of Honed Acuity, gaining additional stacks each time an attack is evaded, up to a maximum of 3. Banner of Honed Acuity Effect: Increases damage taken by 10% per stack Duration: 120s At maximum stacks, take up the Banner of Transcendent Finesse. Banner of Transcendent Finesse Effect: Increases critical hit rate by 30% and reduces weaponskill cast time and recast time, spell cast time and recast time, and auto-attack delay by 20% Duration: 180s Can only be executed while in combat. Effect cannot be stacked with other Banner actions."
+,TRUE,Lost Fair Trade,Caprice,TRUE,TRUE,TRUE,TRUE,TRUE,"Throws random lost actions.
+Potency 50 - 1000 based on weight.",Instant | 4s | 99 uses,"Through sheer force of will, restore a random technique of the lost to physical form and throw it at a single target, dealing damage with a potency of 50. Potency increases up to 1,000 based on the weight of the lost action. The lost action thrown will be lost upon execution. This action does not share a recast timer with any other actions. Furthermore, the recast timer cannot be affected by other actions."
+,TRUE,Lost Flare Star,Clarity,FALSE,FALSE,FALSE,FALSE,TRUE,"300 Potency AOE
+350 Potency DOT, 60s
+9000 MP",Instant | 5s | 9000 MP,Consumes MP to deal unaspected damage with a potency of 300 to all nearby enemies. Additional Effect: Unaspected damage over time Potency: 350 Duration: 60s The damage over time effect of Lost Flare Star can only be applied once per target at any given time. This effect cannot be stacked by multiple players.
+,TRUE,Lost Chainspell,Artistry,FALSE,TRUE,FALSE,FALSE,TRUE,"Eliminates cast times
+Spell Damage +45%
+Increases MP Cost
+30s
+Sot Ordained: Spell Damage +100%
+No Mana Cost Increase
+Sot Watcher: Duration increased, 90s",Instant | 90s | 20 uses,Temporarily eliminates cast time for all spells. Duration: 30s Additional Effect: Magic Burst Magic Burst Effect: Increases spell damage by 45% while increasing MP cost Duration: 30s Spirit of the Ordained Effect: Raises Magic Burst spell damage increase to 100% and nullifies additional MP cost Spirit of the Watcher Effect: Lost Chainspell duration is extended to 90s Can only be executed while in combat.
+,TRUE,Lost Assassination,Artistry,TRUE,FALSE,TRUE,TRUE,FALSE,"350 Potency Attack
+Chance of KO when at target's rear
+Increase chance with lower target HP
+Sot Beast: Damage +30%
+Crit +40%
+18s",Instant | 15s | 99 uses,"Delivers a close-quarter attack with a potency of 350. Chance of instant KO when attacking from the rear, which increases the lower the target's HP. Spirit of the Beast Effect: Grants the effect of Lost Font of Power to self Lost Font of Power Effect: Increases damage dealt by 30% and critical hit rate by 40% Duration: 18s This action does not share a recast timer with any other actions. Furthermore, the recast timer cannot be affected by other actions."
+,,Defensive,,Tank,Healer,Melee,Ranged,Caster,,,
+,TRUE,Lost Manawall,Caution,TRUE,TRUE,TRUE,TRUE,TRUE,"-90% Damage Taken
+Applies Heavy to self and nullifies knockback",Instant | 360s | 2 uses,"Temporarily applies Heavy to self, while reducing damage taken by 90% and nullifying most knockback and draw-in effects. Duration: 6s"
+,TRUE,Banner of Tireless Conviction,Resolve,TRUE,FALSE,FALSE,FALSE,FALSE,"Stacking buff from taking damage, up to 5 stacks
++15% Damage Taken per stack, 30s
+5 stacks: -30% Damage Taken, 180s",Instant | 180s | 10 uses,"Storm the field under the Banner of Tireless Conviction, gaining additional stacks each time damage is taken, up to a maximum of 5. Banner of Tireless Conviction Effect: Increases damage taken by 15% per stack Duration: 30s At maximum stacks, take up the Banner of Unyielding Defense. Banner of Unyielding Defense Effect: Reduces damage taken by 30% Duration: 180s Effect cannot be stacked with other Banner actions."
+,TRUE,Banner of Firm Resolve,Resolve,FALSE,TRUE,TRUE,TRUE,TRUE,"Stacking buff from taking damage, up to 5 stacks
+-15% Damage Dealt per stack, 30s
+5 stacks: -30% Damage Taken, 180s",Instant | 180s | 10 uses,"Storm the field under the Banner of Firm Resolve, gaining additional stacks each time damage is taken, up to a maximum of 5. Banner of Firm Resolve Effect: Reduces damage dealt by 15% per stack Duration: 30s At maximum stacks, take up the Banner of Unyielding Defense. Banner of Unyielding Defense Effect: Reduces damage taken by 30% Duration: 180s Effect cannot be stacked with other Banner actions."
+,TRUE,Lost Incense,Caution,FALSE,TRUE,TRUE,TRUE,TRUE,"Provoke, -20% Damage Taken 20s",Instant | 20s | Infinte uses,"Gesture threateningly, placing yourself at the top of a target's enmity list. Additional Effect: Enmity generation is increased and damage taken is reduced by 20% Duration: 20s"
+,TRUE,Lost Excellence,Heroism,FALSE,FALSE,TRUE,TRUE,TRUE,"Cures Weakness
+Temporarily nullifies attacks
+Damage +65%, 60s
+-10% Damage Taken, 50s",Instant | 300s | 5,"Instantly cures Weakness and temporarily nullifies most attacks, while increasing damage dealt by 65%. Memorable will be applied when effect ends. Duration: 10s Memorable Effect: Increases damage dealt by 65% while decreasing damage taken by 10% Duration: 50s Can only be executed while in combat."
+,TRUE,Lost Blood Rage,Cunning,TRUE,FALSE,FALSE,FALSE,FALSE,"Damage +15%
+-5% Damage Taken per Stack
+Stacks increase with each dash attack, Max 4
+18s
+Max Stacks: +60% Damage
+-75% Recast Times
+HP MP Regen
+30s",Instant | 180s | 10,"Increases damage dealt by 15% and reduces damage taken by 5% per stack. Stacks increase with each use of a dash attack while effect is active, to a maximum of 4. Duration: 18s Maximum stacks grant the effect of Blood Rush. Blood Rush Effect: Increases damage dealt by 60%, shortens recast times by 75%, and gradually restores HP and MP Duration: 30s Can only be executed while in combat."
+,,Restorative,,Tank,Healer,Melee,Ranged,Caster,,,
+,TRUE,Banner of Solemn Clarity,Resolve,TRUE,TRUE,TRUE,TRUE,TRUE,"Periodically gives stack, up to 4, 30s
+4 stacks: +50% Heal Potency, Reduces MP Cost, 120s",Instant | 180s | 10,"Storm the field under the Banner of Solemn Clarity, periodically gaining additional stacks, up to a maximum of 4. Duration: 30s Effect ends upon using another action or moving (including facing a different direction). Cancels auto-attack upon execution. At maximum stacks, take up the Banner of Limitless Grace. Banner of Limitless Grace Effect: Increases healing potency by 50% while reducing MP cost Duration: 120s Can only be executed while in combat. Effect cannot be stacked with other Banner actions."
+,TRUE,Lost Cure,Caution,TRUE,FALSE,TRUE,TRUE,TRUE,"15,000 Potency Heal",2s | 2.5s | Infinite uses,"Restores target's HP. Cure Potency: 15,000"
+,TRUE,Lost Cure II,Compassion,TRUE,FALSE,TRUE,TRUE,TRUE,"21,700 Potency Heal
+Sot Saviour: 6,000 Potency Regen, 21s
+PEot Fiendhunter: MP Regen Buff but Slows",Instant | 5s | 50 uses,"Restores target's HP. Cure Potency: 21,700 Spirit of the Savior Effect: Regen Cure Potency: 6,000 Duration: 21s"
+,TRUE,Lost Cure III,Caution,TRUE,FALSE,TRUE,TRUE,TRUE,"15,000 Potency AOE Heal",2s | 2.5s | 99,"Restores HP of target and all party members nearby target. Cure Potency: 15,000"
+,TRUE,Lost Cure IV,Compassion,TRUE,FALSE,TRUE,TRUE,TRUE,"21,700 Potency AOE Heal
+Sot Saviour: 6,000 Potency Regen, 21s
+PEof Elder: Applies Bravery to party, 1m",Instant | 5s | 25 uses,"Restores HP of target and all party members nearby target. Cure Potency: 21,700 Spirit of the Savior Effect: Regen Cure Potency: 6,000 Duration: 21s"
+,TRUE,Lost Arise,Compassion,TRUE,TRUE,FALSE,FALSE,FALSE,"Raise with Full Health
+Removes weakness
+PEot Divine: Chance to raise in Delubrum",3s | 2.5s | 5 uses,"Restores all of a KO'd target's HP. If the target was weakened at the time of Raise, the weakness effect will be removed."
+,TRUE,Lost Sacrifice,Loss,TRUE,TRUE,TRUE,TRUE,TRUE,"Raise with Full Health
+Can't be used while afflicted with Sacrifice
+Inflicts Sacrifice on Self, 10s
+PEot Indomitable: Chance to not apply Sacrifice",3s | 2.5s | 1 use,Restores all of a KO'd target's HP. Cannot be executed if currently afflicted with Sacrifice. Additional Effect: Inflicts Sacrifice on self Duration: 10s
+,TRUE,Lost Reraise,Hope,TRUE,TRUE,TRUE,TRUE,TRUE,80% Chance Auto Raise on Self,2.5s | 2.5s | 2 uses,Grants the effect of Reraise to self or target ally. Reraise Effect: Grants an 80% chance of automatic revival upon KO Duration: 180m
+,TRUE,Lost Full Cure,Revelation,FALSE,TRUE,FALSE,FALSE,FALSE,"AOE Full HP and MP
+AOE Grants Auto-potion and Auto-ether
+Sot Breathtaker: -10% Chance Auto-potion and Auto-ether effect ends",Instant | 180s | 10,"Fully restores HP and MP while granting Auto-potion and Auto-ether to self and nearby party members. Auto-potion Effect: Restores HP automatically when HP falls below 50% Duration: 600s When triggered, there is a 50% chance the effect will end. Auto-ether Effect: Restores MP automatically when MP falls below 20% Duration: 600s When triggered, there is a 50% chance the effect will end. Spirit of the Breathtaker Effect: Chance for Auto-potion and Auto-ether effect to end is reduced to 10%"
+,,Beneficial,,Tank,Healer,Melee,Ranged,Caster,,,
+,TRUE,Lost Spellforge,Ingenuity,TRUE,TRUE,TRUE,TRUE,TRUE,All attacks deal Magic Damage,2.5s | 2.5s | Infinite uses,"Grants the effect of Lost Spellforge to self or target ally. Lost Spellforge Effect: All attacks deal magic damage. However, all bonuses to damage dealt are determined by the attack's base damage type. Duration: 300s Effect cannot be stacked with Lost Steelsting."
+,TRUE,Lost Steelsting,Ingenuity,TRUE,TRUE,TRUE,TRUE,TRUE,All attacks deal Physical Damage,2.5s | 2.5s | Infinite uses,"Grants the effect of Lost Steelsting to self or target ally. Lost Steelsting Effect: All attacks deal physical damage. However, all bonuses to damage dealt are determined by the attack's base damage type. Duration: 300s Effect cannot be stacked with Lost Spellforge."
+,TRUE,Lost Protect,Caution,TRUE,TRUE,TRUE,TRUE,TRUE,"-10% Physical Damage Taken, 30m",2.5s | 2.5s | Infinite uses,Applies a barrier to self or target player reducing physical damage taken by 10%. Duration: 30m
+,TRUE,Lost Shell,Caution,TRUE,TRUE,TRUE,TRUE,TRUE,"-10% Magic Damage Taken, 30m",2.5s | 2.5s | Infinite uses,Applies a barrier to self or target player reducing magic damage taken by 10%. Duration: 30m
+,TRUE,Lost Reflect,Support,TRUE,TRUE,TRUE,TRUE,TRUE,"Reflects Magic Attacks, 10s
+Sot Guardian: Duration 30s",Instant | 2.5s | 99 uses,Creates a barrier around self or party member that reflects most magic attacks. Duration: 10s Spirit of the Guardian Effect: Duration is increased to 30s
+,TRUE,Lost Stoneskin,Support,TRUE,TRUE,TRUE,TRUE,TRUE,"Absorbs 15% Max Health, 60s",2s | 2.5s | 99 uses,Applies a barrier to self or target player that absorbs damage totaling 15% of target's maximum HP. Duration: 60s
+,TRUE,Lost Bravery,Support,TRUE,TRUE,TRUE,TRUE,TRUE,"Damage +5%, 600s",2.5s | 2.5s | 99 uses,Increases damage dealt by an ally or self by 5%. Duration: 600s
+,TRUE,Lost Aethershield,Fortitude,TRUE,FALSE,FALSE,FALSE,FALSE,"-30% Damage Taken, 15s
+Buffs Self and Party",Instant | 60s | 15 uses,Reduces damage taken by self and nearby party members by 30%. Duration: 15s
+,TRUE,Lost Dervish,Finesse,FALSE,FALSE,FALSE,TRUE,FALSE,"Damage +7%, Crit +10%, Haste +1%, 60s
+Buffs Self and Party",Instant | 90s | 15 uses,"Increases critical hit rate of self and nearby party members by 10%, increases damage dealt by 7%, and reduces weaponskill cast time and recast time, spell cast time and recast time, and auto-attack delay by 1%. Duration: 60s"
+,TRUE,Lost Stoneskin II,Multiple,TRUE,TRUE,TRUE,TRUE,TRUE,"AOE Absorbs 10% Max Health, 30s",3s | 2.5s | 99 uses,Creates a barrier around self and all party members near you that absorbs damage totaling 10% of maximum HP. Duration: 30s
+,TRUE,Lost Protect II,Desperation,TRUE,TRUE,TRUE,TRUE,TRUE,"-15% Physical Damage Taken, 30m",2.5s | 2.5s | Infinite uses,Applies a barrier to self or target player reducing physical damage taken by 15%. Duration: 30m
+,TRUE,Lost Shell II,Desperation,TRUE,TRUE,TRUE,TRUE,TRUE,"-15% Magic Damage Taken, 30m",2.5s | 2.5s | Infinite uses,Applies a barrier to self or target player reducing magic damage taken by 15%. Duration: 30m
+,TRUE,Lost Bubble,Tenacity,TRUE,TRUE,TRUE,TRUE,TRUE,"Max HP +30%, 600s",2.5s | 2.5s | 99 uses,Increases maximum HP of self or target player by 30%. Duration: 600s
+,,Tactical,,Tank,Healer,Melee,Ranged,Caster,,,
+,TRUE,Lost Stealth,Caution,TRUE,TRUE,TRUE,TRUE,TRUE,"Stealth, -25% Move Speed",Instant | 15s | 99 uses,"Blend in with your surroundings, making it impossible for most enemies to detect you, but reducing movement speed by 25%. Has no effect on certain enemies with special sight. Cannot be executed while in combat. Effect ends upon use of any action other than Sprint, or upon reuse."
+,TRUE,Lost Swift,Ingenuity,TRUE,TRUE,TRUE,TRUE,TRUE,"Move Speed Up, 10s
+Sot Breathtaker: Evasion +30%, 60s
+Sot Watcher: Shortens recast of next ability by 60%",Instant | 90s | 25 uses,Greatly increases movement speed. Duration: 10s Spirit of the Breathtaker Effect: Increases evasion by 30% Duration: 60s Spirit of the Watcher Effect: Grants Rapid Recast to self Rapid Recast Effect: Shortens recast time for next ability used by 60% Duration: 30s Effect cannot be stacked with other movement speed enhancing abilities.
+,TRUE,Lost Font of Skill,Sagacity,TRUE,TRUE,TRUE,TRUE,TRUE,Resets recast timer of most actions,Instant | 300s | 5 uses,Resets the recast timer for most actions and role actions.
+,TRUE,Mimic,Caprice,TRUE,TRUE,TRUE,TRUE,TRUE,Copies targets lost techniques,Instant | 5s | 1 use,Study the lost techniques used by a targeted ally and make them your own.
+,TRUE,Lost Perception,Observation,TRUE,TRUE,TRUE,TRUE,TRUE,Trap Detection,Instant | 1.5s | 99 uses,"Detect traps within a radius of 15 yalms. If there are no traps within 15 yalms, alerts you to the presence of traps with a radius of 36 yalms. ※This action can only be used in Delubrum Reginae."
+,TRUE,Lost Impetus,Inspiration,TRUE,TRUE,TRUE,TRUE,TRUE,"10 Yalm Dash
+AOE Increased Movement Speed, 10s
+Sot Breathtaker: AOE +15% Evasion, 60s
+Sot Watcher: AOE -25% recast on next ability",Instant | 30s | 50 uses,Quickly dash 10 yalms forward. Additional Effect: Applies Lost Swift to self and nearby party members Lost Swift Effect: Greatly increases movement speed Effect cannot be stacked with other movement speed enhancing abilities. Duration: 10s Spirit of the Breathtaker Effect: Increases evasion of self and nearby party members by 15% Duration: 60s Spirit of the Watcher Effect: Grants Rapid Recast to self and nearby party members Rapid Recast Effect: Shortens recast time for next ability used by 25% Effect only applies to certain abilities. Duration: 15s Cannot be executed while bound.
+,,Detrimental,,Tank,Healer,Melee,Ranged,Caster,,,
+,TRUE,Lost Paralyse III,Ingenuity,TRUE,FALSE,TRUE,TRUE,FALSE,AOE Paralyse,2.5s | 2.5s | 99 uses,Afflicts target and all nearby enemies with Paralysis. Duration: 60s
+,TRUE,Lost Banish III,Ingenuity,FALSE,TRUE,FALSE,FALSE,TRUE,"200 Potency AOE
+Undead enemies +25% damage taken, 60s",2.5s | 2.5s | 99 uses,Deals unaspected damage with a potency of 200 to target and all enemies nearby it. Additional Effect: Increases damage undead enemies take by 25% Duration: 60s
+,TRUE,Lost Dispel,Ingenuity,TRUE,TRUE,TRUE,TRUE,TRUE,Removes one beneficial status from target.,2.5s | 2.5s | 15 uses,Removes one beneficial status from target. Cancels auto-attack upon execution.
+,TRUE,Lost Rend Armor,Contention,FALSE,FALSE,TRUE,FALSE,FALSE,"100 Potency Jump
++10% damage taken on target, 30s",Instant | 60s | 15 uses,Delivers a jumping attack with a potency of 100. Additional Effect: Increases target's damage taken by 10%. Duration: 30s Cannot be executed while bound.
+,TRUE,Lost Seraph Strike,Divinity,FALSE,TRUE,FALSE,FALSE,FALSE,"500 Potency Jump
+Target: -10% Accuracy, 15s
+Self: -60% Heal Potency, +60% Damage Dealt, 15s",Instant | 60s | 5000 MP,Consumes MP to deliver a jumping attack that deals unaspected damage with a potency of 500. Additional Effect: Reduces target's accuracy by 10%. Duration: 15s Additional Effect: Grants Cleric Stance to self. Cleric Stance Bonus: Reduces healing potency by 60% while increasing damage dealt by 60%. Duration: 15s Cannot be executed while bound.
+,TRUE,Lost Burst,Rage,FALSE,TRUE,FALSE,FALSE,TRUE,"300 Potency AOE Lightning Damage
+AOE Interrupt
+Damage taken +10% to enemies with Magic Aversion",Instant | 2.5s | 99 uses,Deals lightning damage with a potency of 300 to all nearby enemies. Additional Effect: Interrupts all nearby enemies Additional Effect: Increases damage taken by enemies with Magical Aversion by 10% Duration: 60s
+,TRUE,Lost Rampage,Ferocity,TRUE,FALSE,TRUE,TRUE,FALSE,"300 Potency AOE Attack
+AOE Interrupt
+Damage Taken +10% to enemies with Physical Aversion",Instant | 2.5s | 99 uses,Delivers an attack with a potency of 300 to all nearby enemies. Additional Effect: Interrupts all nearby enemies Additional Effect: Increases damage taken by enemies with Physical Aversion by 10% Duration: 60s
+,,Item-Related,,Tank,Healer,Melee,Ranged,Caster,,,
+,TRUE,Dynamis Dice,Caprice,TRUE,TRUE,TRUE,TRUE,TRUE,Random Effect,180s,Place your faith in the goddess Nymeia as she spins the wheel of fate. Can only be executed while in combat.
+,TRUE,Resistance Phoenix,Preperation,TRUE,TRUE,TRUE,TRUE,TRUE,Raise,,Resurrects target to a weakened state.
+,TRUE,Resistance Reraiser,Care,TRUE,TRUE,TRUE,TRUE,TRUE,70% Chance Auto Raise on Self,,Grants a 70% chance of automatic revival upon KO. Duration: 180m
+,TRUE,Resistance Potion Kit,Care,TRUE,TRUE,TRUE,TRUE,TRUE,"Restores HP when HP falls below 50%, 600s
+50% chance effect ends
+Sot Breathtaker: 10% chance effect ends",30s,"Grants Auto-potion to self. Auto-potion Effect: Restores HP automatically when HP falls below 50% Duration: 600s When triggered, there is a 50% chance the effect will end. Spirit of the Breathtaker Effect: Chance for Auto-potion effect to end is reduced to 10% Shares a recast timer with Resistance Ether Kit and Resistance Medikit."
+,TRUE,Resistance Ether Kit,Care,TRUE,TRUE,TRUE,TRUE,TRUE,"Restores MP when MP fals below 20%, 600s
+50% chance effect ends
+Sot Breathtaker: 10% chance effect ends",30s,"Grants Auto-ether to self. Auto-ether Effect: Restores MP automatically when MP falls below 20% Duration: 600s When triggered, there is a 50% chance the effect will end. Spirit of the Breathtaker Effect: Chance for Auto-ether effect to end is reduced to 10% Shares a recast timer with Resistance Potion Kit and Resistance Medikit."
+,TRUE,Resistance Medikit,Compassion,TRUE,TRUE,TRUE,TRUE,TRUE,"Esuna on Self 
+OR
+Protects from next status ailment, 30m",45s,"Removes a single detrimental effect from self. When not suffering from detrimental effects, creates a barrier that protects against most status ailments. The barrier is removed after curing the next status ailment suffered. Effect cannot be stacked with similar barrier actions. Duration: 30m Shares a recast timer with Resistance Potion Kit and Resistance Ether Kit."
+,TRUE,Resistance Potion,Preperation,TRUE,TRUE,TRUE,TRUE,TRUE,"5,000 Potency HOT, 40s",40s,"Gradually restores HP. Cure Potency: 5,000 Duration: 40s"
+,TRUE,Essence of the Aetherweaver,Skill,FALSE,TRUE,FALSE,FALSE,FALSE,Damage +80%,,Increases damage dealt by 80%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Martialist,Skill,TRUE,FALSE,FALSE,FALSE,FALSE,Damage +60%,,Increases damage dealt by 60%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Saviour,Skill,TRUE,FALSE,TRUE,TRUE,TRUE,"Heal Potency +60%
+Special Effect on Lost Cure II and Lost Cure IV",,Increases healing potency by 60%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Veteran,Skill,FALSE,TRUE,FALSE,FALSE,TRUE,"Physical Defense +150%
+Magic Defense +45%
+Max HP +60%
+Special Effect on Lost Font of Magic",,"Increases physical defense by 150%, magic defense by 45%, and maximum HP by 60%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions."
+,TRUE,Essence of the Platebearer,Skill,FALSE,FALSE,TRUE,TRUE,FALSE,"Defense +80%
+Max HP +45%
+Special Effect on Lost Font of Power",,Increases defense by 80% and maximum HP by 45%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Guardian,Awakening,TRUE,FALSE,FALSE,FALSE,FALSE,"Defense +30%
+Max HP +10%
+Special Effect on Lost Reflect",,Increases defense by 30% and maximum HP by 10%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Ordained,Awakening,FALSE,TRUE,FALSE,FALSE,TRUE,"Damage +20%
+Heal Potency +25%
+Max MP +50%
+Special Effect on Lost Death
+Can't be used on BLM",,"Increases damage dealt by 20%, healing potency by 25%, and maximum MP by 50%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions."
+,TRUE,Essence of the Skirmisher,Awakening,FALSE,FALSE,TRUE,TRUE,TRUE,"Damage +20%
+Crit +15%",,Increases damage dealt by 20% and critical hit rate by 15%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Watcher,Awakening,FALSE,FALSE,TRUE,TRUE,TRUE,"Max HP -5%
+Evasion +40%
+Special Effect on Lost Swift",,Reduces maximum HP by 5% while increasing evasion by 40%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Profane,Awakening,FALSE,TRUE,FALSE,FALSE,FALSE,"Heal Potency -70%
+Damage +100%",,Reduces healing potency by 70% while increasing damage dealt by 100%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Irregular,Awakening,TRUE,FALSE,FALSE,FALSE,FALSE,"Damage +90%
+Damage Taken +200%
+Max HP -30%
+Special Effect on Lost Font of Power",,Increases damage dealt by 90% and damage taken by 200% while reducing maximum HP by 30%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Breathtaker,Awakening,TRUE,TRUE,TRUE,TRUE,TRUE,"Poison Resist, Move Speed, Mount Speed Up
+Evasion +10%
+Special Effect on Lost Swift, Resistance Potion Kit, and Resistance Ether Kit",,"Increases poison resistance and movement speed, including mount speed, and increases evasion by 10%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions."
+,TRUE,Essence of the Bloodsucker,Superstition,TRUE,FALSE,FALSE,FALSE,FALSE,"Damage +40%
+Lifesteal",,Increases damage dealt by 40%. Additional Effect: Absorb a portion of damage dealt as HP Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Beast,Superstition,FALSE,FALSE,TRUE,TRUE,TRUE,"Defense +50%
+Max HP +45%
+Lifesteal",,Increases defense by 50% and maximum HP by 45%. Additional Effect: Absorb a portion of damage dealt as HP Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Essence of the Templar,Superstition,FALSE,TRUE,FALSE,FALSE,FALSE,"Defense +50%
+Max HP +45%
+Damage +60%",,"Increases defense by 50%, maximum HP by 45%, and damage dealt by 60%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions."
+,TRUE,Deep Essence of the Aetherweaver,Mastery,FALSE,TRUE,FALSE,FALSE,FALSE,Damage +96%,,Increases damage dealt by 96%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Martialist,Mastery,TRUE,FALSE,FALSE,FALSE,FALSE,Damage +72%,,Increases damage dealt by 72%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Saviour,Mastery,TRUE,FALSE,TRUE,TRUE,TRUE,"Heal Potency +72%
+Special Effect on Lost Cure II and Lost Cure IV",,Increases healing potency by 72%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Veteran,Mastery,FALSE,TRUE,FALSE,FALSE,TRUE,"Physical Defense +180%
+Magic Defense +54%
+Max HP +72%
+Special Effect on Lost Font of Magic",,"Increases physical defense by 180%, magic defense by 54%, and maximum HP by 72%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions."
+,TRUE,Deep Essence of the Platebearer,Mastery,FALSE,FALSE,TRUE,TRUE,FALSE,"Defense +96%
+Max HP +54%
+Special Effect on Lost Font of Power",,Increases defense by 96% and maximum HP by 54%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Guardian,Becoming,TRUE,FALSE,FALSE,FALSE,FALSE,"Defense +36%
+Max HP +12%
+Special Effect on Lost Reflect",,Increases defense by 36% and maximum HP by 12%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Ordained,Becoming,FALSE,TRUE,FALSE,FALSE,TRUE,"Damage +24%
+Heal Potency +30%
+Max MP +60%
+Special Effect on Lost Death
+Cannot be used on BLM",,"Increases damage dealt by 24%, healing potency by 30%, and maximum MP by 60%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions."
+,TRUE,Deep Essence fo the Skirmisher,Becoming,FALSE,FALSE,TRUE,TRUE,TRUE,"Damage +24%
+Crit +18%",,Increases damage dealt by 24% and critical hit rate by 18%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence fo the Watcher,Becoming,FALSE,FALSE,TRUE,TRUE,TRUE,"Max HP -3%
+Evasion +48%
+Special Effect on Lost Swift",,Reduces maximum HP by 3% while increasing evasion by 48%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Profane,Becoming,FALSE,TRUE,FALSE,FALSE,FALSE,"Heal Potency -70%
+Damage +120%",,Reduces healing potency by 70% while increasing damage dealt by 120%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Irregular,Becoming,TRUE,FALSE,FALSE,FALSE,FALSE,"Damage +108%
+Damage Taken +200%
+Max HP -30%
+Special Effect on Lost Font of Power",,Increases damage dealt by 108% and damage taken by 200% while reducing maximum HP by 30%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Breathtaker,Becoming,TRUE,TRUE,TRUE,TRUE,TRUE,"Poison Resist, Move Speed, Mount Speed Up
+Evasion +20%
+Special Effect on Lost Swift, Resistance Potion Kit, and Resistance Ether Kit",,"Increases poison resistance and movement speed, including mount speed, and increases evasion by 20%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions."
+,TRUE,Deep Essence of the Bloodsucker,Transcendence,TRUE,FALSE,FALSE,FALSE,FALSE,"Damage +48%
+Lifesteal",,Increases damage dealt by 48%. Additional Effect: Absorb a portion of damage dealt as HP Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Beast,Transcendence,FALSE,FALSE,TRUE,TRUE,TRUE,"Defense +60%
+Max HP +54%
+Lifesteal",,Increases defense by 60% and maximum HP by 54%. Additional Effect: Absorb a portion of damage dealt as HP Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions.
+,TRUE,Deep Essence of the Templar,Transcendence,FALSE,TRUE,FALSE,FALSE,FALSE,"Defense +60%
+Max HP +54%
+Damage +72%",,"Increases defense by 60%, maximum HP by 54%, and damage dealt by 72%. Effect ends upon reuse. Cannot be used with other Essence or Deep Essence actions."
+,TRUE,Pure Essence of the Gambler,Deception,FALSE,FALSE,TRUE,TRUE,TRUE,"Evasion +11%
+Crit +77%
+Direct Hit +77%
+Delubrum Reginae Only",,"Increases evasion by 11%, critical hit rate by 77%, and direct hit rate by 77%. Effect ends upon reuse. Cannot be used with other Essence, Deep Essence, or Pure Essence actions. It is said that Pure Essences may grant unexpected effects... ※This action can only be used in Delubrum Reginae."
+,TRUE,Pure Essence of the Elder,Clarity,FALSE,FALSE,FALSE,FALSE,TRUE,"Defense +25%
+Damage +50%
+Max HP +100%
+Special Effect on Lost Cure IV
+Delubrum Reginae Only",,"Increases defense by 25%, damage dealt by 50%, and maximum HP by 100%. Effect ends upon reuse. Cannot be used with other Essence, Deep Essence, or Pure Essence actions. It is said that Pure Essences may grant unexpected effects... ※This action can only be used in Delubrum Reginae."
+,TRUE,Pure Essence of the Duelist,Contention,FALSE,FALSE,TRUE,FALSE,FALSE,"Defense +60%
+Damage +60%
+Max HP +81%
+Special Effect on Banner of Honored Sacrifice
+Delubrum Reginae Only",,"Increases defense by 60%, damage dealt by 60%, and maximum HP by 81%. Effect ends upon reuse. Cannot be used with other Essence, Deep Essence, or Pure Essence actions. It is said that Pure Essences may grant unexpected effects... ※This action can only be used in Delubrum Reginae."
+,TRUE,Pure Essence of the Fiendhunter,Finesse,FALSE,FALSE,FALSE,TRUE,FALSE,"Defense +60%
+Damage +50%
+Max HP +81%
+Special Effect on Lost Cure II
+Delubrum Reginae Only",,"Increases defense by 60%, damage dealt by 50%, and maximum HP by 81%. Effect ends upon reuse. Cannot be used with other Essence, Deep Essence, or Pure Essence actions. It is said that Pure Essences may grant unexpected effects... ※This action can only be used in Delubrum Reginae."
+,TRUE,Pure Essence of the Indomitable,Fortitude,TRUE,FALSE,FALSE,FALSE,FALSE,"Defense +40%
+Damage +72%
+Max HP +50%
+Special Effect on Lost Sacrifice
+Delubrum Reginae Only",,"Increases defense by 40%, damage dealt by 72%, and maximum HP by 50%. Effect ends upon reuse. Cannot be used with other Essence, Deep Essence, or Pure Essence actions. It is said that Pure Essences may grant unexpected effects... ※This action can only be used in Delubrum Reginae."
+,TRUE,Pure Essence of the Divine,Divinity,FALSE,TRUE,FALSE,FALSE,FALSE,"Defense +25%
+Damage +35%
+Max HP +100%
+Special Effect on Lost Arise
+Delubrum Reginae Only",,"Increases defense by 25%, damage dealt by 35%, and maximum HP by 100%. Effect ends upon reuse. Cannot be used with other Essence, Deep Essence, or Pure Essence actions. It is said that Pure Essences may grant unexpected effects... ※This action can only be used in Delubrum Reginae."
+,TRUE,Lodestone,History,TRUE,TRUE,TRUE,TRUE,TRUE,Return,Instant | 2.5s,Instantly return to the starting point of the area. Cannot be executed while in combat. Shares a recast timer with all other weaponskills and spells.
+,TRUE,Light Curtain,Moonlight,TRUE,TRUE,TRUE,TRUE,TRUE,"Reflect Magic Attacks, 10s",Instant | 2.5s,Grants the effect of Lost Reflect to self. Lost Reflect Effect: Reflects most magic attacks Duration: 10s Shares a recast timer with all other weaponskills and spells.
+,TRUE,Resistance Elixir,Multiple,TRUE,TRUE,TRUE,TRUE,TRUE,Max HP and MP,Instant | 90s,Restores own HP and MP to maximum. Shares a recast timer with Resistance Potion and Dynamis Dice.
