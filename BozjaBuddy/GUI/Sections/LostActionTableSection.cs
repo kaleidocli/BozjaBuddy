@@ -196,16 +196,6 @@ namespace SamplePlugin.GUI.Sections
 
         public void DrawTableDebug()
         {
-            ImGui.TableNextRow(ImGuiTableRowFlags.None, this.FIXED_LINE_HEIGHT);
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(ImGui.GetStyle().ItemSpacing.X, ImGui.GetStyle().CellPadding.Y * 4));
-            ImGui.TableSetColumnIndex(0); ImGui.Text("0");
-            ImGui.TableSetColumnIndex(1); ImGui.Text("0");
-            ImGui.TableSetColumnIndex(2); ImGui.Text("0");
-            ImGui.TableSetColumnIndex(3); ImGui.Text("0");
-            ImGui.TableSetColumnIndex(4); ImGui.Text("0");
-            ImGui.TableSetColumnIndex(5); ImGui.Text("0");
-            ImGui.TableSetColumnIndex(6); ImGui.Text("0");
-            ImGui.PopStyleVar();
         }
 
         public override void Dispose()

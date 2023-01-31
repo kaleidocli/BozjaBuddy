@@ -13,6 +13,7 @@ using System.Linq;
 using Lumina.Extensions;
 using Lumina.Data.Files;
 using Dalamud.Game.Gui;
+using Dalamud.Logging;
 
 namespace SamplePlugin
 {

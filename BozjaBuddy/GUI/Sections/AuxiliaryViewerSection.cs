@@ -59,8 +59,8 @@ namespace SamplePlugin.GUI.Sections
                 switch (pObj.GetSalt())
                 {
                     case GeneralObject.GeneralObjectSalt.Fragment:
-                        PluginLog.LogDebug($"DrawTab(): Active iconIds in sheet {TextureCollection.Sheet.Item.ToString()}: {String.Join(", ", AuxiliaryViewerSection.mTextureCollection!.mIcons[Sheet.Item].Keys)}");
-                        PluginLog.LogDebug($"DrawTab(): Loading icon of itemId {pObj.mId} from sheet {TextureCollection.Sheet.Item.ToString()}");
+                        //PluginLog.LogDebug($"DrawTab(): Active iconIds in sheet {TextureCollection.Sheet.Item.ToString()}: {String.Join(", ", AuxiliaryViewerSection.mTextureCollection!.mIcons[Sheet.Item].Keys)}");
+                        //PluginLog.LogDebug($"DrawTab(): Loading icon of itemId {pObj.mId} from sheet {TextureCollection.Sheet.Item.ToString()}");
                         tIconWrap = AuxiliaryViewerSection.mTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), TextureCollection.Sheet.Item);
                         break;
                     case GeneralObject.GeneralObjectSalt.Fate:
@@ -78,13 +78,10 @@ namespace SamplePlugin.GUI.Sections
                     ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width, tIconWrap.Height));
                     ImGui.SameLine();           // Do not Sameline() if there's no image, since it'll Sameline() to the TabItem above
                 }
-                else
-                { PluginLog.LogDebug("DrawTab(): Icon is null"); }
                 // Name and Details and Location
                 ImGui.BeginGroup();
                 ImGui.Text(pObj.mName);
                 ImGui.Text(pObj.mDetail);
-                ImGui.PushTextWrapPos(0);
                 if (pObj.mLocation != null)
                 {
                     ImGui.SameLine();
@@ -96,6 +93,8 @@ namespace SamplePlugin.GUI.Sections
                     // Description
                     if (ImGui.BeginTabItem("Description"))
                     {
+                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
+                        ImGui.PushTextWrapPos(0);
                         // Fate chains
                         if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate 
                             && (this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1 
@@ -121,6 +120,7 @@ namespace SamplePlugin.GUI.Sections
                         }
                         ImGui.TextUnformatted(pObj.mDescription);
                         ImGui.PopTextWrapPos();
+                        ImGui.EndChild();
                         ImGui.EndTabItem();
                     }
                     // Sources
@@ -239,7 +239,7 @@ namespace SamplePlugin.GUI.Sections
             int tId = pPlugin.mBBDataManager.mGeneralObjects[pGenId].mId;
             AuxiliaryViewerSection.mTabGenIds.Add(pGenId, false);
         }
-        public static void AddTab(Plugin pPlugin, int pGenId)
+        public static void AddTab(Plugin pPlugin, int pGenId)                               //FIXME
         {
             if (!AuxiliaryViewerSection.mTabGenIds.ContainsKey(pGenId)) return;
             int tId = pPlugin.mBBDataManager.mGeneralObjects[pGenId].mId;
@@ -249,7 +249,7 @@ namespace SamplePlugin.GUI.Sections
             AuxiliaryViewerSection.mTextureCollection ??= new TextureCollection(pPlugin);
             AuxiliaryViewerSection.mTextureCollection.AddTextureFromItemId(Convert.ToUInt32(tId), tSalt);
         }
-        public static void RemoveTab(Plugin pPlugin, int pGenId)
+        public static void RemoveTab(Plugin pPlugin, int pGenId)                            //FIXME
         {
             if (!AuxiliaryViewerSection.mTabGenIds.ContainsKey(pGenId)) return;
             int tId = pPlugin.mBBDataManager.mGeneralObjects[pGenId].mId;
@@ -274,7 +274,7 @@ namespace SamplePlugin.GUI.Sections
                     else
                     {
                         AuxiliaryViewerSection.RemoveTab(pPlugin, pTargetGenId);
-                        PluginLog.LogInformation("Removing Tab");
+                        //PluginLog.LogInformation("Removing Tab");
                     }
                 }
             }
@@ -287,7 +287,7 @@ namespace SamplePlugin.GUI.Sections
                 else
                 {
                     AuxiliaryViewerSection.RemoveTab(pPlugin, pTargetGenId);
-                    PluginLog.LogInformation("Removing Tab");
+                    //PluginLog.LogInformation("Removing Tab");
                 }
             }
         }
@@ -309,7 +309,7 @@ namespace SamplePlugin.GUI.Sections
                         (float)pLocation.mMapCoordX, 
                         (float)pLocation.mMapCoordY)
                     );
-                PluginLog.LogInformation($"Showing map: {pLocation.mTerritoryID} - {pLocation.mMapID} - {(float)pLocation.mMapCoordX} - {(float)pLocation.mMapCoordY}");
+                //PluginLog.LogInformation($"Showing map: {pLocation.mTerritoryID} - {pLocation.mMapID} - {(float)pLocation.mMapCoordX} - {(float)pLocation.mMapCoordY}");
             }
         }
 
@@ -319,9 +319,8 @@ namespace SamplePlugin.GUI.Sections
             foreach (int i in AuxiliaryViewerSection.mTabGenIdsToDraw) tRes += i.ToString();
             ImGui.Text($"Aux: {tRes}");
         }
-        public override void Dispose()      // TODO: Taking care of the disposing
+        public override void Dispose()
         {
-
         }
     }
 }

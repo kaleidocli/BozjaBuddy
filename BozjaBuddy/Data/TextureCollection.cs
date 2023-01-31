@@ -1,7 +1,6 @@
 using Dalamud.Data;
 using Dalamud.Utility;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiScene;
 using Lumina.Data.Files;
 using Lumina.Extensions;
@@ -66,7 +65,7 @@ namespace SamplePlugin.Data
             uint? tIconId = this.GetIconId(pItemId, pSheet); 
             if (tIconId == null)
             {
-                PluginLog.LogDebug($"AddTextureFromItemId(): Unable to load texture with given item id {pItemId} from sheet {pSheet.ToString()}");
+                //PluginLog.LogDebug($"AddTextureFromItemId(): Unable to load texture with given item id {pItemId} from sheet {pSheet.ToString()}");
                 return;
             }
             this.AddTexture(tIconId.Value, pSheet);
@@ -87,7 +86,7 @@ namespace SamplePlugin.Data
         {
             try
             {
-                PluginLog.LogInformation($"Loading texture iconId {pIconId}");
+                //PluginLog.LogInformation($"Loading texture iconId {pIconId}");
                 TexFile? tTexFile = this.mPlugin.DataManager.GameData.GetIcon(pIconId);
                 return tTexFile == null
                     ? null
@@ -98,7 +97,7 @@ namespace SamplePlugin.Data
             }
             catch(Exception e)
             {
-                PluginLog.LogError($"Unable to load texture for {pIconId} - {e.Message}");
+                PluginLog.LogWarning($"Unable to load texture for {pIconId} - {e.Message}");
             }
             return null;
         }
@@ -110,11 +109,11 @@ namespace SamplePlugin.Data
         public TextureWrap? GetTextureFromItemId(uint pItemId, Sheet pSheet = Sheet.Action)
         {
             uint? tIconId = this.GetIconId(pItemId, pSheet);
-            PluginLog.LogDebug($"GetTextureFromItemId(): Loading iconId from itemId {pItemId} of from sheet {pSheet.ToString()}: {(tIconId == null ? false : tIconId)}");
+            //PluginLog.LogDebug($"GetTextureFromItemId(): Loading iconId from itemId {pItemId} of from sheet {pSheet.ToString()}: {(tIconId == null ? false : tIconId)}");
             //return (tIconId != null && this.mIcons.ContainsKey(tIconId!.Value)) ? this.mIcons[tIconId!.Value] : null;
             if (tIconId != null && this.mIcons[pSheet].ContainsKey(tIconId!.Value))
             {
-                PluginLog.LogDebug($"GetTextureFromItemId(): Texture found for iconId {tIconId} in sheet {pSheet.ToString()}");
+                //PluginLog.LogDebug($"GetTextureFromItemId(): Texture found for iconId {tIconId} in sheet {pSheet.ToString()}");
                 return this.mIcons[pSheet][tIconId!.Value];
             }
             return null;
@@ -138,7 +137,7 @@ namespace SamplePlugin.Data
         {
             uint? tIconId = this.GetIconId(pItemId, pSheet);
             if (tIconId == null) { PluginLog.Warning($"Unable to find Texture for itemId {pItemId} (maybe a standardTexuture?). Aborting disposing..."); return; }
-            PluginLog.LogInformation($"Disposing itemId {pItemId}");
+            //PluginLog.LogInformation($"Disposing itemId {pItemId}");
             if (this.mIcons[pSheet].ContainsKey(tIconId.Value))
             {
                 this.mIcons[pSheet][tIconId.Value]?.Dispose();
@@ -159,7 +158,7 @@ namespace SamplePlugin.Data
                 case Sheet.Item:
                     return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetItem?.GetRow(pItemId)?.Icon);
                 default:
-                    PluginLog.LogDebug($"GetIconId(): Unable to load iconId of {pItemId} from sheet {pSheet.ToString()}");
+                    //PluginLog.LogDebug($"GetIconId(): Unable to load iconId of {pItemId} from sheet {pSheet.ToString()}");
                     return null;
             }
         }

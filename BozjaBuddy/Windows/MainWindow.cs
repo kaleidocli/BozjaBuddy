@@ -1,18 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using Dalamud.Data;
 using Dalamud.Interface.Windowing;
-using Dalamud.Utility;
 using ImGuiNET;
-using ImGuiScene;
-using Lumina.Data.Files;
-using Lumina.Excel.GeneratedSheets;
-using Lumina.Extensions;
-using Newtonsoft.Json;
-using SamplePlugin.Data;
-using SamplePlugin.Filter;
 using SamplePlugin.GUI.Tabs;
 
 namespace SamplePlugin.Windows;
@@ -43,9 +32,8 @@ public class MainWindow : Window, IDisposable
     {
         this.mLostActionTab.Dispose();
         this.mFateCeTab.Dispose();
+        this.mMobTab.Dispose();
     }
-
-    unsafe ImGuiTextFilterPtr GetTextFilterPtr() => new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
 
     public override void Draw()
     {
@@ -56,8 +44,5 @@ public class MainWindow : Window, IDisposable
 
             ImGui.EndTabBar();
         }
-
-        ImGui.Spacing();
-
     }
 }

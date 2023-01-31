@@ -26,11 +26,5 @@ public class ConfigWindow : Window, IDisposable
     {
         // can't ref a property, so use a local copy
         var configValue = this.Configuration.SomePropertyToBeSavedAndWithADefault;
-        if (ImGui.Checkbox("Random Config Bool", ref configValue))
-        {
-            this.Configuration.SomePropertyToBeSavedAndWithADefault = configValue;
-            // can save immediately on change, if you don't want to provide a "Save and Close" button
-            this.Configuration.Save();
-        }
     }
 }
