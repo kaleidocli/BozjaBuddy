@@ -93,7 +93,7 @@ namespace SamplePlugin.GUI.Sections
                     // Description
                     if (ImGui.BeginTabItem("Description"))
                     {
-                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
+                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.None);
                         ImGui.PushTextWrapPos(0);
                         // Fate chains
                         if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate 
@@ -126,7 +126,7 @@ namespace SamplePlugin.GUI.Sections
                     // Sources
                     if (ImGui.BeginTabItem("Sources/Drop"))
                     {
-                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
+                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.None);
                         if (pObj.mLinkFragments.Count != 0 && ImGui.CollapsingHeader($"Fragment ({pObj.mLinkFragments.Count})"))
                         {
                             foreach (int iId in pObj.mLinkFragments)
