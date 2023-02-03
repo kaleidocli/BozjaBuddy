@@ -1,6 +1,6 @@
 using ImGuiNET;
-using SamplePlugin.Data;
-using SamplePlugin.GUI;
+using BozjaBuddy.Data;
+using BozjaBuddy.GUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.Filter.LostActionTableSection
+namespace BozjaBuddy.Filter.LostActionTableSection
 {
     internal class FilterRole : Filter
     {

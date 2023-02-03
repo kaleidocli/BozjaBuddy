@@ -1,7 +1,7 @@
 using FFXIVClientStructs.FFXIV.Common.Math;
 using ImGuiNET;
 using ImGuiScene;
-using SamplePlugin.Data;
+using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Logging;
 
-namespace SamplePlugin.GUI.Sections
+namespace BozjaBuddy.GUI.Sections
 {
     /// <summary>
     /// A Section featuring a table of Lost Actions with filters

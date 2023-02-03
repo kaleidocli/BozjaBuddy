@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using System.Drawing;
-using SamplePlugin.GUI.Sections;
+using BozjaBuddy.GUI.Sections;
 
-namespace SamplePlugin.Data
+namespace BozjaBuddy.Data
 {
     public class BBDataManager
     {

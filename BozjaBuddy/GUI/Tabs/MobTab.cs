@@ -1,11 +1,11 @@
-using SamplePlugin.GUI.Sections;
+using BozjaBuddy.GUI.Sections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.GUI.Tabs
+namespace BozjaBuddy.GUI.Tabs
 {
     internal class MobTab : Tab, IDisposable
     {

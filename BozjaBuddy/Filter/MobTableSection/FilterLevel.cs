@@ -1,4 +1,4 @@
-using SamplePlugin.Data;
+using BozjaBuddy.Data;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.Filter.MobTableSection
+namespace BozjaBuddy.Filter.MobTableSection
 {
     internal class FilterLevel : Filter
     {

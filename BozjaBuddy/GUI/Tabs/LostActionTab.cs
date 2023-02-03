@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SamplePlugin.GUI.Sections;
+using BozjaBuddy.GUI.Sections;
 
-namespace SamplePlugin.GUI.Tabs
+namespace BozjaBuddy.GUI.Tabs
 {
     /// <summary>
     /// A Tab featuring a LostActionTableSection and an AuxilaryViewerSection

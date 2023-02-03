@@ -1,12 +1,10 @@
 using System.Data.SQLite;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Lumina.Models.Materials.Texture;
+using Dalamud.Game.ClientState.Fates;
+using Dalamud.Logging;
 
-namespace SamplePlugin.Data
+namespace BozjaBuddy.Data
 {
     public class Fate : GeneralObject
     {
@@ -25,6 +23,17 @@ namespace SamplePlugin.Data
         private string mTerritoryType { get; set; } = string.Empty;
         private double mMapCoordX { get; set; }
         private double mMapCoordY { get; set; }
+        private Dalamud.Game.ClientState.Fates.Fate? _mCSFate = null;
+        public Dalamud.Game.ClientState.Fates.Fate? mCSFate
+        {
+            get
+            {
+                if (this._mCSFate is not null && this._mCSFate.IsValid() && (this._mCSFate.State == FateState.Running || this._mCSFate.State == FateState.Preparation))
+                    return this._mCSFate;
+                return null;
+            }
+            set { this._mCSFate = value; }
+        }
         protected override Plugin mPlugin { get; set; }
 
         public Fate(Plugin pPlugin, SQLiteDataReader pPackage)
@@ -51,6 +60,7 @@ namespace SamplePlugin.Data
 
             this.mLinkFragments = new List<int>();
             this.mLocation = new Location(this.mPlugin, this.mTerritoryType, this.mMapCoordX, this.mMapCoordY);
+            this.mCSFate = null;
 
             this.SetUpAuxiliary();
         }

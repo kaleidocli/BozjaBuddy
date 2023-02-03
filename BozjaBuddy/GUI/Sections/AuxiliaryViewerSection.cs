@@ -2,7 +2,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
 using ImGuiScene;
-using SamplePlugin.Data;
+using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +10,9 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using static SamplePlugin.Data.TextureCollection;
+using static BozjaBuddy.Data.TextureCollection;
 
-namespace SamplePlugin.GUI.Sections
+namespace BozjaBuddy.GUI.Sections
 {
     internal class AuxiliaryViewerSection : Section
     {

@@ -1,12 +1,12 @@
 using ImGuiNET;
-using SamplePlugin.Interface;
+using BozjaBuddy.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.GUI
+namespace BozjaBuddy.GUI
 {
     /// <summary>
     /// Represents a Tab of a Window

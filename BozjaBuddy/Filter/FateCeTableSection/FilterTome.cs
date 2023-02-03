@@ -1,11 +1,11 @@
-using SamplePlugin.Data;
+using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.Filter.FateCeTableSection
+namespace BozjaBuddy.Filter.FateCeTableSection
 {
     internal class FilterTome : Filter
     {

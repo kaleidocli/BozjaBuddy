@@ -5,10 +5,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuizmoNET;
-using SamplePlugin.Data;
-using SamplePlugin.GUI;
+using BozjaBuddy.Data;
+using BozjaBuddy.GUI;
 
-namespace SamplePlugin.Filter
+namespace BozjaBuddy.Filter
 {
     /// <summary>
     /// Represents 1. Column header's GUI

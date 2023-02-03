@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.Data
+namespace BozjaBuddy.Data
 {
     /// <summary>
     /// GeneralObject is object that can be displayed in Auxiliary Viewer

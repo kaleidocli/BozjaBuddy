@@ -1,21 +1,18 @@
-using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using System.IO;
 using System.Reflection;
 using Dalamud.Interface.Windowing;
-using SamplePlugin.Windows;
-using SamplePlugin.Data;
+using BozjaBuddy.Windows;
+using BozjaBuddy.Data;
 using ImGuiNET;
-using Dalamud.Data;
-using Lumina.Excel.GeneratedSheets;
-using System.Linq;
-using Lumina.Extensions;
-using Lumina.Data.Files;
-using Dalamud.Game.Gui;
 using Dalamud.Logging;
+using Dalamud.Data;
+using Dalamud.Game.Gui;
+using Dalamud.Game.Command;
+using Dalamud.Game.ClientState.Fates;
 
-namespace SamplePlugin
+namespace BozjaBuddy
 {
     public sealed class Plugin : IDalamudPlugin
     {
@@ -27,10 +24,10 @@ namespace SamplePlugin
         public DalamudPluginInterface PluginInterface { get; init; }
         private CommandManager CommandManager { get; init; }
         public GameGui GameGui { get; init; }
+        public FateTable FateTable { get; init; }
+        public DataManager DataManager { get; init; }
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("Bozja Buddy");  
-
-        public DataManager DataManager { get; init; }
         
         public BBDataManager mBBDataManager;
 
@@ -38,12 +35,14 @@ namespace SamplePlugin
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
             [RequiredVersion("1.0")] CommandManager commandManager,
             [RequiredVersion("1.0")] DataManager dataManager,
-            [RequiredVersion("1.0")] GameGui gameGui)
+            [RequiredVersion("1.0")] GameGui gameGui,
+            [RequiredVersion("1.0")] FateTable fateTable)
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
             this.DataManager = dataManager;
             this.GameGui = gameGui;
+            this.FateTable = fateTable;
 
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(this.PluginInterface);

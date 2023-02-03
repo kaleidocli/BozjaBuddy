@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Lumina.Excel.GeneratedSheets;
 
-namespace SamplePlugin.Data
+namespace BozjaBuddy.Data
 {
     public class LostAction : GeneralObject
     {
