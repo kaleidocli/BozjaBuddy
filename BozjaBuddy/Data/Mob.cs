@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.Data
+namespace BozjaBuddy.Data
 {
     public class Mob : GeneralObject
     {
@@ -34,6 +34,7 @@ namespace SamplePlugin.Data
 
             this.mLinkFragments = new List<int>();
             this.mLocation = new Location(this.mPlugin, this.mTerritoryType, this.mMapCoordX, this.mMapCoordY);
+            this.mTabColor = new System.Numerics.Vector4(0.89f, 0.92f, 0.61f, 0.2f);
 
             this.SetUpAuxiliary();
         }

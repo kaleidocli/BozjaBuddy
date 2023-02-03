@@ -1,13 +1,13 @@
 using ImGuiNET;
 using ImGuiScene;
-using SamplePlugin.Data;
+using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.GUI.Sections
+namespace BozjaBuddy.GUI.Sections
 {
     internal class MobTableSection : Section, IDisposable
     {

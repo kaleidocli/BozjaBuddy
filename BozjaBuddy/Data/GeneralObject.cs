@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.Data
+namespace BozjaBuddy.Data
 {
     /// <summary>
     /// GeneralObject is object that can be displayed in Auxiliary Viewer
@@ -25,6 +25,7 @@ namespace SamplePlugin.Data
         public virtual List<int> mLinkFragments { get; set; } = new List<int>();
         public virtual List<int> mLinkVendors { get; set; } = new List<int>();
         public virtual Location? mLocation { get; set; } = null;
+        public virtual System.Numerics.Vector4? mTabColor { get; set; } = null;
 
         public virtual int GetGenId() => GeneralObject.IdToGenId(this.mId, (int)this.mIdSalt);
         protected abstract void SetUpAuxiliary();

@@ -2,7 +2,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
 using ImGuiScene;
-using SamplePlugin.Data;
+using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,15 +10,17 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using static SamplePlugin.Data.TextureCollection;
+using static BozjaBuddy.Data.TextureCollection;
+using System.Numerics;
 
-namespace SamplePlugin.GUI.Sections
+namespace BozjaBuddy.GUI.Sections
 {
     internal class AuxiliaryViewerSection : Section
     {
         public static Dictionary<int, bool> mTabGenIds = new Dictionary<int, bool>();
         public static List<int> mTabGenIdsToDraw = new List<int>();
         private static TextureCollection? mTextureCollection = null;
+        private static int mGenIdToTabFocus = -1;
         private static ImGuiTabBarFlags AUXILIARY_TAB_FLAGS = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
 
         protected override Plugin mPlugin { get; set; }
@@ -52,8 +54,14 @@ namespace SamplePlugin.GUI.Sections
         private void DrawTab(GeneralObject pObj)
         {
             bool[] tIsOpened = { true };
-            if (ImGui.BeginTabItem(pObj.mName, ref tIsOpened[0]))
+
+            if (pObj.mTabColor != null) ImGui.PushStyleColor(ImGuiCol.Tab, pObj.mTabColor.Value);
+
+            if (ImGui.BeginTabItem(pObj.mName, ref tIsOpened[0], pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus
+                                                                    ? ImGuiTabItemFlags.SetSelected
+                                                                    : ImGuiTabItemFlags.None))
             {
+                if (pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus) AuxiliaryViewerSection.mGenIdToTabFocus = -1;   // Release selected
                 // Icon
                 TextureWrap? tIconWrap;
                 switch (pObj.GetSalt())
@@ -93,7 +101,7 @@ namespace SamplePlugin.GUI.Sections
                     // Description
                     if (ImGui.BeginTabItem("Description"))
                     {
-                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
+                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.None);
                         ImGui.PushTextWrapPos(0);
                         // Fate chains
                         if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate 
@@ -126,7 +134,7 @@ namespace SamplePlugin.GUI.Sections
                     // Sources
                     if (ImGui.BeginTabItem("Sources/Drop"))
                     {
-                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
+                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.None);
                         if (pObj.mLinkFragments.Count != 0 && ImGui.CollapsingHeader($"Fragment ({pObj.mLinkFragments.Count})"))
                         {
                             foreach (int iId in pObj.mLinkFragments)
@@ -222,6 +230,8 @@ namespace SamplePlugin.GUI.Sections
                 }
                 ImGui.EndTabItem();
             }
+            if (pObj.mTabColor != null) ImGui.PopStyleColor();
+
             if (!tIsOpened[0])
             {
                 AuxiliaryViewerSection.RemoveTab(this.mPlugin, pObj.GetGenId());
@@ -239,17 +249,18 @@ namespace SamplePlugin.GUI.Sections
             int tId = pPlugin.mBBDataManager.mGeneralObjects[pGenId].mId;
             AuxiliaryViewerSection.mTabGenIds.Add(pGenId, false);
         }
-        public static void AddTab(Plugin pPlugin, int pGenId)                               //FIXME
+        public static void AddTab(Plugin pPlugin, int pGenId)
         {
             if (!AuxiliaryViewerSection.mTabGenIds.ContainsKey(pGenId)) return;
             int tId = pPlugin.mBBDataManager.mGeneralObjects[pGenId].mId;
             GeneralObject.GeneralObjectSalt tSalt = pPlugin.mBBDataManager.mGeneralObjects[pGenId].GetSalt();
             AuxiliaryViewerSection.mTabGenIds[pGenId] = true;
             AuxiliaryViewerSection.mTabGenIdsToDraw.Add(pGenId);
+            AuxiliaryViewerSection.mGenIdToTabFocus = pGenId;
             AuxiliaryViewerSection.mTextureCollection ??= new TextureCollection(pPlugin);
             AuxiliaryViewerSection.mTextureCollection.AddTextureFromItemId(Convert.ToUInt32(tId), tSalt);
         }
-        public static void RemoveTab(Plugin pPlugin, int pGenId)                            //FIXME
+        public static void RemoveTab(Plugin pPlugin, int pGenId)
         {
             if (!AuxiliaryViewerSection.mTabGenIds.ContainsKey(pGenId)) return;
             int tId = pPlugin.mBBDataManager.mGeneralObjects[pGenId].mId;
@@ -273,8 +284,7 @@ namespace SamplePlugin.GUI.Sections
                     }
                     else
                     {
-                        AuxiliaryViewerSection.RemoveTab(pPlugin, pTargetGenId);
-                        //PluginLog.LogInformation("Removing Tab");
+                        AuxiliaryViewerSection.mGenIdToTabFocus = pTargetGenId;
                     }
                 }
             }
@@ -286,8 +296,7 @@ namespace SamplePlugin.GUI.Sections
                 }
                 else
                 {
-                    AuxiliaryViewerSection.RemoveTab(pPlugin, pTargetGenId);
-                    //PluginLog.LogInformation("Removing Tab");
+                    AuxiliaryViewerSection.mGenIdToTabFocus = pTargetGenId;
                 }
             }
         }
@@ -322,5 +331,7 @@ namespace SamplePlugin.GUI.Sections
         public override void Dispose()
         {
         }
+
+        public static Vector4 TABCOLOR_FATE { get; set; } = new Vector4(1, 1, 1, 1);
     }
 }

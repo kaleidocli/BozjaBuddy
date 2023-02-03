@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SamplePlugin.Data;
-using SamplePlugin.GUI.Sections;
+using BozjaBuddy.Data;
+using BozjaBuddy.GUI.Sections;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using System.ComponentModel;
 
-namespace SamplePlugin.GUI
+namespace BozjaBuddy.GUI
 {
     internal class GUIFilter
     {

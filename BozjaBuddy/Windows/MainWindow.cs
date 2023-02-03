@@ -2,9 +2,9 @@ using System;
 using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
-using SamplePlugin.GUI.Tabs;
+using BozjaBuddy.GUI.Tabs;
 
-namespace SamplePlugin.Windows;
+namespace BozjaBuddy.Windows;
 
 public class MainWindow : Window, IDisposable
 {

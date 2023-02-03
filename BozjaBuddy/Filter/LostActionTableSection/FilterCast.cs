@@ -1,11 +1,11 @@
-using SamplePlugin.Data;
+using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SamplePlugin.Filter.LostActionTableSection
+namespace BozjaBuddy.Filter.LostActionTableSection
 {
     internal class FilterCast : Filter
     {

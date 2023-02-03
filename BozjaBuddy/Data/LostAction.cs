@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Lumina.Excel.GeneratedSheets;
 
-namespace SamplePlugin.Data
+namespace BozjaBuddy.Data
 {
     public class LostAction : GeneralObject
     {
@@ -38,6 +38,8 @@ namespace SamplePlugin.Data
             mCast = Convert.ToDouble(pPackage["cast"] is System.DBNull ? -1 : pPackage["cast"]);
             mRecast = Convert.ToDouble(pPackage["cooldown"] is System.DBNull ? -1 : pPackage["cooldown"]);
             mCharges = Convert.ToInt32(pPackage["weight"] is System.DBNull ? -1 : pPackage["weight"]);
+
+            this.mTabColor = new System.Numerics.Vector4(0.61f, 0.79f, 0.92f, 0.2f);
 
             this.SetUpAuxiliary();
         }

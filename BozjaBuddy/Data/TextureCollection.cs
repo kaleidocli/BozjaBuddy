@@ -10,10 +10,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
-using static SamplePlugin.Data.TextureCollection;
+using static BozjaBuddy.Data.TextureCollection;
 using Lumina.Excel.GeneratedSheets;
 
-namespace SamplePlugin.Data
+namespace BozjaBuddy.Data
 {
     /// <summary>
     /// <para>Represents a collection of Texturewrapp icon. Call Dispose() when no longer needed.</para>

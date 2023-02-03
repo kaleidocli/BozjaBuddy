@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.Entity.Core.Objects;
 
-namespace SamplePlugin.Data
+namespace BozjaBuddy.Data
 {
     public class Vendor : GeneralObject
     {
