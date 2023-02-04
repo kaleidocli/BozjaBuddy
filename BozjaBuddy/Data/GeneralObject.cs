@@ -1,6 +1,4 @@
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using FFXIVClientStructs.Interop.Attributes;
-using System;
+using BozjaBuddy.GUI.IGMarkup;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +17,7 @@ namespace BozjaBuddy.Data
         public virtual string mName { get; set; } = string.Empty;
         public virtual string mDetail { get; set; } = string.Empty;
         public virtual string mDescription { get; set; } = string.Empty;
+        public virtual IGMarkup? mIGMarkup { get; set; } = null;
         public virtual List<int> mLinkActions { get; set; } = new List<int>();
         public virtual List<int> mLinkMobs { get; set; } = new List<int>();
         public virtual List<int> mLinkFates { get; set; } = new List<int>();

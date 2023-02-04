@@ -42,6 +42,7 @@ namespace BozjaBuddy.Data
         {
             this.mDetail = $"[{this.mType.ToString()}] • [Rank: {this.mLevel}]";
             this.mDescription = this.mNote;
+            this.mIGMarkup = new GUI.IGMarkup.IGMarkup(this.mNote);
         }
 
         public enum MobType

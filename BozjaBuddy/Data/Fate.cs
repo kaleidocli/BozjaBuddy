@@ -69,7 +69,8 @@ namespace BozjaBuddy.Data
         protected override void SetUpAuxiliary()
         {
             this.mDetail = $"[Tome: {this.mRewardTome}] \t•\t[Mettle: {this.mRewardMettleMin} - {this.mRewardMettleMax}]\t•\t[Exp: {this.mRewardExpMin} - {this.mRewardExpMax}]";
-            this.mDescription= this.mNote;
+            this.mDescription = this.mNote;
+            this.mIGMarkup = new GUI.IGMarkup.IGMarkup(this.mNote);
         }
 
         public enum FateType

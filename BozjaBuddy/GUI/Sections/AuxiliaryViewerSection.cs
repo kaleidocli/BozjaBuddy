@@ -126,7 +126,8 @@ namespace BozjaBuddy.GUI.Sections
                             while (iCurrFateId != -1);
                             ImGui.Separator();
                         }
-                        ImGui.TextUnformatted(pObj.mDescription);
+                        //ImGui.TextUnformatted(pObj.mDescription);
+                        pObj.mIGMarkup?.DrawGUI();
                         ImGui.PopTextWrapPos();
                         ImGui.EndChild();
                         ImGui.EndTabItem();
