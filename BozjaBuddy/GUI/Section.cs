@@ -1,4 +1,5 @@
 using BozjaBuddy.Interface;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,5 +20,20 @@ namespace BozjaBuddy.GUI
         public abstract void DrawGUIDebug();
 
         public abstract void Dispose();
+        protected virtual List<int> SortTableContent(List<int> pIds, Filter.Filter[] pFilters)
+        {
+            ImGuiTableSortSpecsPtr tColIndexToSort = ImGui.TableGetSortSpecs();
+            unsafe
+            {
+                if (tColIndexToSort.SpecsCount != 0 && tColIndexToSort.SpecsDirty)
+                {
+                    return pFilters[tColIndexToSort.Specs.ColumnIndex].Sort(
+                        pIds,
+                        tColIndexToSort.Specs.SortDirection == ImGuiSortDirection.Ascending ? true : false
+                        );
+                }
+            }
+            return pIds;
+        }
     }
 }

@@ -55,7 +55,8 @@ namespace BozjaBuddy.Data
             Fragment = 2,
             Mob = 3,
             Fate = 4,
-            Vendor = 5
+            Vendor = 5,
+            Loadout = 6
         }
     }
 }

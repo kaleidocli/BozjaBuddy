@@ -70,7 +70,7 @@ namespace BozjaBuddy.GUI.Sections
             if (ImGui.BeginTable("##FateCe", FateCeTableSection.COLUMN_COUNT, FateCeTableSection.TABLE_FLAG, new System.Numerics.Vector2(0.0f, this.TABLE_SIZE_Y)))
             {
                 DrawTableHeader();
-                List<int> tIDs = SortTableContent();
+                List<int> tIDs = SortTableContent(this.mFateIDs, this.mFilters);
                 DrawTableContent(tIDs);
 
                 ImGui.EndTable();
@@ -178,19 +178,6 @@ namespace BozjaBuddy.GUI.Sections
             }
 
             ImGui.PopStyleVar();
-        }
-
-        private List<int> SortTableContent()
-        {
-            ImGuiTableSortSpecsPtr tColIndexToSort = ImGui.TableGetSortSpecs();
-            if (tColIndexToSort.SpecsDirty)
-            {
-                return this.mFilters[tColIndexToSort.Specs.ColumnIndex].Sort(
-                    this.mFateIDs,
-                    tColIndexToSort.Specs.SortDirection == ImGuiSortDirection.Ascending ? true : false
-                    );
-            }
-            return this.mFateIDs;
         }
 
         public override void DrawGUIDebug()

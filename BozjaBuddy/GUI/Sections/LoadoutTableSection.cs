@@ -1,6 +1,6 @@
+﻿using BozjaBuddy.Data;
 using ImGuiNET;
 using ImGuiScene;
-using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,39 +9,41 @@ using System.Threading.Tasks;
 
 namespace BozjaBuddy.GUI.Sections
 {
-    internal class MobTableSection : Section, IDisposable
+    internal class LoadoutTableSection : Section
     {
-        protected override Plugin mPlugin { get; set; }
-        private Filter.Filter[] mFilters;
         static int COLUMN_COUNT;
         static int HEADER_TEXT_FIELD_SIZE_OFFSET = GUIFilter.HEADER_TEXT_FIELD_SIZE_OFFSET;
-        protected static ImGuiTableFlags TABLE_FLAG = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersV |
+        const ImGuiTableFlags TABLE_FLAG = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersV |
                                      ImGuiTableFlags.ContextMenuInBody | ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg |
                                      ImGuiTableFlags.ScrollY | ImGuiTableFlags.Reorderable | ImGuiTableFlags.Sortable |
                                      ImGuiTableFlags.ScrollX;
         private float TABLE_SIZE_Y;
         float FIXED_LINE_HEIGHT;
-        private List<int> mMobIDs;
-        private TextureCollection mTextureCollection;
+        private List<int> mLoadoutIds;
+        private Filter.Filter[] mFilters;
 
-        public MobTableSection(Plugin pPlugin)
+        protected override Plugin mPlugin { get; set; }
+
+
+
+        public LoadoutTableSection(Plugin pPlugin)
         {
             this.mPlugin = pPlugin;
-            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
-            this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 1);
 
-            this.mFilters = new Filter.Filter[] {
-                new Filter.MobTableSection.FilterType(true, this.mPlugin, true),
-                new Filter.MobTableSection.FilterName(),
-                new Filter.MobTableSection.FilterLevel(true, this.mPlugin, true),
-                new Filter.MobTableSection.FilterLocation()
+            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
+            this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 3);
+
+            this.mFilters = new Filter.Filter[]{
+                new Filter.LoadoutTableSection.FilterName(),
+                new Filter.LoadoutTableSection.FilterRole(),
+                new Filter.LoadoutTableSection.FilterGroup()
             };
-            MobTableSection.COLUMN_COUNT = this.mFilters.Length;
-            this.mMobIDs = this.mPlugin.mBBDataManager.mMobs.Keys.ToList();
-            this.mTextureCollection = new TextureCollection(this.mPlugin);
+            LoadoutTableSection.COLUMN_COUNT = this.mFilters.Length;
+
+            this.mLoadoutIds = this.mPlugin.mBBDataManager.mLoadouts.Keys.ToList();
         }
 
-        private bool CheckFilter(Mob pEntity)
+        private bool CheckFilter(Loadout pEntity)
         {
             foreach (var iFilter in this.mFilters)
             {
@@ -62,10 +64,10 @@ namespace BozjaBuddy.GUI.Sections
 
         private void DrawTable()
         {
-            if (ImGui.BeginTable("##Mob", MobTableSection.COLUMN_COUNT, MobTableSection.TABLE_FLAG, new System.Numerics.Vector2(0.0f, this.TABLE_SIZE_Y)))
+            if (ImGui.BeginTable("##Loadout", LoadoutTableSection.COLUMN_COUNT, LoadoutTableSection.TABLE_FLAG, new System.Numerics.Vector2(0.0f, this.TABLE_SIZE_Y)))
             {
                 DrawTableHeader();
-                List<int> tIDs = SortTableContent(this.mMobIDs, this.mFilters);
+                List<int> tIDs =  SortTableContent(this.mLoadoutIds, this.mFilters);
                 DrawTableContent(tIDs);
 
                 ImGui.EndTable();
@@ -74,24 +76,20 @@ namespace BozjaBuddy.GUI.Sections
 
         private void DrawTableHeader()
         {
-            ImGui.TableSetupScrollFreeze(1, 1);
-
             for (int i = 0; i < this.mFilters.Length; i++)
                 ImGui.TableSetupColumn(this.mFilters[i].mFilterName,
-                                        this.mFilters[i].mIsSortingActive ? ImGuiTableColumnFlags.DefaultSort : ImGuiTableColumnFlags.NoSort,
+                                        this.mFilters[i].mIsSortingActive ? ImGuiTableColumnFlags.None : ImGuiTableColumnFlags.NoSort,
                                         0.0f,
                                         (uint)i);
 
             ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
-            for (int iCol = 0; iCol < MobTableSection.COLUMN_COUNT; iCol++)
+            for (int iCol = 0; iCol < LoadoutTableSection.COLUMN_COUNT; iCol++)
             {
                 ImGui.TableSetColumnIndex(iCol);
                 ImGui.PushID(ImGui.TableGetColumnName(iCol));
-                ImGui.PushItemWidth(ImGui.GetColumnWidth(iCol) - MobTableSection.HEADER_TEXT_FIELD_SIZE_OFFSET);
+                ImGui.PushItemWidth(ImGui.GetColumnWidth(iCol) - LoadoutTableSection.HEADER_TEXT_FIELD_SIZE_OFFSET);
                 ImGui.PushTextWrapPos(0);
-
                 this.mFilters[iCol].DrawFilterGUI(); ImGui.SameLine();
-
                 ImGui.PopTextWrapPos();
                 ImGui.TableHeader("");
                 ImGui.PopItemWidth();
@@ -101,7 +99,7 @@ namespace BozjaBuddy.GUI.Sections
 
         private void DrawTableContent()
         {
-            this.DrawTableContent(this.mMobIDs);
+            this.DrawTableContent(this.mLoadoutIds);
         }
 
         private void DrawTableContent(List<int> pIDs)
@@ -109,46 +107,44 @@ namespace BozjaBuddy.GUI.Sections
             // CONTENT
             foreach (int iID in pIDs)
             {
-                Mob tMob = this.mPlugin.mBBDataManager.mMobs[iID];
-                if (!this.CheckFilter(tMob)) continue;
+                Loadout tLoadout = this.mPlugin.mBBDataManager.mLoadouts[iID];
+                if (!this.CheckFilter(tLoadout)) continue;
 
                 ImGui.TableNextRow(ImGuiTableRowFlags.None, this.FIXED_LINE_HEIGHT);
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(1, 0));
-                TextureWrap? tIconWrap = this.mTextureCollection.GetStandardTexture(Convert.ToUInt32(tMob.mType));
-
-                for (int i = 0; i < MobTableSection.COLUMN_COUNT; i++)
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(ImGui.GetStyle().ItemSpacing.X, ImGui.GetStyle().CellPadding.Y));
+                for (int i = 0; i < LoadoutTableSection.COLUMN_COUNT; i++)
                 {
                     ImGui.TableSetColumnIndex(i);
                     switch (i)
                     {
                         case 0:
-                            if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width, tIconWrap.Height));
+                            AuxiliaryViewerSection.GUISelectableLink(mPlugin, tLoadout.mName, tLoadout.GetGenId());
                             break;
                         case 1:
-                            AuxiliaryViewerSection.GUISelectableLink(mPlugin, tMob.mName, tMob.GetGenId());
+                            ImGui.Text(RoleFlag.FlagToString(tLoadout.mRole.mRoleFlagBit));
                             break;
                         case 2:
-                            ImGui.Text($"{tMob.mLevel}");
-                            break;
-                        case 3:
-                            AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tMob.mLocation!);
+                            ImGui.TextUnformatted(tLoadout.mGroup);
                             break;
                         default: break;
                     }
                 }
-
                 ImGui.PopStyleVar();
             }
         }
 
         public override void DrawGUIDebug()
         {
+            ImGui.Text(String.Format("Edited: {0} {1}", this.mFilters[0].GetCurrValue(),
+                                                        this.mFilters[1].GetCurrValue()));
+        }
 
+        public void DrawTableDebug()
+        {
         }
 
         public override void Dispose()
         {
-            this.mTextureCollection.Dispose();
         }
     }
 }

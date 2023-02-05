@@ -148,6 +148,20 @@ namespace BozjaBuddy.Data
         {
             this.RemoveTextureFromItemId(pItemId, TextureCollection.GenObjSaltToSheet(pSalt));
         }
+        public void RemoveTextureFromItemId(List<int> pItemIds, GeneralObject.GeneralObjectSalt pSalt)
+        {
+            foreach (int iItemId in pItemIds)
+            {
+                this.RemoveTextureFromItemId(Convert.ToUInt32(iItemId), pSalt);
+            }
+        }
+        public void RemoveTextureFromItemId(Dictionary<int,int>.KeyCollection pItemIds, GeneralObject.GeneralObjectSalt pSalt)
+        {
+            foreach (int iItemId in pItemIds)
+            {
+                this.RemoveTextureFromItemId(Convert.ToUInt32(iItemId), pSalt);
+            }
+        }
 
         private uint? GetIconId(uint pItemId, Sheet pSheet)
         {

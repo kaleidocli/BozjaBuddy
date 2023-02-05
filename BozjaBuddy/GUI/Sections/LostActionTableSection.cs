@@ -84,7 +84,7 @@ namespace BozjaBuddy.GUI.Sections
             if (ImGui.BeginTable("##LostAction", LostActionTableSection.COLUMN_COUNT, LostActionTableSection.TABLE_FLAG, new System.Numerics.Vector2(0.0f, this.TABLE_SIZE_Y)))
             {
                 DrawTableHeader();
-                List<int> tIDs = SortTableContent();
+                List<int> tIDs = SortTableContent(this.mActionIDs, this.mFilters);
                 DrawTableContent(tIDs);
 
                 ImGui.EndTable();
@@ -173,19 +173,6 @@ namespace BozjaBuddy.GUI.Sections
                 }
                 ImGui.PopStyleVar();
             }
-        }
-
-        private List<int> SortTableContent()
-        {
-            ImGuiTableSortSpecsPtr tColIndexToSort = ImGui.TableGetSortSpecs();
-            if (tColIndexToSort.SpecsDirty)
-            {
-                return this.mFilters[tColIndexToSort.Specs.ColumnIndex].Sort(
-                    this.mActionIDs, 
-                    tColIndexToSort.Specs.SortDirection == ImGuiSortDirection.Ascending ? true : false
-                    );
-            }
-            return this.mActionIDs;
         }
 
         public override void DrawGUIDebug()

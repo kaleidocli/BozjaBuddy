@@ -1,0 +1,16 @@
+{
+  "mLoadouts": [
+    {
+      "mId": 0,
+      "mName": "Default Loadout",
+      "mDescription": "a default loadout",
+      "mGroup": "default",
+      "mRoleInt": 11111,
+      "mWeight": 99,
+      "mActionIds": {
+        "20707": 1,
+        "20708": 2
+      }
+    }
+  ]
+}

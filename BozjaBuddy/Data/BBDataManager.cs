@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using System.Drawing;
 using BozjaBuddy.GUI.Sections;
+using System.Text.Json;
 
 namespace BozjaBuddy.Data
 {
@@ -23,10 +24,11 @@ namespace BozjaBuddy.Data
         public Dictionary<int, Fate> mFates;
         public Dictionary<int, Mob> mMobs;
         public Dictionary<int, Vendor> mVendors;
+        public Dictionary<int, Loadout> mLoadouts;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Action>? mSheetAction;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? mSheetItem;
 
-        public BBDataManager(Plugin pPlugin, string pDataPath) 
+        public BBDataManager(Plugin pPlugin) 
         {
             this.mPlugin = pPlugin;
             this.mFragments = new Dictionary<int, Fragment>();
@@ -34,10 +36,11 @@ namespace BozjaBuddy.Data
             this.mFates = new Dictionary<int, Fate>();
             this.mMobs = new Dictionary<int, Mob>();
             this.mVendors = new Dictionary<int, Vendor>();
+            this.mLoadouts = new Dictionary<int, Loadout>();
             this.mGeneralObjects = new Dictionary<int, GeneralObject>();
 
-            this.mCsLostAction = String.Format("Data Source={0}", pDataPath);
-            
+            // db
+            this.mCsLostAction = String.Format("Data Source={0}", this.mPlugin.DATA_PATHS["db"]);
             using (SQLiteConnection mConnLostAction = new SQLiteConnection(this.mCsLostAction))
             {
                 mConnLostAction.Open();
@@ -50,6 +53,19 @@ namespace BozjaBuddy.Data
                 this.DataSetUpVendor(tCommand);
             }
 
+            // json
+            LoadoutListJson? tRawLoadouts = JsonSerializer.Deserialize<LoadoutListJson>(
+                        File.ReadAllText(this.mPlugin.DATA_PATHS["loadout.json"])
+                    );
+            if (tRawLoadouts != null)
+            {
+                foreach (LoadoutJson iLoadout in tRawLoadouts.mLoadouts)
+                {
+                    this.mLoadouts[iLoadout.mId] = new Loadout(this.mPlugin, iLoadout);
+                }
+            }
+
+            // lumina
             this.mSheetAction = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Action>();
             this.mSheetItem = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Item>();
             this.SetUpGeneralObjects();
@@ -231,6 +247,8 @@ namespace BozjaBuddy.Data
                 this.mGeneralObjects[this.mLostActions[id].GetGenId()] = this.mLostActions[id];
             foreach (int id in this.mVendors.Keys)
                 this.mGeneralObjects[this.mVendors[id].GetGenId()] = this.mVendors[id];
+            foreach (int id in this.mLoadouts.Keys)
+                this.mGeneralObjects[this.mLoadouts[id].GetGenId()] = this.mLoadouts[id];
         }
 
         public void SetUpAuxiliary()
@@ -245,6 +263,8 @@ namespace BozjaBuddy.Data
                 AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mLostActions[id].GetGenId());
             foreach (int id in this.mVendors.Keys)
                 AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mVendors[id].GetGenId());
+            foreach (int id in this.mLoadouts.Keys)
+                AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mLoadouts[id].GetGenId());
         }
     }
 
@@ -258,5 +278,9 @@ namespace BozjaBuddy.Data
         Tactical,
         Detrimental,
         Item
+    }
+    public class LoadoutListJson
+    {
+        public List<LoadoutJson> mLoadouts { get; set; }
     }
 }
