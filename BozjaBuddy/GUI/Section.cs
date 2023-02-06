@@ -1,4 +1,5 @@
 using BozjaBuddy.Interface;
+using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,8 @@ namespace BozjaBuddy.GUI
     internal abstract class Section : IDrawable, IDisposable
     {
         protected abstract Plugin mPlugin { get; set; }
+        protected virtual int mLastSortedColIndex { get; set; } = -1;
+        protected virtual List<int> mLastSortedIdList { get; set; } = new List<int>();
 
         public abstract bool DrawGUI();
 
@@ -23,14 +26,20 @@ namespace BozjaBuddy.GUI
         protected virtual List<int> SortTableContent(List<int> pIds, Filter.Filter[] pFilters)
         {
             ImGuiTableSortSpecsPtr tColIndexToSort = ImGui.TableGetSortSpecs();
+            if (tColIndexToSort.SpecsCount != 0 && tColIndexToSort.Specs.ColumnIndex == this.mLastSortedColIndex)
+            {
+                return mLastSortedIdList;
+            }
             unsafe
             {
                 if (tColIndexToSort.SpecsCount != 0 && tColIndexToSort.SpecsDirty)
                 {
-                    return pFilters[tColIndexToSort.Specs.ColumnIndex].Sort(
+                    this.mLastSortedColIndex = tColIndexToSort.Specs.ColumnIndex;
+                    this.mLastSortedIdList = pFilters[tColIndexToSort.Specs.ColumnIndex].Sort(
                         pIds,
                         tColIndexToSort.Specs.SortDirection == ImGuiSortDirection.Ascending ? true : false
                         );
+                    return this.mLastSortedIdList;
                 }
             }
             return pIds;
