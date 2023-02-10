@@ -1,3 +1,4 @@
+using Dalamud.Logging;
 using Dalamud.Utility;
 using System;
 using System.Collections.Generic;
@@ -21,15 +22,20 @@ namespace BozjaBuddy.Data
         public RoleFlag() { }
 
         public RoleFlag(int pValue) {
-            this.mRoleFlagBit = IntToFlag(pValue);
+            this.SetRoleFlagBit(IntToFlag(pValue));
         }
 
+        public void SetRoleFlagBit(Role pRole)
+        {
+            this.mRoleFlagBit = pRole;
+            this.UpdateRoleFlagArray();
+        }
         public override string ToString()
         {
             return FlagToString(mRoleFlagBit);
         }
 
-        public void UpdateRoleFlagArray()
+        public void UpdateRoleFlagBit()
         {
             if (this.mRoleFlagArray[0]) this.mRoleFlagBit |= Role.Tank;
             else this.mRoleFlagBit &= ~Role.Tank;
@@ -46,6 +52,14 @@ namespace BozjaBuddy.Data
             if (this.mRoleFlagArray[4]) this.mRoleFlagBit |= Role.Caster;
             else this.mRoleFlagBit &= ~Role.Caster;
         }
+        public void UpdateRoleFlagArray()
+        {
+            this.mRoleFlagArray[0] = this.mRoleFlagBit.HasFlag(Role.Tank) ? true : false;
+            this.mRoleFlagArray[1] = this.mRoleFlagBit.HasFlag(Role.Healer) ? true : false;
+            this.mRoleFlagArray[2] = this.mRoleFlagBit.HasFlag(Role.Melee) ? true : false;
+            this.mRoleFlagArray[3] = this.mRoleFlagBit.HasFlag(Role.Range) ? true : false;
+            this.mRoleFlagArray[4] = this.mRoleFlagBit.HasFlag(Role.Caster) ? true : false;
+        }
 
         public static Role IntToFlag(int pRole)
         {
@@ -60,7 +74,6 @@ namespace BozjaBuddy.Data
 
             return tRes;
         }
-
         public static string FlagToString(Role pRole)
         {
             string tRes = String.Empty;
@@ -72,6 +85,17 @@ namespace BozjaBuddy.Data
             tRes += pRole.HasFlag(Role.Range) ? "R" : "_";
             tRes += pRole.HasFlag(Role.Caster) ? "C" : "_";
 
+            return tRes;
+        }
+        public static int FlagToInt(Role pRole)
+        {
+            int tRes = 0;
+            tRes += pRole.HasFlag(Role.Tank) ? 10000 : 0;
+            tRes += pRole.HasFlag(Role.Healer) ? 1000 : 0;
+            tRes += pRole.HasFlag(Role.Melee) ? 100 : 0;
+            tRes += pRole.HasFlag(Role.Range) ? 10 : 0;
+            tRes += pRole.HasFlag(Role.Caster) ? 1 : 0;
+            
             return tRes;
         }
     }

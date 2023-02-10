@@ -34,7 +34,8 @@ namespace BozjaBuddy.Data
 
             this.mLinkFragments = new List<int>();
             this.mLocation = new Location(this.mPlugin, this.mTerritoryType, this.mMapCoordX, this.mMapCoordY);
-            this.mTabColor = new System.Numerics.Vector4(0.89f, 0.92f, 0.61f, 0.2f);
+
+            this.mTabColor = new System.Numerics.Vector4(0.61f, 0.92f, 0.77f, 0.2f);
 
             this.SetUpAuxiliary();
         }
@@ -42,6 +43,7 @@ namespace BozjaBuddy.Data
         {
             this.mDetail = $"[{this.mType.ToString()}] • [Rank: {this.mLevel}]";
             this.mDescription = this.mNote;
+            this.mIGMarkup = new GUI.IGMarkup.IGMarkup(this.mNote);
         }
 
         public enum MobType

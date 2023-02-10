@@ -48,6 +48,7 @@ namespace BozjaBuddy.Data
         {
             this.mDetail = $"[{this.mCharges}/{this.mCharges}]\t•\t[Weight: {this.mWeight}]\t•\t[Cast: {this.mCast}s]\t•\t[Recast: {this.mRecast}]";
             this.mDescription = $"{this.mDescription_full}";
+            this.mIGMarkup = new GUI.IGMarkup.IGMarkup(this.mDescription_full);
         }
     }
 }

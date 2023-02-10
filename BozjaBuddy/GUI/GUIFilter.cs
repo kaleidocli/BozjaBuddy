@@ -80,5 +80,15 @@ namespace BozjaBuddy.GUI
                 ImGui.EndCombo();
             }
         }
+    
+        public void HeaderRoleSelectables(RoleFlag pRoleFlag)
+        {
+            pRoleFlag.UpdateRoleFlagBit();
+            this.HeaderSelectable("T##0", ref pRoleFlag.mRoleFlagArray[0]);
+            this.HeaderSelectable("H##1", ref pRoleFlag.mRoleFlagArray[1]);
+            this.HeaderSelectable("M##2", ref pRoleFlag.mRoleFlagArray[2]);
+            this.HeaderSelectable("R##3", ref pRoleFlag.mRoleFlagArray[3]);
+            this.HeaderSelectable("C##4", ref pRoleFlag.mRoleFlagArray[4]);
+        }
     }
 }

@@ -34,6 +34,7 @@ namespace BozjaBuddy.Filter
         public virtual bool CanPassFilter(Fragment pFragment) => true;
         public virtual bool CanPassFilter(Fate tFate) => true;
         public virtual bool CanPassFilter(Mob tMob) => true;
+        public virtual bool CanPassFilter(Loadout tLoadout) => true;
         protected bool CanPassFilter(string pEntityValue)
             => !mIsFilteringActive | pEntityValue.Contains(mCurrValue.ToString(), StringComparison.CurrentCultureIgnoreCase);
 

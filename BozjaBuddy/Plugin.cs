@@ -11,6 +11,7 @@ using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Command;
 using Dalamud.Game.ClientState.Fates;
+using System.Collections.Generic;
 
 namespace BozjaBuddy
 {
@@ -20,6 +21,7 @@ namespace BozjaBuddy
         private const string CommandName = "/bb";
 
         public float TEXT_BASE_HEIGHT = ImGui.GetTextLineHeightWithSpacing();
+        public Dictionary<string, string> DATA_PATHS = new Dictionary<string, string>();
 
         public DalamudPluginInterface PluginInterface { get; init; }
         private CommandManager CommandManager { get; init; }
@@ -47,10 +49,11 @@ namespace BozjaBuddy
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(this.PluginInterface);
 
-            // you might normally want to embed resources and load them from the manifest stream
-            var tDataPath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\LostAction.db");
+            this.DATA_PATHS["db"] = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\LostAction.db");
+            this.DATA_PATHS["loadout.json"] = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\loadout.json");
+            //var tDataPath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\LostAction.db");
 
-            mBBDataManager = new BBDataManager(this, tDataPath);
+            mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();
             WindowSystem.AddWindow(new ConfigWindow(this));
             WindowSystem.AddWindow(new MainWindow(this));

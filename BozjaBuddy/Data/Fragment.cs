@@ -21,6 +21,9 @@ namespace BozjaBuddy.Data
             mId = (int)(long)pPackage["id"];
             mName = (string)pPackage["name"];
             mIsClusterBuyable = (int)(long)pPackage["isClusterBuyable"] == 1 ? true : false;
+
+            this.mTabColor = new System.Numerics.Vector4(0.89f, 0.92f, 0.61f, 0.2f);
+
             this.SetUpAuxiliary();
         }
 

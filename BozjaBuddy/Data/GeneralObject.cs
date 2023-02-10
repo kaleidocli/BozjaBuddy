@@ -1,6 +1,4 @@
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using FFXIVClientStructs.Interop.Attributes;
-using System;
+using BozjaBuddy.GUI.IGMarkup;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +17,7 @@ namespace BozjaBuddy.Data
         public virtual string mName { get; set; } = string.Empty;
         public virtual string mDetail { get; set; } = string.Empty;
         public virtual string mDescription { get; set; } = string.Empty;
+        public virtual IGMarkup? mIGMarkup { get; set; } = null;
         public virtual List<int> mLinkActions { get; set; } = new List<int>();
         public virtual List<int> mLinkMobs { get; set; } = new List<int>();
         public virtual List<int> mLinkFates { get; set; } = new List<int>();
@@ -26,6 +25,7 @@ namespace BozjaBuddy.Data
         public virtual List<int> mLinkVendors { get; set; } = new List<int>();
         public virtual Location? mLocation { get; set; } = null;
         public virtual System.Numerics.Vector4? mTabColor { get; set; } = null;
+        public virtual bool mIsExist { get; set; } = true;
 
         public virtual int GetGenId() => GeneralObject.IdToGenId(this.mId, (int)this.mIdSalt);
         protected abstract void SetUpAuxiliary();
@@ -56,7 +56,8 @@ namespace BozjaBuddy.Data
             Fragment = 2,
             Mob = 3,
             Fate = 4,
-            Vendor = 5
+            Vendor = 5,
+            Loadout = 6
         }
     }
 }

@@ -1,14 +1,13 @@
-using ImGuiNET;
-using BozjaBuddy.Data;
+﻿using BozjaBuddy.Data;
 using BozjaBuddy.GUI;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BozjaBuddy.Filter.LostActionTableSection
+namespace BozjaBuddy.Filter.LoadoutTableSection
 {
     internal class FilterRole : Filter
     {
@@ -31,9 +30,8 @@ namespace BozjaBuddy.Filter.LostActionTableSection
             mLastValue = new RoleFlag();
         }
 
-        public override bool CanPassFilter(LostAction pLostAction)
-            => !mIsFilteringActive | pLostAction.mRole.mRoleFlagBit.HasFlag(mCurrValue.mRoleFlagBit);
-        public override bool CanPassFilter(Fragment pFragment) => true;
+        public override bool CanPassFilter(Loadout pLoadout)
+            => !mIsFilteringActive | pLoadout.mRole.mRoleFlagBit.HasFlag(mCurrValue.mRoleFlagBit);
 
         public override void DrawFilterGUI()
         {
@@ -44,9 +42,14 @@ namespace BozjaBuddy.Filter.LostActionTableSection
             {
                 ImGui.OpenPopup("popup");
             }
+            mCurrValue.UpdateRoleFlagBit();
             if (ImGui.BeginPopup("popup"))
             {
-                this.mGUI.HeaderRoleSelectables(this.mCurrValue);
+                mGUI.HeaderSelectable("T##0", ref mCurrValue.mRoleFlagArray[0]);
+                mGUI.HeaderSelectable("H##1", ref mCurrValue.mRoleFlagArray[1]);
+                mGUI.HeaderSelectable("M##2", ref mCurrValue.mRoleFlagArray[2]);
+                mGUI.HeaderSelectable("R##3", ref mCurrValue.mRoleFlagArray[3]);
+                mGUI.HeaderSelectable("C##4", ref mCurrValue.mRoleFlagArray[4]);
                 ImGui.EndPopup();
             }
         }
