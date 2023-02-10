@@ -143,7 +143,7 @@ namespace BozjaBuddy.GUI.Sections
                 switch (i)
                 {
                     case 0:
-                        if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width, tIconWrap.Height));
+                        if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, Utils.Utils.ResizeToIcon(this.mPlugin, tIconWrap!));
                         break;
                     case 1:
                         AuxiliaryViewerSection.GUISelectableLink(mPlugin, tFate.mName, tFate.GetGenId());
@@ -162,10 +162,10 @@ namespace BozjaBuddy.GUI.Sections
                         }
                         break;
                     case 3:
-                        ImGui.Text($"{tFate.mRewardMettleMin} - {tFate.mRewardMettleMax}");
+                        ImGui.Text($"{Utils.Utils.FormatThousand(tFate.mRewardMettleMin)} - {Utils.Utils.FormatThousand(tFate.mRewardMettleMax)}");
                         break;
                     case 4:
-                        ImGui.Text($"{tFate.mRewardExpMin} - {tFate.mRewardExpMax}");
+                        ImGui.Text($"{Utils.Utils.FormatThousand(tFate.mRewardExpMin)} - {Utils.Utils.FormatThousand(tFate.mRewardExpMax)}");
                         break;
                     case 5:
                         ImGui.Text($"{tFate.mRewardTome}");
