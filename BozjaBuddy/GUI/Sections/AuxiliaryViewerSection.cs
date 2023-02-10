@@ -15,6 +15,7 @@ using System.Numerics;
 using Lumina.Excel.GeneratedSheets;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using System.Text.Json;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -22,9 +23,12 @@ namespace BozjaBuddy.GUI.Sections
     {
         public static Dictionary<int, bool> mTabGenIds = new Dictionary<int, bool>();
         public static List<int> mTabGenIdsToDraw = new List<int>();
+        public static LoadoutJson? mTenpLoadout = null;
+        public static bool mIsRefreshRequired = false;
         private static TextureCollection? mTextureCollection = null;
         private static int mGenIdToTabFocus = -1;
         private static ImGuiTabBarFlags AUXILIARY_TAB_FLAGS = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
+        private static GUIFilter mGUIFilter = new GUIFilter();
 
         protected override Plugin mPlugin { get; set; }
 
@@ -60,7 +64,7 @@ namespace BozjaBuddy.GUI.Sections
 
             if (pObj.mTabColor != null) ImGui.PushStyleColor(ImGuiCol.Tab, pObj.mTabColor.Value);
 
-            if (ImGui.BeginTabItem(pObj.mName, ref tIsOpened[0], pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus
+            if (ImGui.BeginTabItem($"{pObj.mName}##{pObj.mId}", ref tIsOpened[0], pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus
                                                                     ? ImGuiTabItemFlags.SetSelected
                                                                     : ImGuiTabItemFlags.None))
             {
@@ -68,7 +72,12 @@ namespace BozjaBuddy.GUI.Sections
                 if (pObj is Loadout)
                 {
                     this.DrawTabHeaderLoadout(pObj);
-                    this.DrawTabContentLoadout(pObj);
+                    if (AuxiliaryViewerSection.mTenpLoadout == null)
+                        this.DrawTabContentLoadout(pObj);
+                    else
+                    {
+                        this.DrawTabContentLoadout_Edit(pObj);
+                    }
                 }
                 else
                 {
@@ -149,12 +158,49 @@ namespace BozjaBuddy.GUI.Sections
         }
         public void DrawTabHeaderLoadout(GeneralObject pObj)
         {
+            ImGuiIOPtr io = ImGui.GetIO();
             Loadout tLoadout = this.mPlugin.mBBDataManager.mLoadouts[pObj.mId];
-            AuxiliaryViewerSection.GUIAlignRight(22*4);
-            ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PenSquare); ImGui.SameLine();
-            ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save); ImGui.SameLine();
-            ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ClipboardList); ImGui.SameLine();
-            ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Trash);
+            AuxiliaryViewerSection.GUIAlignRight((float)(22 * 5.1));
+            // DELETE button
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Trash, ImGuiColors.DalamudRed) && io.KeyShift)
+            {
+                BBDataManager.DynamicRemoveGeneralObject<Loadout>(this.mPlugin, tLoadout, this.mPlugin.mBBDataManager.mLoadouts);
+                AuxiliaryViewerSection.mIsRefreshRequired = true;
+            }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to delete the current entry"); }
+            ImGui.SameLine(); ImGui.Spacing(); ImGui.SameLine(); ImGui.Spacing(); ImGui.SameLine();
+            // COPY button
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ClipboardList))
+            {
+                ImGui.LogToClipboard();
+                ImGui.LogText(JsonSerializer.Serialize(new LoadoutJson(tLoadout)));
+                ImGui.LogFinish();
+            }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Copy the current entry to clipboard"); }
+            ImGui.SameLine();
+            // EDIT button
+            if (AuxiliaryViewerSection.mTenpLoadout == null && ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PenSquare))
+            {
+                AuxiliaryViewerSection.mTenpLoadout = new LoadoutJson(tLoadout);
+                AuxiliaryViewerSection.mTenpLoadout.RecalculateWeight(this.mPlugin);
+            }
+            else if (AuxiliaryViewerSection.mTenpLoadout != null && ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PenSquare,
+                                                                                                new Vector4(0.98f, 0.33f, 0.33f, 1f)))
+            {
+                AuxiliaryViewerSection.mTenpLoadout = null;
+            }
+            ImGui.SameLine();
+            // SAVE button
+            if (AuxiliaryViewerSection.mTenpLoadout == null)
+            {
+                ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save);
+            }
+            else if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save, new Vector4(0.58f, 0.86f, 0.6f, 1f)) && AuxiliaryViewerSection.mTenpLoadout != null)
+            {
+                // Save to cache
+                Loadout tLoadoutNew = new Loadout(this.mPlugin, AuxiliaryViewerSection.mTenpLoadout);
+                BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
+            }
             ImGui.Separator();
         }
         public void DrawTabContentLoadout(GeneralObject pObj)
@@ -169,7 +215,7 @@ namespace BozjaBuddy.GUI.Sections
                     ImGuiWindowFlags.MenuBar);
                 if (ImGui.BeginMenuBar())
                 {
-                    ImGui.Text($"WEIGHT: {tLoadout.mWeight}");
+                    ImGui.Text($"WEIGHT: {tLoadout.mWeight} / 99");
                     ImGui.EndMenuBar();
                 }
                 foreach (int iActionId in tLoadout.mActionIds.Keys)
@@ -197,13 +243,83 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.SameLine();
             {
                 ImGui.BeginChild("loadout_description", new System.Numerics.Vector2(ImGui.GetWindowWidth() / 2, ImGui.GetWindowHeight() - ImGui.GetCursorPosY()));
-                ImGui.Text(tLoadout.mName);
+                ImGui.TextUnformatted(tLoadout.mName);
                 string tTemp = $"[{tLoadout.mGroup}] • [{tLoadout.mRole.ToString()}]";
-                AuxiliaryViewerSection.GUIAlignRight(tTemp); ImGui.Text(tTemp);
+                AuxiliaryViewerSection.GUIAlignRight(tTemp); ImGui.TextUnformatted(tTemp);
                 ImGui.Spacing();
                 ImGui.Separator();
                 ImGui.Spacing();
                 this.DrawTabContent_Description(pObj);
+                ImGui.EndChild();
+            }
+        }
+        public void DrawTabContentLoadout_Edit(GeneralObject pObj)
+        {
+            LoadoutJson tLoadout = AuxiliaryViewerSection.mTenpLoadout!;
+            // Action List
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
+                ImGui.BeginChild("loadout_actionlist",
+                    new System.Numerics.Vector2(ImGui.GetWindowWidth() / 2 - ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetStyle().FramePadding.Y),
+                    true,
+                    ImGuiWindowFlags.MenuBar);
+                if (ImGui.BeginMenuBar())
+                {
+                    ImGui.Text($"WEIGHT: {tLoadout.mWeight} / 99");
+                    ImGui.EndMenuBar();
+                }
+                foreach (int iActionId in tLoadout.mActionIds.Keys)
+                {
+                    // icon
+                    AuxiliaryViewerSection.mTextureCollection!.AddTextureFromItemId(Convert.ToUInt32(iActionId));
+                    TextureWrap? tIconWrap = AuxiliaryViewerSection.mTextureCollection.GetTextureFromItemId(Convert.ToUInt32(iActionId));
+                    if (tIconWrap != null)
+                    {
+                        ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width * 0.75f, tIconWrap.Height * 0.75f));
+                    }
+                    // link
+                    ImGui.SameLine();
+                    AuxiliaryViewerSection.GUISelectableLink(
+                        this.mPlugin,
+                        this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
+                        this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
+                        true
+                        );
+                    ImGui.SameLine();
+                    AuxiliaryViewerSection.GUIAlignRight(33);
+                    // adjuster
+                    AuxiliaryViewerSection.GUILoadoutEditAdjuster(this.mPlugin, iActionId);
+                }
+                ImGui.EndChild();
+                ImGui.PopStyleVar();
+            }
+
+            // Description
+            ImGui.SameLine();
+            {
+                ImGui.BeginChild("loadout_description", new System.Numerics.Vector2(ImGui.GetWindowWidth() / 2, ImGui.GetWindowHeight() - ImGui.GetCursorPosY()));
+                // Name
+                ImGui.InputText("##name", ref AuxiliaryViewerSection.mTenpLoadout!._mName, 120);
+                // Group & Role
+                //AuxiliaryViewerSection.GUIAlignRight(ImGui.GetFontSize() * (4 + 1));
+                ImGui.PushItemWidth(ImGui.GetFontSize() * 4);
+                ImGui.InputText("##group", ref AuxiliaryViewerSection.mTenpLoadout!._mGroup, 120);
+                ImGui.PopItemWidth();
+                ImGui.SameLine(); ImGui.Text(" • ");
+                ImGui.SameLine(); AuxiliaryViewerSection.mGUIFilter.HeaderRoleSelectables(AuxiliaryViewerSection.mTenpLoadout!._mRole);
+
+
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+
+                // Description
+                ImGui.InputTextMultiline("##description",
+                                        ref AuxiliaryViewerSection.mTenpLoadout!._mDescription,
+                                        1024,
+                                        new Vector2(ImGui.GetWindowWidth() - ImGui.GetStyle().WindowPadding.X, ImGui.GetTextLineHeight() * 5));
+                // Action list text filter
+                AuxiliaryViewerSection.GUITextFilterAction(mPlugin);
                 ImGui.EndChild();
             }
         }
@@ -319,8 +435,11 @@ namespace BozjaBuddy.GUI.Sections
         public static void BindToGenObj(Plugin pPlugin, int pGenId)
         {
             if (AuxiliaryViewerSection.mTabGenIds.ContainsKey(pGenId)) return;
-            int tId = pPlugin.mBBDataManager.mGeneralObjects[pGenId].mId;
             AuxiliaryViewerSection.mTabGenIds.Add(pGenId, false);
+        }
+        public static void UnbindFromGenObj(Plugin pPlugin, int pGenId)
+        {
+            AuxiliaryViewerSection.mTabGenIds.Remove(pGenId);
         }
         public static void AddTab(Plugin pPlugin, int pGenId)
         {
@@ -349,8 +468,10 @@ namespace BozjaBuddy.GUI.Sections
                     );
             }
         }
+
         public static void GUISelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = false)
         {
+            ImGui.PushID(pTargetGenId);
             if (pIsWrappedToText)
             {
                 if (ImGui.Selectable(pContent, 
@@ -379,6 +500,7 @@ namespace BozjaBuddy.GUI.Sections
                     AuxiliaryViewerSection.mGenIdToTabFocus = pTargetGenId;
                 }
             }
+            ImGui.PopID();
         }
         public static void GUIButtonLocation(Plugin pPlugin, Location pLocation, bool rightAlign = false)
         {
@@ -404,6 +526,69 @@ namespace BozjaBuddy.GUI.Sections
             ImGuiStylePtr tStyle = ImGui.GetStyle();
             float tPadding = tStyle.WindowPadding.X + tStyle.FramePadding.X * 2 + tStyle.ScrollbarSize;
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ImGui.GetCursorPosX() + ImGui.GetWindowWidth() - pTargetItemWidth - tPadding);
+        }
+        public static void GUILoadoutEditAdjuster(Plugin pPlugin, int pActionId)
+        {
+            if (AuxiliaryViewerSection.mTenpLoadout == null) return;
+            ImGui.PushID(pActionId);
+            if (AuxiliaryViewerSection.mTenpLoadout!.mActionIds.ContainsKey(pActionId))
+            {
+                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.LongArrowAltUp))
+                {
+                    AuxiliaryViewerSection.mTenpLoadout!.mActionIds[pActionId] += 1;
+                    AuxiliaryViewerSection.mTenpLoadout!.mWeight += pPlugin.mBBDataManager.mLostActions[pActionId].mWeight;
+                }
+                ImGui.SameLine();
+                ImGui.Text($"{AuxiliaryViewerSection.mTenpLoadout!.mActionIds[pActionId]}");
+                ImGui.SameLine();
+                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.LongArrowAltDown))
+                {
+                    if (AuxiliaryViewerSection.mTenpLoadout!.mActionIds[pActionId] == 1)
+                        AuxiliaryViewerSection.mTenpLoadout!.mActionIds.Remove(pActionId);
+                    else
+                        AuxiliaryViewerSection.mTenpLoadout!.mActionIds[pActionId] -= 1;
+                    AuxiliaryViewerSection.mTenpLoadout!.mWeight -= pPlugin.mBBDataManager.mLostActions[pActionId].mWeight;
+                }
+            }
+            else
+            {
+                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.LongArrowAltUp))
+                {
+                    AuxiliaryViewerSection.mTenpLoadout!.mActionIds[pActionId] = 1;
+                    AuxiliaryViewerSection.mTenpLoadout!.mWeight += pPlugin.mBBDataManager.mLostActions[pActionId].mWeight;
+                }
+                ImGui.SameLine();
+                ImGui.Text("-");
+                ImGui.SameLine();
+                ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.LongArrowAltDown);
+            }
+            ImGui.PopID();
+        }
+        public static void GUITextFilterAction(Plugin pPlugin)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
+            ImGui.BeginChild("loadout_description_actionfilter");
+            unsafe
+            {
+                ImGuiTextFilterPtr tFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+                tFilter.Draw("");
+                foreach (LostAction iAction in pPlugin.mBBDataManager.mLostActions.Values)
+                {
+                    if (tFilter.PassFilter(iAction.mName))
+                    {
+                        if (AuxiliaryViewerSection.mTenpLoadout != null)
+                        {
+                            AuxiliaryViewerSection.GUILoadoutEditAdjuster(pPlugin, iAction.mId);
+                            ImGui.SameLine();
+                        }
+                        ImGui.Text($"[{iAction.mWeight}] ");
+                        ImGui.SameLine(); AuxiliaryViewerSection.GUISelectableLink(pPlugin, iAction.mName, iAction.GetGenId());
+                    }
+                }
+                ImGui.EndChild();
+                ImGui.PopStyleVar();
+                ImGuiNative.ImGuiTextFilter_destroy(tFilter.NativePtr);
+            }
         }
         public static void GUIAlignRight(string pText)
         {

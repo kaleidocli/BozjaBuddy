@@ -25,6 +25,7 @@ namespace BozjaBuddy.Data
         public virtual List<int> mLinkVendors { get; set; } = new List<int>();
         public virtual Location? mLocation { get; set; } = null;
         public virtual System.Numerics.Vector4? mTabColor { get; set; } = null;
+        public virtual bool mIsExist { get; set; } = true;
 
         public virtual int GetGenId() => GeneralObject.IdToGenId(this.mId, (int)this.mIdSalt);
         protected abstract void SetUpAuxiliary();

@@ -6,6 +6,7 @@ namespace BozjaBuddy.Data
 {
     public class Loadout : GeneralObject
     {
+        public static int IdAutoIncrement = 0;
         protected override GeneralObjectSalt mIdSalt { get; set; } = GeneralObjectSalt.Loadout;
         public override int mId { get; set; } = 0;
         public override string mName { get; set; } = String.Empty;
@@ -16,15 +17,19 @@ namespace BozjaBuddy.Data
         public int _roleInt { get; set; } = 0;
         protected override Plugin mPlugin { get; set; }
 
-        public Loadout(Plugin pPlugin, LoadoutJson pPackageJson)
+        public Loadout(Plugin pPlugin, LoadoutJson pPackageJson, bool pIsNew = false)
         {
             this.mPlugin = pPlugin;
-            this.mId = pPackageJson.mId;
+            this.mId = pPackageJson.mId < 0 || pIsNew
+                        ? Loadout.IdAutoIncrement + 1 
+                        : pPackageJson.mId;
+            if (this.mId > Loadout.IdAutoIncrement)
+                Loadout.IdAutoIncrement = this.mId;
             this.mName = pPackageJson.mName;
             this.mDescription = pPackageJson.mDescription;
             this.mGroup = pPackageJson.mGroup;
             this.mWeight = pPackageJson.mWeight;
-            this.mActionIds = pPackageJson.mActionIds;
+            this.mActionIds = new Dictionary<int, int>(pPackageJson.mActionIds);
             this.mRole = new RoleFlag(pPackageJson.mRoleInt);
 
             this.SetUpAuxiliary();
@@ -34,15 +39,5 @@ namespace BozjaBuddy.Data
         {
             this.mDetail = "Detail";
         }
-    }
-    public class LoadoutJson
-    {
-        public int mId { get; set; }
-        public string mName { get; set; }
-        public string mDescription { get; set; }
-        public string mGroup { get; set; }
-        public int mWeight { get; set; }
-        public Dictionary<int, int> mActionIds { get; set; }
-        public int mRoleInt { get; set; }
     }
 }

@@ -139,6 +139,7 @@ namespace BozjaBuddy.GUI.Sections
                     {
                         case 0:
                             if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width * 0.75f, tIconWrap.Height * 0.75f));
+                            AuxiliaryViewerSection.GUILoadoutEditAdjuster(this.mPlugin, iID);
                             break;
                         case 1:
                             ImGui.PushTextWrapPos(0); AuxiliaryViewerSection.GUISelectableLink(mPlugin, tLostAction.mName, tLostAction.GetGenId()); ImGui.PopTextWrapPos();

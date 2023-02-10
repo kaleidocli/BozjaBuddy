@@ -42,7 +42,7 @@ namespace BozjaBuddy.Filter.LoadoutTableSection
             {
                 ImGui.OpenPopup("popup");
             }
-            mCurrValue.UpdateRoleFlagArray();
+            mCurrValue.UpdateRoleFlagBit();
             if (ImGui.BeginPopup("popup"))
             {
                 mGUI.HeaderSelectable("T##0", ref mCurrValue.mRoleFlagArray[0]);

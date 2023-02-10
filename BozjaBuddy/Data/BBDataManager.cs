@@ -11,6 +11,8 @@ using System.Runtime.CompilerServices;
 using System.Drawing;
 using BozjaBuddy.GUI.Sections;
 using System.Text.Json;
+using Lumina.Excel.GeneratedSheets;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.Data
 {
@@ -266,7 +268,53 @@ namespace BozjaBuddy.Data
             foreach (int id in this.mLoadouts.Keys)
                 AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mLoadouts[id].GetGenId());
         }
+        public LoadoutListJson SerializePseudo_Loadouts()
+        {
+            LoadoutListJson tLoadoutJsons = new LoadoutListJson();
+            foreach (Loadout iLoadout in this.mLoadouts.Values)
+            {
+                tLoadoutJsons.mLoadouts.Add(new LoadoutJson(iLoadout));
+            }
+            return tLoadoutJsons;
+        }
+        public void SaveLoadouts()
+        {
+            string tJson = JsonSerializer.Serialize(SerializePseudo_Loadouts(), new JsonSerializerOptions { WriteIndented = true});
+            File.WriteAllText(this.mPlugin.DATA_PATHS["loadout.json"], tJson);
+        }
+        /// <summary>
+        /// Does not take care of Section's idList. 
+        /// Said section needs to implement RefreshIdList() if they have dynamic idList.
+        /// </summary>
+        public static void DynamicAddGeneralObject<T>(Plugin pPlugin, T pGenObj, Dictionary<int, T> pDataManagerItemDict) where T : GeneralObject
+        {
+            // Save to cache
+            pDataManagerItemDict[pGenObj.mId] = pGenObj;
+            pPlugin.mBBDataManager.mGeneralObjects[pGenObj.GetGenId()] = pGenObj;
+            AuxiliaryViewerSection.BindToGenObj(pPlugin, pGenObj.GetGenId());
+            // Write to disc
+            pPlugin.mBBDataManager.SaveLoadouts();
+            AuxiliaryViewerSection.mTenpLoadout = null;
+            AuxiliaryViewerSection.mIsRefreshRequired = true;
+        }
+        /// <summary>
+        /// Does not take care of Section's idList. 
+        /// Said section needs to implement RefreshIdList() if they have dynamic idList.
+        /// </summary>
+        public static void DynamicRemoveGeneralObject<T>(Plugin pPlugin, T pGenObj, Dictionary<int, T> pDataManagerItemDict) where T : GeneralObject
+        {
+            // Remove from cache
+            pDataManagerItemDict.Remove(pGenObj.mId);
+            pPlugin.mBBDataManager.mGeneralObjects.Remove(pGenObj.GetGenId());
+            AuxiliaryViewerSection.UnbindFromGenObj(pPlugin, pGenObj.GetGenId());
+            AuxiliaryViewerSection.mTabGenIdsToDraw.Remove(pGenObj.GetGenId());
+            AuxiliaryViewerSection.mIsRefreshRequired = true;
+            // Write to disc
+            pPlugin.mBBDataManager.SaveLoadouts();
+            AuxiliaryViewerSection.mTenpLoadout = null;
+        }
     }
+
 
     public enum LostActionType
     {
@@ -281,6 +329,94 @@ namespace BozjaBuddy.Data
     }
     public class LoadoutListJson
     {
-        public List<LoadoutJson> mLoadouts { get; set; }
+        public List<LoadoutJson> mLoadouts { get; set; } = new List<LoadoutJson>();
+    }
+    public class LoadoutJson
+    {
+        public string _mName = "new_loadout";          // these public fields are specifically for ImGui.TextInput()
+        public string _mDescription = "new_description";
+        public string _mGroup = "none";
+        public RoleFlag _mRole = new RoleFlag(0);
+        public int _mWeight = 0;
+        public int mId { get; set; } = -1;  // these properties are specifically for json stuff
+        public string mName 
+        {
+            get
+            {
+                return _mName;
+            }
+            set
+            {
+                _mName = value;
+            }
+        }
+        public string mDescription
+        {
+            get
+            {
+                return _mDescription;
+            }
+            set
+            {
+                _mDescription = value;
+            }
+        }
+        public string mGroup
+        {
+            get
+            {
+                return _mGroup;
+            }
+            set
+            {
+                _mGroup = value;
+            }
+        }
+        public int mRoleInt
+        {
+            get
+            {
+                return RoleFlag.FlagToInt(_mRole.mRoleFlagBit);
+            }
+            set
+            {
+                _mRole.SetRoleFlagBit(RoleFlag.IntToFlag(value));
+            }
+        }
+        public int mWeight
+        {
+            get
+            {
+                return _mWeight;
+            }
+            set
+            {
+                _mWeight = value;
+            }
+        }
+        public Dictionary<int, int> mActionIds { get; set; } = new Dictionary<int, int>();
+
+        public LoadoutJson()
+        {
+            // Specifically for json stuff
+        }
+        public LoadoutJson(Loadout pLoadout, bool pIsNew = false)
+        {
+            this.mId = pIsNew ? -1 : pLoadout.mId;
+            this.mName = pLoadout.mName;
+            this.mDescription = pLoadout.mDescription;
+            this.mGroup = pLoadout.mGroup;
+            this.mWeight = pLoadout.mWeight;
+            this.mActionIds = new Dictionary<int, int>(pLoadout.mActionIds);
+            this.mRoleInt = RoleFlag.FlagToInt(pLoadout.mRole.mRoleFlagBit);
+        }
+        public void RecalculateWeight(Plugin pPlugin)
+        {
+            this.mWeight = 0;
+            foreach (int iActionId in this.mActionIds.Keys)
+            {
+                this.mWeight += pPlugin.mBBDataManager.mLostActions[iActionId].mWeight * this.mActionIds[iActionId];
+            }
+        }
     }
 }

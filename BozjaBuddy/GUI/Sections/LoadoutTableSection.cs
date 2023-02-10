@@ -1,11 +1,16 @@
 ﻿using BozjaBuddy.Data;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
+using Dalamud.Logging;
 using ImGuiNET;
 using ImGuiScene;
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -54,8 +59,14 @@ namespace BozjaBuddy.GUI.Sections
 
         public override bool DrawGUI()
         {
+            if (AuxiliaryViewerSection.mIsRefreshRequired)
+            {
+                this.RefreshIdList<Loadout>(this.mLoadoutIds, this.mPlugin.mBBDataManager.mLoadouts);
+                AuxiliaryViewerSection.mIsRefreshRequired = false;
+            }
+            DrawOptionBar();
+            ImGui.Separator();
             DrawTable();
-
 
             // debug misc
             //this.DrawTableDebug();
@@ -73,7 +84,6 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.EndTable();
             }
         }
-
         private void DrawTableHeader()
         {
             for (int i = 0; i < this.mFilters.Length; i++)
@@ -96,12 +106,10 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PopID();
             }
         }
-
         private void DrawTableContent()
         {
             this.DrawTableContent(this.mLoadoutIds);
         }
-
         private void DrawTableContent(List<int> pIDs)
         {
             // CONTENT
@@ -130,6 +138,39 @@ namespace BozjaBuddy.GUI.Sections
                     }
                 }
                 ImGui.PopStyleVar();
+            }
+        }
+
+        private void DrawOptionBar()
+        {
+            ImGuiIOPtr io = ImGui.GetIO();
+            AuxiliaryViewerSection.GUIAlignRight(30);
+            // Add
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus) && io.KeyShift)
+            {
+                // Save to cache
+                Loadout tLoadoutNew = new Loadout(this.mPlugin, new LoadoutJson());
+                BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
+                this.mIsForcingSort = true;
+            }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to add a new entry"); }
+            // Import
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.FileImport) && io.KeyShift)
+            {
+                // Save to cache
+                LoadoutJson? tLoadoutJson = JsonSerializer.Deserialize<LoadoutJson>(ImGui.GetClipboardText());
+                if (tLoadoutJson != null)
+                {
+                    Loadout tLoadoutNew = new Loadout(this.mPlugin, tLoadoutJson, true);
+                    BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
+                    this.mIsForcingSort = true;
+                }
+                
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("[Shift + RMB] to import an entry from clipboard");
             }
         }
 
