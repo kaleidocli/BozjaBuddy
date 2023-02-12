@@ -8,6 +8,15 @@
         "resolved": "2.1.10",
         "contentHash": "S6NrvvOnLgT4GDdgwuKVJjbFo+8ZEj+JsEYk9ojjOR/MMfv1dIFpT8aRJQfI24rtDcw1uF+GnSSMN4WW1yt7fw=="
       },
+      "FFXIVWeather": {
+        "type": "Direct",
+        "requested": "[1.0.16, )",
+        "resolved": "1.0.16",
+        "contentHash": "0hV+ToSSbb4OH3nBDBuMWa0ijf9UuaV3RFSTOe1y45jvzs1zgkhbqCgmSndgiHQEmRorlSMKlr67pZIda+KjYQ==",
+        "dependencies": {
+          "Newtonsoft.Json": "12.0.3"
+        }
+      },
       "Microsoft.Data.Sqlite": {
         "type": "Direct",
         "requested": "[7.0.2, )",
