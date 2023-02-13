@@ -43,8 +43,8 @@ namespace BozjaBuddy.Data
             this.mName = (string)pPackage["name"];
             this.mType = (FateType)Convert.ToInt32(pPackage["type"] is System.DBNull ? -1 : pPackage["type"]);
             this.mNote = pPackage["note"] is System.DBNull ? string.Empty : (string)pPackage["note"];
-            this.mRewardMettleMin = Convert.ToInt32(pPackage["rewardMettleMin"] is System.DBNull ? -1 : pPackage["rewardExpMin"]);
-            this.mRewardMettleMax = Convert.ToInt32(pPackage["rewardMettleMax"] is System.DBNull ? -1 : pPackage["rewardExpMax"]);
+            this.mRewardMettleMin = Convert.ToInt32(pPackage["rewardMettleMin"] is System.DBNull ? -1 : pPackage["rewardMettleMin"]);
+            this.mRewardMettleMax = Convert.ToInt32(pPackage["rewardMettleMax"] is System.DBNull ? -1 : pPackage["rewardMettleMax"]);
             this.mRewardExpMin = Convert.ToInt32(pPackage["rewardExpMin"] is System.DBNull ? -1 : pPackage["rewardExpMin"]);
             this.mRewardExpMax = Convert.ToInt32(pPackage["rewardExpMax"] is System.DBNull ? -1 : pPackage["rewardExpMax"]);
             this.mRewardTome = Convert.ToInt32(pPackage["rewardTome"] is System.DBNull ? -1 : pPackage["rewardTome"]);

@@ -122,7 +122,7 @@ namespace BozjaBuddy.GUI.Sections
                     switch (i)
                     {
                         case 0:
-                            if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width, tIconWrap.Height));
+                            if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, Utils.Utils.ResizeToIcon(this.mPlugin, tIconWrap!));
                             break;
                         case 1:
                             AuxiliaryViewerSection.GUISelectableLink(mPlugin, tMob.mName, tMob.GetGenId());

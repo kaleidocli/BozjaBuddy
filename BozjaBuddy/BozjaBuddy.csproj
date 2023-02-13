@@ -51,6 +51,9 @@
     <Content Include="..\Data\System.Data.SQLite.Linq.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\Data\FFXIVWeather.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <PropertyGroup>
@@ -67,6 +70,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
+    <PackageReference Include="FFXIVWeather" Version="1.0.16" />
     <Reference Include="FFXIVClientStructs">
       <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
       <Private>false</Private>

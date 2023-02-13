@@ -17,8 +17,9 @@ namespace BozjaBuddy.GUI.Tabs
             this.mName = "Mob";
             this.mPlugin = pPlugin;
             this.mSortedSections = new Dictionary<int, Section>() {
-                { 0, new MobTableSection(this.mPlugin) },
-                { 1, new AuxiliaryViewerSection(this.mPlugin) }
+                { 0, new WeatherBarSection(this.mPlugin) },
+                { 1, new MobTableSection(this.mPlugin) },
+                { 2, new AuxiliaryViewerSection(this.mPlugin) }
             };
         }
 

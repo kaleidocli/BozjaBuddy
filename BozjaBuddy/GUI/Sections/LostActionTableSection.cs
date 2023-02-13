@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Logging;
+using Dalamud.Interface.Components;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -25,13 +26,20 @@ namespace BozjaBuddy.GUI.Sections
                                      ImGuiTableFlags.ScrollY           | ImGuiTableFlags.Reorderable  | ImGuiTableFlags.Sortable |
                                      ImGuiTableFlags.ScrollX;
         private float TABLE_SIZE_Y;
-        float FIXED_LINE_HEIGHT;
+        private bool mIsCompactModeActive = false;
         private List<int> mActionIDs;
         private Filter.Filter[] mFilters;
         private TextureCollection mTextureCollection;
 
         protected override Plugin mPlugin { get; set; }
-
+        private float FIXED_LINE_HEIGHT
+        {
+            get
+            {
+                return ImGui.GetTextLineHeight() * (this.mIsCompactModeActive ? 1 : 3);
+            }
+            set { this.FIXED_LINE_HEIGHT = value; }
+        }
 
 
         public LostActionTableSection(Plugin pPlugin)
@@ -39,7 +47,6 @@ namespace BozjaBuddy.GUI.Sections
             this.mPlugin = pPlugin;
 
             this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
-            this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 3);
 
             this.mFilters = new Filter.Filter[]{
                 new Filter.LostActionTableSection.FilterType(),
@@ -71,11 +78,8 @@ namespace BozjaBuddy.GUI.Sections
 
         public override bool DrawGUI()
         {
+            DrawOptionBar();
             DrawTable();
-
-
-            // debug misc
-            //this.DrawTableDebug();
             return true;
         }
 
@@ -138,7 +142,11 @@ namespace BozjaBuddy.GUI.Sections
                     switch (i)
                     {
                         case 0:
-                            if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width * 0.75f, tIconWrap.Height * 0.75f));
+                            if (tIconWrap != null)
+                                ImGui.Image(tIconWrap.ImGuiHandle,
+                                    this.mIsCompactModeActive
+                                    ? Utils.Utils.ResizeToIcon(this.mPlugin, tIconWrap!)
+                                    : new System.Numerics.Vector2(tIconWrap.Width * 0.75f, tIconWrap.Height * 0.75f));
                             AuxiliaryViewerSection.GUILoadoutEditAdjuster(this.mPlugin, iID);
                             break;
                         case 1:
@@ -148,7 +156,14 @@ namespace BozjaBuddy.GUI.Sections
                             ImGui.Text(RoleFlag.FlagToString(tLostAction.mRole.mRoleFlagBit));
                             break;
                         case 3:
-                            ImGui.TextUnformatted(tLostAction.mDescription_semi);
+                            if (this.mIsCompactModeActive)
+                            {
+                                ImGui.Text("<hover to view>");
+                                if (ImGui.IsItemHovered())
+                                    ImGui.SetTooltip(tLostAction.mDescription_semi);
+                            }
+                            else
+                                ImGui.TextUnformatted(tLostAction.mDescription_semi);
                             break;
                         case 4:
                             foreach (int iiID in tLostAction.mLinkFragments)
@@ -175,15 +190,15 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PopStyleVar();
             }
         }
-
+        private void DrawOptionBar()
+        {
+            AuxiliaryViewerSection.GUIAlignRight("Compact  ");
+            ImGui.Checkbox("Compact", ref this.mIsCompactModeActive);
+        }
         public override void DrawGUIDebug()
         {
             ImGui.Text(String.Format("Edited: {0} {1}", this.mFilters[0].GetCurrValue(),
                                                         this.mFilters[1].GetCurrValue()));
-        }
-
-        public void DrawTableDebug()
-        {
         }
 
         public override void Dispose()
