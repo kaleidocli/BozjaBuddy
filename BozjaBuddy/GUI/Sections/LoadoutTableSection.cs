@@ -1,16 +1,10 @@
 ﻿using BozjaBuddy.Data;
-using Dalamud.Interface;
 using Dalamud.Interface.Components;
-using Dalamud.Logging;
 using ImGuiNET;
-using ImGuiScene;
 using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BozjaBuddy.GUI.Sections
 {

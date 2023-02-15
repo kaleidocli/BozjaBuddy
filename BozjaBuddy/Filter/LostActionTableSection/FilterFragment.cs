@@ -1,10 +1,7 @@
-using Dalamud.Logging;
 using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BozjaBuddy.Filter.LostActionTableSection
 {
@@ -53,7 +50,6 @@ namespace BozjaBuddy.Filter.LostActionTableSection
         public override void DrawFilterGUI()
         {
             mGUI.HeaderTextInput(this.mFilterName, ref this.mCurrValue, ref this.mIsEdited);
-            //mGUI.HeaderNormal(mFilterName);
         }
 
         public override string GetCurrValue() => mCurrValue;

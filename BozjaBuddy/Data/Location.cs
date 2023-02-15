@@ -1,10 +1,7 @@
 using Dalamud.Utility;
 using Lumina.Excel.GeneratedSheets;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BozjaBuddy.Data
 {
@@ -69,12 +66,12 @@ namespace BozjaBuddy.Data
             switch (this.mAreaFlag)
             {
                 case Area.None: this.mReprString = "None"; break;
-                case Area.Bozja_Zone1: this.mReprString = "Bozja Z1"; break;
-                case Area.Bozja_Zone2: this.mReprString = "Bozja Z2"; break;
-                case Area.Bozja_Zone3: this.mReprString = "Bozja Z3"; break;
-                case Area.Zadnor_Zone1: this.mReprString = "Zadnor Z1"; break;
-                case Area.Zadnor_Zone2: this.mReprString = "Zadnor Z2"; break;
-                case Area.Zadnor_Zone3: this.mReprString = "Zadnor Z3"; break;
+                case Area.Bozja_Zone1: this.mReprString = "Bozja Zone 1"; break;
+                case Area.Bozja_Zone2: this.mReprString = "Bozja Zone 2"; break;
+                case Area.Bozja_Zone3: this.mReprString = "Bozja Zone 3"; break;
+                case Area.Zadnor_Zone1: this.mReprString = "Zadnor Zone 1"; break;
+                case Area.Zadnor_Zone2: this.mReprString = "Zadnor Zone 2"; break;
+                case Area.Zadnor_Zone3: this.mReprString = "Zadnor Zone 3"; break;
                 case Area.Castrum: this.mReprString = "Castrum Lacus Litore"; break;
                 case Area.Dalriada: this.mReprString = "The Dalriada"; break;
                 case Area.Delubrum: this.mReprString = "Delubrum Reginae"; break;

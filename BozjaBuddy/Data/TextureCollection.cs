@@ -1,4 +1,3 @@
-using Dalamud.Data;
 using Dalamud.Utility;
 using Dalamud.Logging;
 using ImGuiScene;
@@ -6,12 +5,6 @@ using Lumina.Data.Files;
 using Lumina.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Security.Cryptography;
-using static BozjaBuddy.Data.TextureCollection;
-using Lumina.Excel.GeneratedSheets;
 
 namespace BozjaBuddy.Data
 {

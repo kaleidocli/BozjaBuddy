@@ -14,7 +14,6 @@ namespace BozjaBuddy.Data
         public int mWeight { get; set; } = 0;
         public Dictionary<int, int> mActionIds { get; set; } = new Dictionary<int, int>();
         public RoleFlag mRole { get; set; } = new RoleFlag();
-        public int _roleInt { get; set; } = 0;
         protected override Plugin mPlugin { get; set; }
 
         public Loadout(Plugin pPlugin, LoadoutJson pPackageJson, bool pIsNew = false)
@@ -37,7 +36,7 @@ namespace BozjaBuddy.Data
 
         protected override void SetUpAuxiliary()
         {
-            this.mDetail = "Detail";
+            this.mDetail = "none";
         }
     }
 }

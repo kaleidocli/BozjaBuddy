@@ -1,18 +1,9 @@
-using Dalamud.Game.ClientState.JobGauge.Types;
 using System.Data.SQLite;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
-using System.Drawing;
 using BozjaBuddy.GUI.Sections;
 using System.Text.Json;
-using Lumina.Excel.GeneratedSheets;
-using Dalamud.Logging;
 
 namespace BozjaBuddy.Data
 {
@@ -333,8 +324,8 @@ namespace BozjaBuddy.Data
     }
     public class LoadoutJson
     {
-        public string _mName = "new_loadout";          // these public fields are specifically for ImGui.TextInput()
-        public string _mDescription = "new_description";
+        public string _mName = "New loadout";          // these public fields are specifically for ImGui.TextInput()
+        public string _mDescription = "new description";
         public string _mGroup = "none";
         public RoleFlag _mRole = new RoleFlag(0);
         public int _mWeight = 0;

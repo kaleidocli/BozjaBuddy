@@ -1,7 +1,4 @@
-﻿using ImGuiNET;
-using BozjaBuddy;
-using BozjaBuddy.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BozjaBuddy.Filter.FateCeTableSection
@@ -9,8 +6,6 @@ namespace BozjaBuddy.Filter.FateCeTableSection
     internal class FilterStatus : Filter
     {
         public override string mFilterName { get; set; } = "status";
-        private new int mLastValue = default!;
-        private new int mCurrValue = default!;
 
         public FilterStatus()
         {
@@ -25,8 +20,6 @@ namespace BozjaBuddy.Filter.FateCeTableSection
         }
         protected override void Init()
         {
-            mLastValue = 0;
-            mCurrValue = 0;
         }
 
         public override List<int> Sort(List<int> tIDs, bool pIsAscending = true)

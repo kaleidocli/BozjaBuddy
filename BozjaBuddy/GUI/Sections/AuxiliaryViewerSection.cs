@@ -1,18 +1,9 @@
-using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
 using ImGuiScene;
 using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using static BozjaBuddy.Data.TextureCollection;
 using System.Numerics;
-using Lumina.Excel.GeneratedSheets;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using System.Text.Json;
@@ -52,9 +43,6 @@ namespace BozjaBuddy.GUI.Sections
                 }
                 ImGui.EndTabBar();
             }
-
-            //this.DrawGUIDebug();
-
             return true;
         }
 
@@ -604,7 +592,5 @@ namespace BozjaBuddy.GUI.Sections
         public override void Dispose()
         {
         }
-
-        public static Vector4 TABCOLOR_FATE { get; set; } = new Vector4(1, 1, 1, 1);
     }
 }

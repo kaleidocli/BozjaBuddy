@@ -5,9 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState.Fates;
-using Dalamud.Interface.Colors;
-using Dalamud.Logging;
-using System.ComponentModel;
 
 namespace BozjaBuddy.GUI.Sections
 {

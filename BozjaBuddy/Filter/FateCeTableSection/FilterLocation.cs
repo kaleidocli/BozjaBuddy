@@ -1,16 +1,10 @@
 using BozjaBuddy.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BozjaBuddy.Filter.FateCeTableSection
 {
     internal class FilterLocation : Filter
     {
         public override string mFilterName { get; set; } = "location";
-        private new Location.Area mLastValue = default!;
         private new Location.Area mCurrValue = default!;
 
         public FilterLocation()
