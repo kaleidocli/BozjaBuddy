@@ -49,7 +49,8 @@ namespace SamplePlugin
             this.Configuration.Initialize(this.PluginInterface);
 
             // you might normally want to embed resources and load them from the manifest stream
-            var tDataPath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\LostAction.db");
+            var tDataPath = Path.Combine(PluginInterface.AssemblyLocation.DirectoryName!, @"db\LostAction.db");
+            PluginLog.Debug(PluginInterface.AssemblyLocation.DirectoryName!);
 
             mBBDataManager = new BBDataManager(this, tDataPath);
             mBBDataManager.SetUpAuxiliary();
