@@ -93,8 +93,7 @@ namespace SamplePlugin.GUI.Sections
                     // Description
                     if (ImGui.BeginTabItem("Description"))
                     {
-                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
-                        ImGui.PushTextWrapPos(0);
+                        //ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
                         // Fate chains
                         if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate 
                             && (this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1 
@@ -118,9 +117,10 @@ namespace SamplePlugin.GUI.Sections
                             while (iCurrFateId != -1);
                             ImGui.Separator();
                         }
+                        ImGui.PushTextWrapPos();
                         ImGui.TextUnformatted(pObj.mDescription);
                         ImGui.PopTextWrapPos();
-                        ImGui.EndChild();
+                        //ImGui.EndChild();
                         ImGui.EndTabItem();
                     }
                     // Sources
