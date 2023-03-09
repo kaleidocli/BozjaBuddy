@@ -49,6 +49,171 @@ namespace BozjaBuddy.GUI.Sections
         private void DrawTab(GeneralObject pObj)
         {
             bool[] tIsOpened = { true };
+            if (ImGui.BeginTabItem(pObj.mName, ref tIsOpened[0]))
+            {
+                // Icon
+                TextureWrap? tIconWrap;
+                switch (pObj.GetSalt())
+                {
+                    case GeneralObject.GeneralObjectSalt.Fragment:
+                        //PluginLog.LogDebug($"DrawTab(): Active iconIds in sheet {TextureCollection.Sheet.Item.ToString()}: {String.Join(", ", AuxiliaryViewerSection.mTextureCollection!.mIcons[Sheet.Item].Keys)}");
+                        //PluginLog.LogDebug($"DrawTab(): Loading icon of itemId {pObj.mId} from sheet {TextureCollection.Sheet.Item.ToString()}");
+                        tIconWrap = AuxiliaryViewerSection.mTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), TextureCollection.Sheet.Item);
+                        break;
+                    case GeneralObject.GeneralObjectSalt.Fate:
+                        tIconWrap = AuxiliaryViewerSection.mTextureCollection?.GetStandardTexture((uint)this.mPlugin.mBBDataManager.mFates[pObj.mId].mType);
+                        break;
+                    case GeneralObject.GeneralObjectSalt.Mob:
+                        tIconWrap = AuxiliaryViewerSection.mTextureCollection?.GetStandardTexture((uint)this.mPlugin.mBBDataManager.mMobs[pObj.mId].mType);
+                        break;
+                    default:
+                        tIconWrap = AuxiliaryViewerSection.mTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId));
+                        break;
+                }
+                if (tIconWrap != null)
+                {
+                    ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width, tIconWrap.Height));
+                    ImGui.SameLine();           // Do not Sameline() if there's no image, since it'll Sameline() to the TabItem above
+                }
+                // Name and Details and Location
+                ImGui.BeginGroup();
+                ImGui.Text(pObj.mName);
+                ImGui.Text(pObj.mDetail);
+                if (pObj.mLocation != null)
+                {
+                    ImGui.SameLine();
+                    AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, pObj.mLocation, true);
+                }
+                ImGui.EndGroup();
+                if (ImGui.BeginTabBar(pObj.mName))
+                {
+                    // Description
+                    if (ImGui.BeginTabItem("Description"))
+                    {
+                        //ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
+                        // Fate chains
+                        if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate 
+                            && (this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1 
+                                || this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext != -1))
+                        {
+                            int iCurrFateId = this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1 
+                                ? this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev 
+                                : this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext;
+                            while (this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev != -1)        // Find the starting point of FATE chain
+                                iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev;
+                            ImGui.Text("Chain: ");
+                            do
+                            {
+                                ImGui.SameLine();
+                                AuxiliaryViewerSection.GUISelectableLink(this.mPlugin,
+                                    this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName,
+                                    this.mPlugin.mBBDataManager.mFates[iCurrFateId].GetGenId(),
+                                    true);
+                                iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFateNext;
+                            }
+                            while (iCurrFateId != -1);
+                            ImGui.Separator();
+                        }
+                        ImGui.PushTextWrapPos();
+                        ImGui.TextUnformatted(pObj.mDescription);
+                        ImGui.PopTextWrapPos();
+                        //ImGui.EndChild();
+                        ImGui.EndTabItem();
+                    }
+                    // Sources
+                    if (ImGui.BeginTabItem("Sources/Drop"))
+                    {
+                        ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
+                        if (pObj.mLinkFragments.Count != 0 && ImGui.CollapsingHeader($"Fragment ({pObj.mLinkFragments.Count})"))
+                        {
+                            foreach (int iId in pObj.mLinkFragments)
+                            {
+                                Fragment tFragment = this.mPlugin.mBBDataManager.mFragments[iId];
+                                // LOCATION
+                                if (tFragment.mLocation != null)
+                                {
+                                    AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tFragment.mLocation);
+                                    ImGui.SameLine();
+                                }
+                                // NAME
+                                AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"Forgetten Fragment of {tFragment.mName}", tFragment.GetGenId());
+                                // Display as vendor's stock
+                                if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Vendor)
+                                {
+                                    Vendor tVendor = this.mPlugin.mBBDataManager.mVendors[pObj.mId];
+                                    ImGui.SameLine();
+                                    ImGui.TextUnformatted($" ({tVendor.GetAmountPriceCurrency(iId).Item1}) {tVendor.GetAmountPriceCurrency(iId).Item2} {tVendor.GetAmountPriceCurrency(iId).Item3}");
+                                }
+                                ImGui.Separator();
+                            }
+                        }
+                        if (pObj.mLinkFates.Count != 0 && ImGui.CollapsingHeader($"FATE ({pObj.mLinkFates.Count})"))
+                        {
+                            foreach (int iId in pObj.mLinkFates)
+                            {
+                                Fate tFate = this.mPlugin.mBBDataManager.mFates[iId];
+                                // LOCATION
+                                if (tFate.mLocation != null)
+                                {
+                                    AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tFate.mLocation);
+                                    ImGui.SameLine();
+                                }
+                                // NAME
+                                AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"{tFate.mName}", tFate.GetGenId());
+                                ImGui.Separator();
+                            }
+                        }
+                        if (pObj.mLinkMobs.Count != 0 && ImGui.CollapsingHeader($"Mob ({pObj.mLinkMobs.Count})"))
+                        {
+                            foreach (int iId in pObj.mLinkMobs)
+                            {
+                                Mob tMob = this.mPlugin.mBBDataManager.mMobs[iId];
+                                // LOCATION
+                                if (tMob.mLocation != null)
+                                {
+                                    AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tMob.mLocation);
+                                    ImGui.SameLine();
+                                }
+                                // NAME
+                                AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"{tMob.mName}", tMob.GetGenId());
+                                ImGui.Separator();
+                            }
+                        }
+                        if (pObj.mLinkActions.Count != 0 && ImGui.CollapsingHeader($"Action ({pObj.mLinkActions.Count})"))
+                        {
+                            foreach (int iId in pObj.mLinkActions)
+                            {
+                                LostAction tAction = this.mPlugin.mBBDataManager.mLostActions[iId];
+                                // LOCATION
+                                if (tAction.mLocation != null)
+                                {
+                                    AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tAction.mLocation);
+                                    ImGui.SameLine();
+                                }
+                                // NAME
+                                AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"{tAction.mName}", tAction.GetGenId());
+                                ImGui.Separator();
+                            }
+                        }
+                        if (pObj.mLinkVendors.Count != 0 && ImGui.CollapsingHeader($"Vendor ({pObj.mLinkActions.Count})"))
+                        {
+                            foreach (int iId in pObj.mLinkVendors)
+                            {
+                                Vendor tVendor = this.mPlugin.mBBDataManager.mVendors[iId];
+                                // LOCATION
+                                if (tVendor.mLocation != null)
+                                {
+                                    AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tVendor.mLocation);
+                                    ImGui.SameLine();
+                                }
+                                // NAME
+                                AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"{tVendor.mName}\t({tVendor.GetAmountPriceCurrency(pObj.mId).Item1}) {tVendor.GetAmountPriceCurrency(pObj.mId).Item2} {tVendor.GetAmountPriceCurrency(pObj.mId).Item3.ToString()}", tVendor.GetGenId());
+                                ImGui.Separator();
+                            }
+                        }
+                        ImGui.EndChild();
+                        ImGui.EndTabItem();
+                    }
 
             if (pObj.mTabColor != null) ImGui.PushStyleColor(ImGuiCol.Tab, pObj.mTabColor.Value);
 
@@ -232,7 +397,7 @@ namespace BozjaBuddy.GUI.Sections
             {
                 ImGui.BeginChild("loadout_description", new System.Numerics.Vector2(ImGui.GetWindowWidth() / 2, ImGui.GetWindowHeight() - ImGui.GetCursorPosY()));
                 ImGui.TextUnformatted(tLoadout.mName);
-                string tTemp = $"[{tLoadout.mGroup}] • [{tLoadout.mRole.ToString()}]";
+                string tTemp = $"[{tLoadout.mGroup}] ï¿½ [{tLoadout.mRole.ToString()}]";
                 AuxiliaryViewerSection.GUIAlignRight(tTemp); ImGui.TextUnformatted(tTemp);
                 ImGui.Spacing();
                 ImGui.Separator();
@@ -293,7 +458,7 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PushItemWidth(ImGui.GetFontSize() * 4);
                 ImGui.InputText("##group", ref AuxiliaryViewerSection.mTenpLoadout!._mGroup, 120);
                 ImGui.PopItemWidth();
-                ImGui.SameLine(); ImGui.Text(" • ");
+                ImGui.SameLine(); ImGui.Text(" ï¿½ ");
                 ImGui.SameLine(); AuxiliaryViewerSection.mGUIFilter.HeaderRoleSelectables(AuxiliaryViewerSection.mTenpLoadout!._mRole);
 
 

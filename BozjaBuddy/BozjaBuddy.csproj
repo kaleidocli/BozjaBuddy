@@ -101,4 +101,13 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="db\LostAction.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="db\LostAction.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

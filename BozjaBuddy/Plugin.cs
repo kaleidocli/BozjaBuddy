@@ -49,9 +49,9 @@ namespace BozjaBuddy
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(this.PluginInterface);
 
-            this.DATA_PATHS["db"] = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\LostAction.db");
-            this.DATA_PATHS["loadout.json"] = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\loadout.json");
-            //var tDataPath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\LostAction.db");
+            // you might normally want to embed resources and load them from the manifest stream
+            string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
+            var tDataPath = Path.Combine(tDir, @"db\LostAction.db");
 
             mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();
