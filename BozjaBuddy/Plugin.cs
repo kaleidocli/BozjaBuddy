@@ -51,7 +51,6 @@ namespace BozjaBuddy
 
             // you might normally want to embed resources and load them from the manifest stream
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
-            var tDataPath = Path.Combine(tDir, @"db\LostAction.db");
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
             this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
 
