@@ -92,12 +92,12 @@ namespace BozjaBuddy.GUI.Sections
                     {
                         //ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.HorizontalScrollbar);
                         // Fate chains
-                        if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate 
-                            && (this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1 
+                        if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate
+                            && (this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1
                                 || this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext != -1))
                         {
-                            int iCurrFateId = this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1 
-                                ? this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev 
+                            int iCurrFateId = this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1
+                                ? this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev
                                 : this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext;
                             while (this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev != -1)        // Find the starting point of FATE chain
                                 iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev;
@@ -215,35 +215,37 @@ namespace BozjaBuddy.GUI.Sections
                         ImGui.EndTabItem();
                     }
 
-            if (pObj.mTabColor != null) ImGui.PushStyleColor(ImGuiCol.Tab, pObj.mTabColor.Value);
+                    if (pObj.mTabColor != null) ImGui.PushStyleColor(ImGuiCol.Tab, pObj.mTabColor.Value);
 
-            if (ImGui.BeginTabItem($"{pObj.mName}##{pObj.mId}", ref tIsOpened[0], pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus
-                                                                    ? ImGuiTabItemFlags.SetSelected
-                                                                    : ImGuiTabItemFlags.None))
-            {
-                if (pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus) AuxiliaryViewerSection.mGenIdToTabFocus = -1;   // Release selected
-                if (pObj is Loadout)
-                {
-                    this.DrawTabHeaderLoadout(pObj);
-                    if (AuxiliaryViewerSection.mTenpLoadout == null)
-                        this.DrawTabContentLoadout(pObj);
-                    else
+                    if (ImGui.BeginTabItem($"{pObj.mName}##{pObj.mId}", ref tIsOpened[0], pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus
+                                                                            ? ImGuiTabItemFlags.SetSelected
+                                                                            : ImGuiTabItemFlags.None))
                     {
-                        this.DrawTabContentLoadout_Edit(pObj);
+                        if (pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus) AuxiliaryViewerSection.mGenIdToTabFocus = -1;   // Release selected
+                        if (pObj is Loadout)
+                        {
+                            this.DrawTabHeaderLoadout(pObj);
+                            if (AuxiliaryViewerSection.mTenpLoadout == null)
+                                this.DrawTabContentLoadout(pObj);
+                            else
+                            {
+                                this.DrawTabContentLoadout_Edit(pObj);
+                            }
+                        }
+                        else
+                        {
+                            this.DrawTabHeader(pObj);
+                            this.DrawTabContent(pObj);
+                        }
+                        ImGui.EndTabItem();
+                    }
+                    if (pObj.mTabColor != null) ImGui.PopStyleColor();
+
+                    if (!tIsOpened[0])
+                    {
+                        AuxiliaryViewerSection.RemoveTab(this.mPlugin, pObj.GetGenId());
                     }
                 }
-                else
-                {
-                    this.DrawTabHeader(pObj);
-                    this.DrawTabContent(pObj);
-                }
-                ImGui.EndTabItem();
-            }
-            if (pObj.mTabColor != null) ImGui.PopStyleColor();
-
-            if (!tIsOpened[0])
-            {
-                AuxiliaryViewerSection.RemoveTab(this.mPlugin, pObj.GetGenId());
             }
         }
 

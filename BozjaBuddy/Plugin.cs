@@ -52,6 +52,8 @@ namespace BozjaBuddy
             // you might normally want to embed resources and load them from the manifest stream
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             var tDataPath = Path.Combine(tDir, @"db\LostAction.db");
+            this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
+            this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
 
             mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();
@@ -61,7 +63,7 @@ namespace BozjaBuddy
             this.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "Open the main menu"
-            });
+            }); 
 
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
