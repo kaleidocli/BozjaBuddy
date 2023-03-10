@@ -20,6 +20,7 @@ namespace BozjaBuddy.GUI.Sections
         private static int mGenIdToTabFocus = -1;
         private static ImGuiTabBarFlags AUXILIARY_TAB_FLAGS = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
         private static GUIFilter mGUIFilter = new GUIFilter();
+        unsafe static ImGuiTextFilterPtr mFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
 
         protected override Plugin mPlugin { get; set; }
 
@@ -177,11 +178,13 @@ namespace BozjaBuddy.GUI.Sections
             {
                 AuxiliaryViewerSection.mTenpLoadout = null;
             }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Edit / Discard edit"); }
             ImGui.SameLine();
             // SAVE button
             if (AuxiliaryViewerSection.mTenpLoadout == null)
             {
                 ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save);
+                if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Save changes"); }
             }
             else if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save, new Vector4(0.58f, 0.86f, 0.6f, 1f)) && AuxiliaryViewerSection.mTenpLoadout != null)
             {
@@ -306,6 +309,11 @@ namespace BozjaBuddy.GUI.Sections
                                         ref AuxiliaryViewerSection.mTenpLoadout!._mDescription,
                                         1024,
                                         new Vector2(ImGui.GetWindowWidth() - ImGui.GetStyle().WindowPadding.X, ImGui.GetTextLineHeight() * 5));
+
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+
                 // Action list text filter
                 AuxiliaryViewerSection.GUITextFilterAction(mPlugin);
                 ImGui.EndChild();
@@ -558,11 +566,11 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.BeginChild("loadout_description_actionfilter");
             unsafe
             {
-                ImGuiTextFilterPtr tFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
-                tFilter.Draw("");
+                AuxiliaryViewerSection.mFilter.Draw("");
+                int i = 0;
                 foreach (LostAction iAction in pPlugin.mBBDataManager.mLostActions.Values)
                 {
-                    if (tFilter.PassFilter(iAction.mName))
+                    if (AuxiliaryViewerSection.mFilter.PassFilter(iAction.mName))
                     {
                         if (AuxiliaryViewerSection.mTenpLoadout != null)
                         {
@@ -575,7 +583,6 @@ namespace BozjaBuddy.GUI.Sections
                 }
                 ImGui.EndChild();
                 ImGui.PopStyleVar();
-                ImGuiNative.ImGuiTextFilter_destroy(tFilter.NativePtr);
             }
         }
         public static void GUIAlignRight(string pText)
@@ -591,6 +598,10 @@ namespace BozjaBuddy.GUI.Sections
         }
         public override void Dispose()
         {
+            unsafe 
+            {
+                ImGuiNative.ImGuiTextFilter_destroy(AuxiliaryViewerSection.mFilter.NativePtr);
+            }
         }
     }
 }

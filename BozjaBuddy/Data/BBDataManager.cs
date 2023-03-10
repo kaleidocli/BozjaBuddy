@@ -326,7 +326,7 @@ namespace BozjaBuddy.Data
     {
         public string _mName = "New loadout";          // these public fields are specifically for ImGui.TextInput()
         public string _mDescription = "new description";
-        public string _mGroup = "none";
+        public string _mGroup = "group";
         public RoleFlag _mRole = new RoleFlag(0);
         public int _mWeight = 0;
         public int mId { get; set; } = -1;  // these properties are specifically for json stuff
