@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using BozjaBuddy.GUI.Sections;
 using System.Text.Json;
+using Dalamud.Plugin;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.Data
 {
@@ -18,6 +20,7 @@ namespace BozjaBuddy.Data
         public Dictionary<int, Mob> mMobs;
         public Dictionary<int, Vendor> mVendors;
         public Dictionary<int, Loadout> mLoadouts;
+        public Dictionary<int, Loadout> mLoadoutsPreset;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Action>? mSheetAction;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? mSheetItem;
 
@@ -30,6 +33,7 @@ namespace BozjaBuddy.Data
             this.mMobs = new Dictionary<int, Mob>();
             this.mVendors = new Dictionary<int, Vendor>();
             this.mLoadouts = new Dictionary<int, Loadout>();
+            this.mLoadoutsPreset = new Dictionary<int, Loadout>();
             this.mGeneralObjects = new Dictionary<int, GeneralObject>();
 
             // db
@@ -55,6 +59,16 @@ namespace BozjaBuddy.Data
                 foreach (LoadoutJson iLoadout in tRawLoadouts.mLoadouts)
                 {
                     this.mLoadouts[iLoadout.mId] = new Loadout(this.mPlugin, iLoadout);
+                }
+            }
+            LoadoutListJson? tRawLoadoutsPreset = JsonSerializer.Deserialize<LoadoutListJson>(
+                        File.ReadAllText(this.mPlugin.DATA_PATHS["loadout_preset.json"])
+                    );
+            if (tRawLoadoutsPreset != null)
+            {
+                foreach (LoadoutJson iLoadout in tRawLoadoutsPreset.mLoadouts)
+                {
+                    this.mLoadoutsPreset[iLoadout.mId] = new Loadout(this.mPlugin, iLoadout);
                 }
             }
 
@@ -272,6 +286,23 @@ namespace BozjaBuddy.Data
         {
             string tJson = JsonSerializer.Serialize(SerializePseudo_Loadouts(), new JsonSerializerOptions { WriteIndented = true});
             File.WriteAllText(this.mPlugin.DATA_PATHS["loadout.json"], tJson);
+        }
+        public void ReloadLoadoutsPreset()
+        {
+            foreach (Loadout iLoadoutPreset in this.mLoadoutsPreset.Values)
+            {
+                if (this.mLoadouts.ContainsKey(iLoadoutPreset.mId))
+                {
+                    this.mLoadouts[iLoadoutPreset.mId] = iLoadoutPreset.DeepCopy();
+                    PluginLog.Debug($"Updating existed loadout! ({this.mLoadouts[iLoadoutPreset.mId].mName})");
+                }
+                else
+                {
+                    BBDataManager.DynamicAddGeneralObject(this.mPlugin, iLoadoutPreset.DeepCopy(), this.mLoadouts);
+                    PluginLog.Debug($"Creating new loadout! ({iLoadoutPreset.mId})");
+                }
+            }
+            this.SaveLoadouts();
         }
         /// <summary>
         /// Does not take care of Section's idList. 

@@ -53,6 +53,7 @@ namespace BozjaBuddy
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
             this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
+            this.DATA_PATHS["loadout_preset.json"] = Path.Combine(tDir, @"db\loadout_preset.json");
 
             mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();

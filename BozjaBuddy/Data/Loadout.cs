@@ -6,6 +6,7 @@ namespace BozjaBuddy.Data
 {
     public class Loadout : GeneralObject
     {
+        private LoadoutJson mPackageJson;
         public static int IdAutoIncrement = 0;
         protected override GeneralObjectSalt mIdSalt { get; set; } = GeneralObjectSalt.Loadout;
         public override int mId { get; set; } = 0;
@@ -31,7 +32,12 @@ namespace BozjaBuddy.Data
             this.mActionIds = new Dictionary<int, int>(pPackageJson.mActionIds);
             this.mRole = new RoleFlag(pPackageJson.mRoleInt);
 
+            this.mPackageJson = pPackageJson;
             this.SetUpAuxiliary();
+        }
+        public Loadout DeepCopy()
+        {
+            return new Loadout(this.mPlugin, this.mPackageJson);
         }
 
         protected override void SetUpAuxiliary()

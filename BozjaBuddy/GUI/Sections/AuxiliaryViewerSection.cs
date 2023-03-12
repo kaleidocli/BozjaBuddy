@@ -7,6 +7,7 @@ using System.Numerics;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using System.Text.Json;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -161,9 +162,7 @@ namespace BozjaBuddy.GUI.Sections
             // COPY button
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ClipboardList))
             {
-                ImGui.LogToClipboard();
-                ImGui.LogText(JsonSerializer.Serialize(new LoadoutJson(tLoadout)));
-                ImGui.LogFinish();
+                ImGui.SetClipboardText(JsonSerializer.Serialize(new LoadoutJson(tLoadout)));
             }
             if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Copy the current entry to clipboard"); }
             ImGui.SameLine();
