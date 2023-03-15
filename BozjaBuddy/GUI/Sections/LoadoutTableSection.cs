@@ -1,16 +1,10 @@
 ﻿using BozjaBuddy.Data;
-using Dalamud.Interface;
 using Dalamud.Interface.Components;
-using Dalamud.Logging;
 using ImGuiNET;
-using ImGuiScene;
 using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -144,7 +138,7 @@ namespace BozjaBuddy.GUI.Sections
         private void DrawOptionBar()
         {
             ImGuiIOPtr io = ImGui.GetIO();
-            AuxiliaryViewerSection.GUIAlignRight(30);
+            AuxiliaryViewerSection.GUIAlignRight(20*3);
             // Add
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus) && io.KeyShift)
             {
@@ -166,12 +160,15 @@ namespace BozjaBuddy.GUI.Sections
                     BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
                     this.mIsForcingSort = true;
                 }
-                
             }
-            if (ImGui.IsItemHovered())
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to import an entry from clipboard"); }
+            // Restore preset
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowsSpin) && io.KeyShift)
             {
-                ImGui.SetTooltip("[Shift + RMB] to import an entry from clipboard");
+                this.mPlugin.mBBDataManager.ReloadLoadoutsPreset();
             }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to return recommended loadouts to default. (user's loadouts are intact)"); }
         }
 
         public override void DrawGUIDebug()

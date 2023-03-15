@@ -1,16 +1,12 @@
 using BozjaBuddy.Data;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BozjaBuddy.Filter.FateCeTableSection
 {
     internal class FilterExp : Filter
     {
         public override string mFilterName { get; set; } = "exp";
-        private new int[] mLastValue = default!;
         private new int[] mCurrValue = default!;
 
         public FilterExp()
@@ -26,7 +22,6 @@ namespace BozjaBuddy.Filter.FateCeTableSection
         }
         protected override void Init()
         {
-            mLastValue = new int[2] { 0, 99999999 };
             mCurrValue = new int[2] { 0, 99999999 };
         }
 

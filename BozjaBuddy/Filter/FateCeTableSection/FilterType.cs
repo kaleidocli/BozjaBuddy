@@ -1,16 +1,12 @@
 using BozjaBuddy.Data;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BozjaBuddy.Filter.FateCeTableSection
 {
     internal class FilterType : Filter
     {
         public override string mFilterName { get; set; } = "type";
-        private new Fate.FateType mLastValue = default!;
         private new Fate.FateType mCurrValue = default!;
 
         public FilterType()

@@ -49,9 +49,11 @@ namespace BozjaBuddy
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(this.PluginInterface);
 
-            this.DATA_PATHS["db"] = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\LostAction.db");
-            this.DATA_PATHS["loadout.json"] = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\loadout.json");
-            //var tDataPath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.Parent?.Parent?.Parent?.FullName!, @"db\LostAction.db");
+            // you might normally want to embed resources and load them from the manifest stream
+            string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
+            this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
+            this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
+            this.DATA_PATHS["loadout_preset.json"] = Path.Combine(tDir, @"db\loadout_preset.json");
 
             mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();
@@ -61,7 +63,7 @@ namespace BozjaBuddy
             this.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "Open the main menu"
-            });
+            }); 
 
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;

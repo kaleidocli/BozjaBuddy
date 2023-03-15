@@ -1,0 +1,164 @@
+{
+  "mLoadouts": [
+    {
+      "mId": 10000,
+      "mName": "README Loadout",
+      "mDescription": "This is a loadout.\n- ALWAYS save after finishing loadout, or click the edit button again to discard unsaved changes.\n- You can add lost actions from this below menu, or the left menu, or the Lost action table.\n- You can copy/import loadouts. They\u0027re just json. There might be exploits using this method so be aware.\n",
+      "mGroup": ".default",
+      "mRoleInt": 11111,
+      "mWeight": 47,
+      "mActionIds": {
+        "20707": 2,
+        "20708": 4,
+        "23919": 1
+      }
+    },
+    {
+      "mId": 10001,
+      "mName": "DRS - ABBA - Tank - Preload",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for Tanks\n(as of 03/10/2023)",
+      "mGroup": "drs",
+      "mRoleInt": 10000,
+      "mWeight": 55,
+      "mActionIds": {
+        "20717": 1,
+        "20721": 1,
+        "20736": 1,
+        "22350": 1
+      }
+    },
+    {
+      "mId": 10002,
+      "mName": "DRS - ABBA - Tank - Instance",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for Tanks\n(as of 03/10/2023)",
+      "mGroup": "drs",
+      "mRoleInt": 10000,
+      "mWeight": 99,
+      "mActionIds": {
+        "20717": 1,
+        "20736": 4,
+        "22355": 2,
+        "22345": 1,
+        "20737": 1,
+        "23911": 4
+      }
+    },
+    {
+      "mId": 10003,
+      "mName": "DRS - ABBA - Healer - Preload",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for Healers\n(as of 03/10/2023)\n------\n",
+      "mGroup": "drs",
+      "mRoleInt": 1000,
+      "mWeight": 48,
+      "mActionIds": {
+        "22351": 1,
+        "20736": 1,
+        "22354": 1,
+        "23913": 1
+      }
+    },
+    {
+      "mId": 10004,
+      "mName": "DRS - ABBA - Healer - Instance",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for Healers\n(as of 03/10/2023)\n------\n- Bring either Steelsting or Spellforge. Communicate with the other healer.\n\n- If you don\u0027t have access to Light Curtains, bring an extra Lost Reflect instead.\n\n- If you don\u0027t have access to Lost Chainspell, or Lost Shell II, stock up on more Lost Arise or Resistance Reraisers.\n\n- Your two starting actions are flexible. No Shell II is needed until Trinity Avowed (3rd boss) so more damage is usually recommended. Some possibilities for those 2 slots are: Lost Seraph Strike, Lost Chainspell, Lost Burst, Lost Shell II, Lost Arise.\n\n- If you have less than 99 holster space, remove Lost Arise or Resistance Reraisers until your loadout fits.",
+      "mGroup": "drs",
+      "mRoleInt": 1000,
+      "mWeight": 102,
+      "mActionIds": {
+        "20711": 1,
+        "20707": 1,
+        "20706": 1,
+        "20730": 5,
+        "23916": 2,
+        "20704": 2,
+        "20736": 5,
+        "23911": 6
+      }
+    },
+    {
+      "mId": 10005,
+      "mName": "DRS - ABBA - Melee / Rend - Instance",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for Melee DPS with Rend armor role.\n(as of 03/10/2023)\n------\n- If you don\u0027t have access to Light Curtains, stock on more Resistance Potion Kits or Resistance Potions.\n\n- If you have less than 99 holster space, remove Potion Kits, Potions, or Resistance Reraisers until your loadout fits.",
+      "mGroup": "drs",
+      "mRoleInt": 100,
+      "mWeight": 99,
+      "mActionIds": {
+        "20736": 7,
+        "23911": 2,
+        "22353": 2,
+        "20717": 1
+      }
+    },
+    {
+      "mId": 10006,
+      "mName": "DRS - ABBA - Melee / Rend - Preload",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for Melee DPS with Rend armor role.\n(as of 03/10/2023)\n------",
+      "mGroup": "drs",
+      "mRoleInt": 100,
+      "mWeight": 53,
+      "mActionIds": {
+        "22348": 1,
+        "20736": 1,
+        "22353": 1,
+        "20717": 1
+      }
+    },
+    {
+      "mId": 10007,
+      "mName": "DRS - ABBA - Melee - Preload",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for Melee DPS (except for Rend armor).\n(as of 03/10/2023)\n------",
+      "mGroup": "drs",
+      "mRoleInt": 100,
+      "mWeight": 55,
+      "mActionIds": {
+        "22348": 1,
+        "20736": 1,
+        "20721": 1,
+        "20717": 1
+      }
+    },
+    {
+      "mId": 10008,
+      "mName": "DRS - ABBA - Melee - Instance",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for Melee DPS (except for Rend armor).\n(as of 03/10/2023)\n------\n- If you don\u0027t have access to Light Curtains, stock on more Resistance Potion Kits or Resistance Potions.\n\n- If you have less than 99 holster space, remove Potion Kits, Potions, or Resistance Reraisers until your loadout fits. ",
+      "mGroup": "drs",
+      "mRoleInt": 100,
+      "mWeight": 99,
+      "mActionIds": {
+        "20737": 1,
+        "20736": 6,
+        "20721": 2,
+        "20717": 1,
+        "23911": 3
+      }
+    },
+    {
+      "mId": 10009,
+      "mName": "DRS - ABBA - BLM Flare - Preload",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for BLM with Flare star role.\n(as of 03/10/2023)\n------",
+      "mGroup": "drs",
+      "mRoleInt": 1,
+      "mWeight": 65,
+      "mActionIds": {
+        "22347": 1,
+        "20736": 1,
+        "22352": 1,
+        "20715": 1
+      }
+    },
+    {
+      "mId": 10010,
+      "mName": "DRS - ABBA - BLM Flare - Instance",
+      "mDescription": "ABBA\u0027s recommended beginner loadout for BLM with Flare star role.\n(as of 03/10/2023)\n------",
+      "mGroup": "drs",
+      "mRoleInt": 1,
+      "mWeight": 99,
+      "mActionIds": {
+        "23911": 2,
+        "20738": 16,
+        "20736": 3,
+        "20715": 1
+      }
+    }
+  ]
+}

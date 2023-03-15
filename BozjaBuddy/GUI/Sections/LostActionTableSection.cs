@@ -1,16 +1,9 @@
-using FFXIVClientStructs.FFXIV.Common.Math;
 using ImGuiNET;
 using ImGuiScene;
 using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using Dalamud.Logging;
-using Dalamud.Interface.Components;
 
 namespace BozjaBuddy.GUI.Sections
 {

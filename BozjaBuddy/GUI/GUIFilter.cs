@@ -1,13 +1,6 @@
 using ImGuiNET;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BozjaBuddy.Data;
-using BozjaBuddy.GUI.Sections;
-using FFXIVClientStructs.FFXIV.Common.Math;
-using System.ComponentModel;
 
 namespace BozjaBuddy.GUI
 {

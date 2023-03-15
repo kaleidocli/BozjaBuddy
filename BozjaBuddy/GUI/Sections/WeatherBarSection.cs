@@ -1,16 +1,11 @@
 ﻿using BozjaBuddy.Data;
 using ImGuiNET;
-using ImGuiScene;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using FFXIVWeather;
-using FFXIVWeather.Models;
-using Dalamud.Logging;
 using Lumina.Excel.GeneratedSheets;
-using System.Runtime.CompilerServices;
 using System.Numerics;
-using System.Drawing;
 
 namespace BozjaBuddy.GUI.Sections
 {

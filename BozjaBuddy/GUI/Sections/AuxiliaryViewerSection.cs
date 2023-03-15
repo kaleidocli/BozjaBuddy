@@ -1,21 +1,13 @@
-using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
 using ImGuiScene;
 using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using static BozjaBuddy.Data.TextureCollection;
 using System.Numerics;
-using Lumina.Excel.GeneratedSheets;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using System.Text.Json;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -29,6 +21,7 @@ namespace BozjaBuddy.GUI.Sections
         private static int mGenIdToTabFocus = -1;
         private static ImGuiTabBarFlags AUXILIARY_TAB_FLAGS = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
         private static GUIFilter mGUIFilter = new GUIFilter();
+        unsafe static ImGuiTextFilterPtr mFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
 
         protected override Plugin mPlugin { get; set; }
 
@@ -52,16 +45,13 @@ namespace BozjaBuddy.GUI.Sections
                 }
                 ImGui.EndTabBar();
             }
-
-            //this.DrawGUIDebug();
-
             return true;
         }
 
         private void DrawTab(GeneralObject pObj)
         {
             bool[] tIsOpened = { true };
-
+            
             if (pObj.mTabColor != null) ImGui.PushStyleColor(ImGuiCol.Tab, pObj.mTabColor.Value);
 
             if (ImGui.BeginTabItem($"{pObj.mName}##{pObj.mId}", ref tIsOpened[0], pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus
@@ -172,9 +162,7 @@ namespace BozjaBuddy.GUI.Sections
             // COPY button
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ClipboardList))
             {
-                ImGui.LogToClipboard();
-                ImGui.LogText(JsonSerializer.Serialize(new LoadoutJson(tLoadout)));
-                ImGui.LogFinish();
+                ImGui.SetClipboardText(JsonSerializer.Serialize(new LoadoutJson(tLoadout)));
             }
             if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Copy the current entry to clipboard"); }
             ImGui.SameLine();
@@ -189,11 +177,13 @@ namespace BozjaBuddy.GUI.Sections
             {
                 AuxiliaryViewerSection.mTenpLoadout = null;
             }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Edit / Discard edit"); }
             ImGui.SameLine();
             // SAVE button
             if (AuxiliaryViewerSection.mTenpLoadout == null)
             {
                 ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save);
+                if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Save changes"); }
             }
             else if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save, new Vector4(0.58f, 0.86f, 0.6f, 1f)) && AuxiliaryViewerSection.mTenpLoadout != null)
             {
@@ -244,7 +234,7 @@ namespace BozjaBuddy.GUI.Sections
             {
                 ImGui.BeginChild("loadout_description", new System.Numerics.Vector2(ImGui.GetWindowWidth() / 2, ImGui.GetWindowHeight() - ImGui.GetCursorPosY()));
                 ImGui.TextUnformatted(tLoadout.mName);
-                string tTemp = $"[{tLoadout.mGroup}] • [{tLoadout.mRole.ToString()}]";
+                string tTemp = $"[{tLoadout.mGroup}] ï¿½ [{tLoadout.mRole.ToString()}]";
                 AuxiliaryViewerSection.GUIAlignRight(tTemp); ImGui.TextUnformatted(tTemp);
                 ImGui.Spacing();
                 ImGui.Separator();
@@ -305,7 +295,7 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PushItemWidth(ImGui.GetFontSize() * 4);
                 ImGui.InputText("##group", ref AuxiliaryViewerSection.mTenpLoadout!._mGroup, 120);
                 ImGui.PopItemWidth();
-                ImGui.SameLine(); ImGui.Text(" • ");
+                ImGui.SameLine(); ImGui.Text(" ï¿½ ");
                 ImGui.SameLine(); AuxiliaryViewerSection.mGUIFilter.HeaderRoleSelectables(AuxiliaryViewerSection.mTenpLoadout!._mRole);
 
 
@@ -318,6 +308,11 @@ namespace BozjaBuddy.GUI.Sections
                                         ref AuxiliaryViewerSection.mTenpLoadout!._mDescription,
                                         1024,
                                         new Vector2(ImGui.GetWindowWidth() - ImGui.GetStyle().WindowPadding.X, ImGui.GetTextLineHeight() * 5));
+
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+
                 // Action list text filter
                 AuxiliaryViewerSection.GUITextFilterAction(mPlugin);
                 ImGui.EndChild();
@@ -570,11 +565,11 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.BeginChild("loadout_description_actionfilter");
             unsafe
             {
-                ImGuiTextFilterPtr tFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
-                tFilter.Draw("");
+                AuxiliaryViewerSection.mFilter.Draw("");
+                int i = 0;
                 foreach (LostAction iAction in pPlugin.mBBDataManager.mLostActions.Values)
                 {
-                    if (tFilter.PassFilter(iAction.mName))
+                    if (AuxiliaryViewerSection.mFilter.PassFilter(iAction.mName))
                     {
                         if (AuxiliaryViewerSection.mTenpLoadout != null)
                         {
@@ -587,7 +582,6 @@ namespace BozjaBuddy.GUI.Sections
                 }
                 ImGui.EndChild();
                 ImGui.PopStyleVar();
-                ImGuiNative.ImGuiTextFilter_destroy(tFilter.NativePtr);
             }
         }
         public static void GUIAlignRight(string pText)
@@ -603,8 +597,10 @@ namespace BozjaBuddy.GUI.Sections
         }
         public override void Dispose()
         {
+            unsafe 
+            {
+                ImGuiNative.ImGuiTextFilter_destroy(AuxiliaryViewerSection.mFilter.NativePtr);
+            }
         }
-
-        public static Vector4 TABCOLOR_FATE { get; set; } = new Vector4(1, 1, 1, 1);
     }
 }

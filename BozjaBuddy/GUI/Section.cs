@@ -1,14 +1,8 @@
 using BozjaBuddy.Data;
 using BozjaBuddy.Interface;
-using Dalamud.Game.ClientState.Keys;
-using Dalamud.Logging;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BozjaBuddy.GUI
 {

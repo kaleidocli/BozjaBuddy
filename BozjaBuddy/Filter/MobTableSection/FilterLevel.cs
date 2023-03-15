@@ -1,17 +1,12 @@
 using BozjaBuddy.Data;
-using ImGuiNET;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BozjaBuddy.Filter.MobTableSection
 {
     internal class FilterLevel : Filter
     {
         public override string mFilterName { get; set; } = "level";
-        private new int[] mLastValue = default!;
         private new int[] mCurrValue = default!;
 
         public FilterLevel()
@@ -27,7 +22,6 @@ namespace BozjaBuddy.Filter.MobTableSection
         }
         protected override void Init()
         {
-            mLastValue = new int[2] { 0, 10 };
             mCurrValue = new int[2] { 0, 10 };
         }
 
