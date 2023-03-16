@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>0.1.0.1</Version>
+    <Version>0.1.0.2</Version>
     <Description>A sample plugin.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
@@ -37,30 +37,29 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\Data\x86\SQLite.Interop.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-	<Content Include="..\Data\x64\SQLite.Interop.dll">
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</Content>
-    <Content Include="..\Data\sqlite3.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Data\System.Data.SQLite.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Data\System.Data.SQLite.EF6.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Data\System.Data.SQLite.Linq.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Data\FFXIVWeather.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-	<Content Include="..\Data\NAudio.dll">
-	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+	  <Content Include="..\Data\x86\**">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <Link>x86\%(RecursiveDir)\%(Filename)%(Extension)</Link>
+	  </Content>
+	  <Content Include="..\Data\x64\**">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <Link>x64\%(RecursiveDir)\%(Filename)%(Extension)</Link>
+	  </Content>
+	  <Content Include="..\Data\sqlite3.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="..\Data\System.Data.SQLite.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="..\Data\System.Data.SQLite.EF6.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="..\Data\System.Data.SQLite.Linq.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="..\Data\FFXIVWeather.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
   </ItemGroup>
 
   <PropertyGroup>
