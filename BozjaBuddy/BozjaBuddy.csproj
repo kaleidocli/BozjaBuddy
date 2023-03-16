@@ -18,6 +18,7 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -72,6 +73,7 @@
   <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="2.1.10" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.2" />
+    <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
@@ -107,18 +109,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="db\audio\" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="db\LostAction.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="db\LostAction.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="db\loadout.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	<None Update="db\loadout.json">
-	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Update="db\loadout_preset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-	<None Update="db\loadout_preset.json">
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
+    <None Update="db\audio\epicsaxguy.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
