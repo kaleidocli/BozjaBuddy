@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace BozjaBuddy.Data.Alarm
 {
-    internal class AlarmWeather : Alarm
+    internal class AlarmFateCe : Alarm
     {
-        public new static string kReprString = $"Alarm #{Alarm._ID_COUNTER} [WEATHER]";
-        public new static string kToolTip = "Alarm for a specific weather. Can go off once, or every time the weather comes around.";
-        public AlarmWeather() : base(null, null, kReprString) { }
-        public AlarmWeather(DateTime? pTriggerTime, int? pTriggerInt, string? pName = null)
+        public new static string kReprString = $"Alarm #{Alarm._ID_COUNTER} [FATECE]";
+        public new static string kToolTip = "Alarm for a specific Fate or CE. Can go off once, or every time the FATE or CE comes around.";
+        public AlarmFateCe() : base(null, null, kReprString) { }
+        public AlarmFateCe(DateTime? pTriggerTime, int? pTriggerInt, string? pName = null)
             : base(pTriggerTime, pTriggerInt, pName ?? kReprString)
         {
         }
@@ -20,7 +20,7 @@ namespace BozjaBuddy.Data.Alarm
                 this.Kill();
                 return false;
             }
-            if (pListeners["weather"].Contains(this.mTriggerInt!.Value))
+            if (pListeners["fatece"].Contains(this.mTriggerInt!.Value))
                 return true;
             else
             {

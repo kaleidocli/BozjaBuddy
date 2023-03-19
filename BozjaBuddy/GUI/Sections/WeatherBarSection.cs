@@ -6,6 +6,8 @@ using System.Linq;
 using FFXIVWeather;
 using Lumina.Excel.GeneratedSheets;
 using System.Numerics;
+using BozjaBuddy.Data.Alarm;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -69,24 +71,47 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, ImGui.GetStyle().ItemSpacing[1]));
             for (int i = 0; i < WeatherBarSection._mForeCast[pTerritoryId].Count; i++)
             {
+                string tTempGUI_Key = $"weather{i}";
                 (FFXIVWeather.Models.Weather, DateTime) tWeather = WeatherBarSection._mForeCast[pTerritoryId][i];
                 ImGui.SameLine();
                 ImGui.PushStyleColor(ImGuiCol.Button, WeatherBarSection._mWeatherColor[tWeather.Item1.Id]);
                 if (tWeather.Item2 != tWeatherCurr_bozja.Item2)
-                    ImGui.Button($" ##{tWeather.Item2.Millisecond}");
+                {
+                    if (ImGui.Button($"   ##{i}") && !ImGui.IsPopupOpen($"{GUIAlarm.GUI_ID}##{tTempGUI_Key}"))
+                    {
+                        GUIAlarm.CreatePopupCreateAlarm(tTempGUI_Key);
+                    }
+                    else if (!ImGui.IsPopupOpen($"{GUIAlarm.GUI_ID}##{tTempGUI_Key}"))
+                    {
+                        GUIAlarm.ResetPopup();
+                    }
+                }
                 else
                 {
-                    ImGui.Button(String.Format("{0} left ",
+                    if (ImGui.Button(String.Format("{0} left ",
                                                 TimeSpan
                                                 .FromSeconds(
                                                     Math.Round(
                                                         (WeatherBarSection._mForeCast[pTerritoryId][i + (i + 1 < WeatherBarSection._mForeCast[pTerritoryId].Count ? 1 : 0)].Item2 - DateTime.UtcNow)
-                                                        .TotalSeconds, 
+                                                        .TotalSeconds,
                                                         MidpointRounding.ToNegativeInfinity
                                                         )
                                                     )
-                                                .ToString(@"mm\:ss")));
+                                                .ToString(@"mm\:ss")))
+                        && !ImGui.IsPopupOpen($"{GUIAlarm.GUI_ID}##{tTempGUI_Key}"))
+                    {
+                        GUIAlarm.CreatePopupCreateAlarm(tTempGUI_Key);
+                    }
+                    else if (!ImGui.IsPopupOpen($"{GUIAlarm.GUI_ID}##{tTempGUI_Key}"))
+                    {
+                        GUIAlarm.ResetPopup();
+                    }
                 }
+                ImGui.PopStyleVar();
+                ImGui.PopStyleVar();
+                GUIAlarm.DrawPopupCreateAlarm<AlarmWeather>(this.mPlugin, tTempGUI_Key, tWeather.Item1.Id, $"{AlarmWeather.kReprString} | {tWeather.Item1.GetName()} | {WeatherBarSection._mTerritories[pTerritoryId]}");
+                ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, ImGui.GetStyle().ItemSpacing[1]));
                 ImGui.PopStyleColor();
                 if (ImGui.IsItemHovered())
                 {
@@ -117,7 +142,7 @@ namespace BozjaBuddy.GUI.Sections
         {
             WeatherBarSection._mForeCast[pTerritoryId] = WeatherBarSection._mWeatherService.GetForecast(
                                                     Convert.ToInt32(
-                                                            pPlugin.DataManager.Excel.GetSheet<TerritoryType>()
+                                                            pPlugin.DataManager.Excel.GetSheet<TerritoryType>()?
                                                                                 .Select(o => o)
                                                                                 .Where(o => o.Name.ToString() == pTerritoryId)
                                                                                 .ToList()[0].RowId

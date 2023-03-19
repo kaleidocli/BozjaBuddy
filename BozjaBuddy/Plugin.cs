@@ -33,7 +33,7 @@ namespace BozjaBuddy
 
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("Bozja Buddy");
-        public AlarmManager Alarm { get; init; }
+        public AlarmManager AlarmManager { get; init; }
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -70,15 +70,15 @@ namespace BozjaBuddy
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
-            this.Alarm = new AlarmManager(this);
-            this.Alarm.Start();
+            this.AlarmManager = new AlarmManager(this);
+            this.AlarmManager.Start();
         }
 
         public void Dispose()
         {
             this.WindowSystem.RemoveAllWindows();
             this.CommandManager.RemoveHandler(CommandName);
-            this.Alarm.Dispose();
+            this.AlarmManager.Dispose();
         }
 
         private void OnCommand(string command, string args)

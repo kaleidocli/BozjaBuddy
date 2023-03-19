@@ -1,19 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using BozjaBuddy.interop;
 using Dalamud.Logging;
 using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
 
 namespace BozjaBuddy.Data.Alarm
 {
     public class AlarmManager : IDisposable
     {
+        public static Dictionary<string, List<int>> Listeners = new Dictionary<string, List<int>>();
+        private List<Alarm> mAlarmList = new List<Alarm>();
+        private List<Alarm> mDisposedAlarmList = new List<Alarm>();
+        private int mDurationLeft = 0;
         private bool mIsEnabled = false;
         private const int INTERVAL = 1000;
         private bool mIsAppActivated = false;
         private bool mIsAlarmTriggered = false;
+        private bool mIsSoundMute = false;
         private Plugin mPlugin;
         private WaveOutEvent? mOutputDevice;
         private LoopStream? mAudioFile;
@@ -25,6 +28,18 @@ namespace BozjaBuddy.Data.Alarm
             mOutputDevice = new WaveOutEvent();
             mOutputDevice?.Init(mAudioFile);
         }
+        /// <summary>
+        /// Primarily for testing
+        /// </summary>
+        /// <param name="pStatus"></param>
+        public void _SetTrigger(bool pStatus)
+        {
+            this.mIsAlarmTriggered = pStatus;
+        }
+        public void MuteSound()
+        {
+            this.mIsSoundMute = true;
+        }
         public void Start()
         {
             mIsEnabled = true;
@@ -32,29 +47,66 @@ namespace BozjaBuddy.Data.Alarm
                 new ThreadStart(MyAlarm)
             ).Start();
         }
+        public void AddAlarm(Alarm pAlarm)
+        {
+            mAlarmList.Add(pAlarm);
+
+            // FIXME: add saving to disk
+        }
+
         private void MyAlarm()
         {
             while (mIsEnabled)
             {
-                if (Native.ApplicationIsActivated() && !mIsAppActivated)
+                //if (Native.ApplicationIsActivated() && !mIsAppActivated)
+                //{
+                //    mIsAppActivated = true;
+                //    //this.mIsAlarmTriggered = true;
+                //    PluginLog.Information("App is being focused.");
+                //}
+                //else if (!Native.ApplicationIsActivated() && mIsAppActivated)
+                //{
+                //    mIsAppActivated = false;
+                //    //this.mIsAlarmTriggered = false;
+                //    PluginLog.Information("App stops being focused.");
+                //}
+
+                foreach (Alarm iAlarm in this.mAlarmList)
                 {
-                    mIsAppActivated = true;
-                    //this.mIsAlarmTriggered = true;
-                    PluginLog.Information("App is being focused.");
+                    if (iAlarm.CheckAlarm(DateTime.Now, AlarmManager.Listeners))
+                    {
+                        this.mDurationLeft = iAlarm.mDuration;
+                    }
+                    else if (iAlarm.mTimeOfDeath.HasValue && (DateTime.Now - iAlarm.mTimeOfDeath!.Value).TotalSeconds > iAlarm.mDuration)      // x amount of seconds after alarm is dead
+                    {
+                        if (iAlarm.mIsRevivable)
+                        {
+                            iAlarm.Revive(DateTime.Now, AlarmManager.Listeners);
+                        }
+                        else
+                        {
+                            this.mDisposedAlarmList.Add(iAlarm);
+                            this.mAlarmList.Remove(iAlarm);
+                        }
+                    }
                 }
-                else if (!Native.ApplicationIsActivated() && mIsAppActivated)
+                if (this.mDurationLeft > 0)
                 {
-                    mIsAppActivated = false;
-                    //this.mIsAlarmTriggered = false;
-                    PluginLog.Information("App stops being focused.");
+                    this.mIsAlarmTriggered = true;
+                    this.mDurationLeft -= INTERVAL / 1000;
                 }
+                else
+                {
+                    this.mIsAlarmTriggered = false;
+                }
+
                 try
                 {
                     if (mIsAlarmTriggered)
                     {
-                        if (mOutputDevice != null && mOutputDevice.PlaybackState == PlaybackState.Stopped)
+                        if (!this.mIsSoundMute && mOutputDevice != null && mOutputDevice.PlaybackState == PlaybackState.Stopped)
                         {
-                            PluginLog.Information($"Alarm sound playing.");
+                            PluginLog.Information("Alarm sound playing.");
                             mOutputDevice!.Play();
                         }
                     }
