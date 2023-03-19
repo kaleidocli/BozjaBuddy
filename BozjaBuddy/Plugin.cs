@@ -5,7 +5,6 @@ using System.Reflection;
 using Dalamud.Interface.Windowing;
 using BozjaBuddy.Windows;
 using BozjaBuddy.Data;
-using BozjaBuddy.Data.Alarm;
 using ImGuiNET;
 using Dalamud.Logging;
 using Dalamud.Data;
@@ -29,11 +28,10 @@ namespace BozjaBuddy
         public GameGui GameGui { get; init; }
         public FateTable FateTable { get; init; }
         public DataManager DataManager { get; init; }
-        public BBDataManager mBBDataManager;
-
         public Configuration Configuration { get; init; }
-        public WindowSystem WindowSystem = new("Bozja Buddy");
-        public AlarmManager Alarm { get; init; }
+        public WindowSystem WindowSystem = new("Bozja Buddy");  
+        
+        public BBDataManager mBBDataManager;
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -51,11 +49,11 @@ namespace BozjaBuddy
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(this.PluginInterface);
 
+            // you might normally want to embed resources and load them from the manifest stream
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
             this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
             this.DATA_PATHS["loadout_preset.json"] = Path.Combine(tDir, @"db\loadout_preset.json");
-            this.DATA_PATHS["alarm_audio"] = Path.Combine(tDir, @"db\audio\epicsaxguy.mp3");
 
             mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();
@@ -69,16 +67,12 @@ namespace BozjaBuddy
 
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
-
-            this.Alarm = new AlarmManager(this);
-            this.Alarm.Start();
         }
 
         public void Dispose()
         {
             this.WindowSystem.RemoveAllWindows();
             this.CommandManager.RemoveHandler(CommandName);
-            this.Alarm.Dispose();
         }
 
         private void OnCommand(string command, string args)
