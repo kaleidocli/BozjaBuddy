@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using BozjaBuddy.GUI;
+using System.Threading.Tasks;
 using BozjaBuddy.GUI.Sections;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using NAudio.Wave;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace BozjaBuddy.Data.Alarm
 {
@@ -25,18 +23,14 @@ namespace BozjaBuddy.Data.Alarm
         private bool mIsAppActivated = false;
         private bool mIsAlarmTriggered = false;
         private bool mIsSoundMute = false;
-        private bool mIsAudioFileReloaded = false;
+        private Task mSoundPlayerTask = Task.CompletedTask;
+        private CancellationTokenSource mSoundPlayerTaskCTS = new();
         private Plugin mPlugin;
-        private WaveOutEvent? mOutputDevice;
-        private LoopStream? mAudioFile;
 
         public AlarmManager(Plugin pPlugin)
         {
             mPlugin = pPlugin;
             this.LoadAlarmListsFromDisk();
-            mAudioFile = new LoopStream(new AudioFileReader(mPlugin.DATA_PATHS["alarm_audio"]));
-            mOutputDevice = new WaveOutEvent();
-            mOutputDevice?.Init(mAudioFile);
         }
         /// <summary>
         /// Primarily for testing
@@ -45,17 +39,6 @@ namespace BozjaBuddy.Data.Alarm
         public void _SetTrigger(bool pStatus)
         {
             this.mIsAlarmTriggered = pStatus;
-        }
-        public void ReloadAudio()
-        {
-            // Dispose
-            mOutputDevice?.Dispose();
-            mAudioFile?.Dispose();
-
-            // Load
-            mAudioFile = new LoopStream(new AudioFileReader(mPlugin.DATA_PATHS["alarm_audio"]));
-            mOutputDevice = new WaveOutEvent();
-            mOutputDevice?.Init(mAudioFile);
         }
         public void MuteSound() { this.mIsSoundMute = true; }
         public void UnmuteSound() { this.mIsSoundMute = false; }
@@ -234,6 +217,7 @@ namespace BozjaBuddy.Data.Alarm
         private void MyAlarm()
         {
             int tCounter = 0;
+
             while (mIsEnabled)
             {
                 if (this.mActiveAndAwakeAlarmCount == 0 && !(this.mDurationLeft > 0))
@@ -241,7 +225,6 @@ namespace BozjaBuddy.Data.Alarm
                     Thread.Sleep(INTERVAL);
                     continue;
                 }
-
                 if (tCounter % 5 == 0) // refresh every 5 secs
                     WeatherBarSection._updateWeatherCurr(mPlugin);
                 tCounter = tCounter == 5 ? 0 : tCounter + 1;
@@ -298,47 +281,24 @@ namespace BozjaBuddy.Data.Alarm
                     this.UnmuteSound();
                 }
 
-                // Audio stuff
                 try
                 {
-                    if (this.mIsAudioFileReloaded)
+                    CancellationToken tToken = this.mSoundPlayerTaskCTS.Token;
+                    if (this.mIsAlarmTriggered && this.mSoundPlayerTask!.Status != TaskStatus.Running && !this.mIsSoundMute)
                     {
-                        this.mIsAudioFileReloaded = false;
-                        this.mIsSoundMute = true;
-                        this.mOutputDevice!.Stop();
-                        this.mOutputDevice!.Dispose();
-                        this.mOutputDevice = null;
-                        this.mAudioFile?.Dispose();
-                        this.mAudioFile = null;
+                        PluginLog.Information("Alarm sound playing.");
+                        this.mSoundPlayerTask = new Task(
+                                () => SoundPlayer(this.mPlugin.Configuration.mAudioPath, this.mPlugin.Configuration.mAudioVolume, tToken),
+                                this.mSoundPlayerTaskCTS.Token);
+                        this.mSoundPlayerTask.Start();
                     }
-                    if (this.mIsAlarmTriggered && !this.mIsSoundMute)
+                    else if (this.mSoundPlayerTask!.Status == TaskStatus.Running && (!this.mIsAlarmTriggered || this.mIsSoundMute))
                     {
-                        if (this.mOutputDevice == null || this.mAudioFile == null)
-                        {
-                            this.mOutputDevice?.Dispose();
-                            this.mAudioFile?.Dispose();
-                            this.mAudioFile = new LoopStream(new AudioFileReader(mPlugin.DATA_PATHS["alarm_audio"]));
-                            this.mOutputDevice = new WaveOutEvent();
-                            this.mOutputDevice?.Init(this.mAudioFile);
-                        }
-                        if (!this.mIsSoundMute && this.mOutputDevice != null && this.mOutputDevice.PlaybackState == PlaybackState.Stopped)
-                        {
-                            PluginLog.Information("Alarm sound playing.");
-                            this.mOutputDevice!.Play();
-                        }
-                    }
-                    else
-                    {
-                        if (this.mOutputDevice != null && this.mOutputDevice.PlaybackState == PlaybackState.Playing)
-                        {
-                            PluginLog.Information("Alarm sound stopped.");
-                            this.mOutputDevice!.Stop();
-                            this.mOutputDevice!.Dispose();
-                            this.mOutputDevice = null;
-                            this.mAudioFile?.Dispose();
-                            this.mAudioFile = null;
-                        }
-
+                        PluginLog.Information("Alarm sound stopped.");
+                        this.mSoundPlayerTaskCTS.Cancel();
+                        this.mSoundPlayerTask.Wait();
+                        this.mSoundPlayerTaskCTS.Dispose();
+                        this.mSoundPlayerTaskCTS = new CancellationTokenSource();
                     }
                 }
                 catch (Exception e)
@@ -350,13 +310,60 @@ namespace BozjaBuddy.Data.Alarm
 
         }
 
+        // https://github.com/goatcorp/DalamudPluginsD17/pull/1155
+        // https://github.com/goatcorp/DalamudPluginsD17/pull/112#issuecomment-1222769995
+        private void SoundPlayer(string pPath, float pVolume, CancellationToken pToken)
+        {
+            pToken.ThrowIfCancellationRequested();
+
+            System.Guid tOutputDevice = DirectSoundOut.DSDEVID_DefaultPlayback;
+            LoopStream tAudioReader;
+            // Audio stuff
+            try
+            {
+                tAudioReader = new LoopStream(new MediaFoundationReader(pPath));
+            }
+            catch (Exception e)
+            {
+                PluginLog.LogError($"Path might be invalid: {pPath}\n{e.Message}");
+                return;
+            }
+            using var tChannel = new WaveChannel32(tAudioReader)
+            {
+                Volume = pVolume,
+                PadWithZeroes = false,
+            };
+
+            using (tAudioReader)
+            {
+                using var tOutput = new DirectSoundOut(tOutputDevice);
+                try
+                {
+                    tOutput.Init(tChannel);
+                    tOutput.Play();
+                    while (tOutput.PlaybackState == PlaybackState.Playing)
+                    {
+                        if (pToken.IsCancellationRequested)
+                        {
+                            tOutput.Stop();
+                            pToken.ThrowIfCancellationRequested();
+                            break;
+                        }
+                        Thread.Sleep(500);
+                    }
+                }
+                catch (Exception e)
+                {
+                    PluginLog.LogError(e.Message);
+                    return;
+                }
+            }
+        }
+
         public void Dispose()
         {
-            mIsEnabled = false;
-            mOutputDevice?.Dispose();
-            mOutputDevice = null;
-            mAudioFile?.Dispose();
-            mAudioFile = null;
+            this.mIsEnabled = false;
+            this.mSoundPlayerTaskCTS.Dispose();
         }
     }
 

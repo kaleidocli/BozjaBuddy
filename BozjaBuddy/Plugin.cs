@@ -64,6 +64,8 @@ namespace BozjaBuddy
             WindowSystem.AddWindow(new MainWindow(this));
             WindowSystem.AddWindow(new AlarmWindow(this));
 
+            this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
+
             this.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "Open the main menu"

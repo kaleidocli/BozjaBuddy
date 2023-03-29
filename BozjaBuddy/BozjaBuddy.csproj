@@ -18,7 +18,6 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <UseWindowsForms>false</UseWindowsForms>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
@@ -74,7 +73,7 @@
   <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="2.1.10" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.2" />
-    <PackageReference Include="NAudio" Version="2.1.0" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
