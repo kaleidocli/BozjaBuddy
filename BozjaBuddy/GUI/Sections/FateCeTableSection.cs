@@ -5,6 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState.Fates;
+using Dalamud.Interface.Components;
+using BozjaBuddy.Utils;
+using BozjaBuddy.Data.Alarm;
+using Dalamud.Logging;
+using System.Threading.Channels;
+using System.Security.Cryptography;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -29,14 +35,15 @@ namespace BozjaBuddy.GUI.Sections
             this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
             this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 1);
 
-            this.mFilters= new Filter.Filter[] {
+            this.mFilters = new Filter.Filter[] {
                 new Filter.FateCeTableSection.FilterType(true, this.mPlugin, true),
                 new Filter.FateCeTableSection.FilterName(),
                 new Filter.FateCeTableSection.FilterStatus(false, this.mPlugin, true),
                 new Filter.FateCeTableSection.FilterMettle(true, this.mPlugin, true),
                 new Filter.FateCeTableSection.FilterExp(true, this.mPlugin, true),
                 new Filter.FateCeTableSection.FilterTome(true, this.mPlugin, true),
-                new Filter.FateCeTableSection.FilterLocation()
+                new Filter.FateCeTableSection.FilterLocation(),
+                new Filter.FilterNone(false, "Alarm")
             };
             FateCeTableSection.COLUMN_COUNT = this.mFilters.Length;
             this.mFateIDs = this.mPlugin.mBBDataManager.mFates.Keys.ToList();
@@ -120,12 +127,19 @@ namespace BozjaBuddy.GUI.Sections
                 }
             }
             // CONTENT
+            List<int> tTableFateIds = this.mPlugin.FateTable
+                                        .Select(o => Convert.ToInt32(o.FateId))
+                                        .ToList();
             foreach (int iID in pIDs)
             {
-                this.DrawTableRow(iID);
+                if (!tTableFateIds.Contains(iID))
+                {
+                    this.mPlugin.mBBDataManager.mFates[iID].mCSFate = null;
+                }
+                this.DrawTableRow(iID, tTableFateIds);
             }
         }
-        private void DrawTableRow(int pID)
+        private void DrawTableRow(int pID, List<int> pTableFateIds)
         {
             BozjaBuddy.Data.Fate tFate = this.mPlugin.mBBDataManager.mFates[pID];
             if (!this.CheckFilter(tFate)) return;
@@ -169,6 +183,20 @@ namespace BozjaBuddy.GUI.Sections
                         break;
                     case 6:
                         AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tFate.mLocation!);
+                        break;
+                    case 7:
+                        ImGui.PushID($"a{tFate.mId}");
+                        if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Bell))
+                        {
+                            GUIAlarm.CreateACPU(tFate.mId.ToString(), pNameSuggestion: $"Fate/CE {Alarm.GetIdCounter()}: {tFate.mName} (fateId={tFate.mId})");
+                        }
+                        GUIAlarm.DrawACPU_FateCe(
+                            this.mPlugin, 
+                            tFate.mId.ToString(), 
+                            tFate.mId
+                            );
+                        UtilsGUI.SetTooltipForLastItem("Set an alarm for this Fate/CE");
+                        ImGui.PopID();
                         break;
                     default: break;
                 }

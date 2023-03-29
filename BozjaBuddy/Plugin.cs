@@ -56,11 +56,13 @@ namespace BozjaBuddy
             this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
             this.DATA_PATHS["loadout_preset.json"] = Path.Combine(tDir, @"db\loadout_preset.json");
             this.DATA_PATHS["alarm_audio"] = Path.Combine(tDir, @"db\audio\epicsaxguy.mp3");
+            this.DATA_PATHS["alarm.json"] = Path.Combine(tDir, @"db\alarm.json");
 
             mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();
             WindowSystem.AddWindow(new ConfigWindow(this));
             WindowSystem.AddWindow(new MainWindow(this));
+            WindowSystem.AddWindow(new AlarmWindow(this));
 
             this.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
@@ -94,7 +96,7 @@ namespace BozjaBuddy
 
         public void DrawConfigUI()
         {
-            WindowSystem.GetWindow("Bozja Buddy Config")!.IsOpen = true;
+            WindowSystem.GetWindow("Config - BozjaBuddy")!.IsOpen = true;
         }
     }
 }

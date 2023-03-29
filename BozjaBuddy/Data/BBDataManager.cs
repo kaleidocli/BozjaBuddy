@@ -315,8 +315,11 @@ namespace BozjaBuddy.Data
             pPlugin.mBBDataManager.mGeneralObjects[pGenObj.GetGenId()] = pGenObj;
             AuxiliaryViewerSection.BindToGenObj(pPlugin, pGenObj.GetGenId());
             // Write to disc
-            pPlugin.mBBDataManager.SaveLoadouts();
-            AuxiliaryViewerSection.mTenpLoadout = null;
+            if (typeof(T) == typeof(Loadout))
+            {
+                pPlugin.mBBDataManager.SaveLoadouts();
+                AuxiliaryViewerSection.mTenpLoadout = null;
+            }
             AuxiliaryViewerSection.mIsRefreshRequired = true;
         }
         /// <summary>
@@ -332,8 +335,11 @@ namespace BozjaBuddy.Data
             AuxiliaryViewerSection.mTabGenIdsToDraw.Remove(pGenObj.GetGenId());
             AuxiliaryViewerSection.mIsRefreshRequired = true;
             // Write to disc
-            pPlugin.mBBDataManager.SaveLoadouts();
-            AuxiliaryViewerSection.mTenpLoadout = null;
+            if (typeof(T) == typeof(Loadout))
+            {
+                pPlugin.mBBDataManager.SaveLoadouts();
+                AuxiliaryViewerSection.mTenpLoadout = null;
+            }
         }
     }
 
