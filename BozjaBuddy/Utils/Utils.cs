@@ -23,5 +23,13 @@ namespace BozjaBuddy.Utils
         {
             return pNum > 999 ? $"{pNum / 1000}k" : pNum.ToString();
         }
+        public static DateTime ProcessToLocalTime(DateTime pDateTime)
+        {
+            return DateTime.UtcNow.AddSeconds(Math.Round((pDateTime - DateTime.UtcNow).TotalSeconds, MidpointRounding.ToNegativeInfinity)).ToLocalTime();
+        }
+        public static Vector4 RGBAtoVec4(int R, int G, int B, int A)
+        {
+            return new Vector4((float)R / 255, (float)G / 255, (float)B / 255, (float)A / 255);
+        }
     }
 }

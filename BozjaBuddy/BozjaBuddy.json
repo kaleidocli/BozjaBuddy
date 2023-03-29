@@ -2,7 +2,7 @@
     "Author": "K-Cli",
     "Name": "Bozja Buddy",
     "Punchline": "Improve your Bozja sufferring. Maybe.",
-    "Description": "Features:\n• Info about Lost Actions, Fragments, FATEs/CE e.g. location, drops, fate chains, mettle rewards, exp rewards, etc.",
+    "Description": "Features:\n• Info about Lost Actions, Fragments, FATEs/CE e.g. location, drops, fate chains, mettle rewards, exp rewards, etc.\n• Weather forecast.\n• Alarms: Time-based, Weather-based, FATE/CE-based.\n• Filterable loadouts planning, saving, and sharing. Featuring a few recommended DRS loadouts from ABBA.",
     "InternalName": "bozjaBuddy",
     "ApplicableVersion": "any",
     "Tags": [
