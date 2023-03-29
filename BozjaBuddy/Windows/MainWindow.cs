@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using BozjaBuddy.GUI.Tabs;
+using BozjaBuddy.GUI.Sections;
 
 namespace BozjaBuddy.Windows;
 
@@ -13,6 +14,7 @@ public class MainWindow : Window, IDisposable
     private FateCeTab mFateCeTab;
     private MobTab mMobTab;
     private LoadoutTab mLoadoutTab;
+    private GeneralSection mGeneralSection;
  
     public MainWindow(Plugin plugin) : base(
         "Bozja Buddy", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
@@ -28,6 +30,7 @@ public class MainWindow : Window, IDisposable
         this.mFateCeTab = new FateCeTab(this.Plugin);
         this.mMobTab = new MobTab(this.Plugin);
         this.mLoadoutTab = new LoadoutTab(this.Plugin);
+        this.mGeneralSection = new GeneralSection(this.Plugin);
     }
 
     public void Dispose()
@@ -40,6 +43,7 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
+        this.mGeneralSection.DrawGUI();
         if (ImGui.BeginTabBar("Tab Bat")) {
             this.mLostActionTab.DrawGUI();
             this.mFateCeTab.DrawGUI();

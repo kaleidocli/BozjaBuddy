@@ -10,7 +10,7 @@ public class ConfigWindow : Window, IDisposable
     private Configuration Configuration;
 
     public ConfigWindow(Plugin plugin) : base(
-        "Bozja Buddy Config",
+        "Config - BozjaBuddy",
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse )
     {

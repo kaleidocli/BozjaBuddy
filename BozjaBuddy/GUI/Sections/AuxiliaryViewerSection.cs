@@ -322,6 +322,29 @@ namespace BozjaBuddy.GUI.Sections
         {
             ImGui.BeginChild("", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.None);
             ImGui.PushTextWrapPos(0);
+            // Fate chains
+            if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate
+                && (this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1
+                    || this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext != -1))
+            {
+                int iCurrFateId = this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1
+                    ? this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev
+                    : this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext;
+                while (this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev != -1)        // Find the starting point of FATE chain
+                    iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev;
+                ImGui.Text("Chain: ");
+                do
+                {
+                    ImGui.SameLine();
+                    AuxiliaryViewerSection.GUISelectableLink(this.mPlugin,
+                        this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName,
+                        this.mPlugin.mBBDataManager.mFates[iCurrFateId].GetGenId(),
+                        true);
+                    iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFateNext;
+                }
+                while (iCurrFateId != -1);
+                ImGui.Separator();
+            }
             if (pObj.mIGMarkup == null) 
                 ImGui.TextUnformatted(pObj.mDescription);
             else
@@ -566,7 +589,6 @@ namespace BozjaBuddy.GUI.Sections
             unsafe
             {
                 AuxiliaryViewerSection.mFilter.Draw("");
-                int i = 0;
                 foreach (LostAction iAction in pPlugin.mBBDataManager.mLostActions.Values)
                 {
                     if (AuxiliaryViewerSection.mFilter.PassFilter(iAction.mName))

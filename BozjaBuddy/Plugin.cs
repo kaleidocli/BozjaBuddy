@@ -33,7 +33,7 @@ namespace BozjaBuddy
 
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("Bozja Buddy");
-        public AlarmManager Alarm { get; init; }
+        public AlarmManager AlarmManager { get; init; }
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -56,11 +56,13 @@ namespace BozjaBuddy
             this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
             this.DATA_PATHS["loadout_preset.json"] = Path.Combine(tDir, @"db\loadout_preset.json");
             this.DATA_PATHS["alarm_audio"] = Path.Combine(tDir, @"db\audio\epicsaxguy.mp3");
+            this.DATA_PATHS["alarm.json"] = Path.Combine(tDir, @"db\alarm.json");
 
             mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();
             WindowSystem.AddWindow(new ConfigWindow(this));
             WindowSystem.AddWindow(new MainWindow(this));
+            WindowSystem.AddWindow(new AlarmWindow(this));
 
             this.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
@@ -70,15 +72,15 @@ namespace BozjaBuddy
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
-            this.Alarm = new AlarmManager(this);
-            this.Alarm.Start();
+            this.AlarmManager = new AlarmManager(this);
+            this.AlarmManager.Start();
         }
 
         public void Dispose()
         {
             this.WindowSystem.RemoveAllWindows();
             this.CommandManager.RemoveHandler(CommandName);
-            this.Alarm.Dispose();
+            this.AlarmManager.Dispose();
         }
 
         private void OnCommand(string command, string args)
@@ -94,7 +96,7 @@ namespace BozjaBuddy
 
         public void DrawConfigUI()
         {
-            WindowSystem.GetWindow("Bozja Buddy Config")!.IsOpen = true;
+            WindowSystem.GetWindow("Config - BozjaBuddy")!.IsOpen = true;
         }
     }
 }
