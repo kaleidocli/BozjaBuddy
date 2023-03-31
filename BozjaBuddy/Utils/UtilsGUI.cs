@@ -39,11 +39,12 @@ namespace BozjaBuddy.Utils
         
         internal class Colors
         {
-            public static Vector4 NormalText_White = ImGuiColors.DalamudWhite2;
-            public static Vector4 BackgroundText_Grey = ImGuiColors.ParsedGrey;
-            public static Vector4 ActivatedText_Green = ImGuiColors.ParsedGreen;
-            public static Vector4 NormalBar_Grey = Utils.RGBAtoVec4(165, 165, 165, 80);
-            public static Vector4 ActivatedBar_Green = Utils.RGBAtoVec4(176, 240, 6, 80);
+            public readonly static Vector4 NormalText_White = ImGuiColors.DalamudWhite2;
+            public readonly static Vector4 BackgroundText_Grey = ImGuiColors.ParsedGrey;
+            public readonly static Vector4 ActivatedText_Green = ImGuiColors.ParsedGreen;
+            public readonly static Vector4 NormalBar_Grey = Utils.RGBAtoVec4(165, 165, 165, 80);
+            public readonly static Vector4 ActivatedBar_Green = Utils.RGBAtoVec4(176, 240, 6, 80);
+            public readonly static Vector4 NormalText_Red = ImGuiColors.DalamudRed;
         }
     }
 }
