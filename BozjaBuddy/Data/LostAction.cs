@@ -35,7 +35,7 @@ namespace BozjaBuddy.Data
             mRecast = Convert.ToDouble(pPackage["cooldown"] is System.DBNull ? -1 : pPackage["cooldown"]);
             mCharges = Convert.ToInt32(pPackage["weight"] is System.DBNull ? -1 : pPackage["weight"]);
 
-            this.mTabColor = new System.Numerics.Vector4(0.61f, 0.79f, 0.92f, 0.2f);
+            this.mTabColor = new System.Numerics.Vector4(0.61f, 0.79f, 0.92f, 0.4f);
 
             this.SetUpAuxiliary();
         }
