@@ -20,21 +20,21 @@ namespace BozjaBuddy.Data.Alarm
         public override bool CheckAlarm(DateTime pCurrTime, Dictionary<string, List<MsgAlarm>> pListeners, int pThresholdSeconds = 1380, bool pIsReviving = false, Plugin? pPlugin = null)
         {
             bool tIsInOnceMode = this.mTriggerTime.HasValue && !this.mIsRevivable;
-            PluginLog.LogDebug(String.Format("========== Alarm has isAlive={2} | trgTime={0} | isRevivable={1} | isReviving={3} | hasBeenRezzed={6} | mOffset={4} | isInOnceMode={5}",
-                                            this.mTriggerTime.HasValue ? this.mTriggerTime.ToString() : "null",
-                                            this.mIsRevivable,
-                                            this.mIsAlive,
-                                            pIsReviving,
-                                            this.mOffset,
-                                            tIsInOnceMode,
-                                            this.mHasBeenRevived));
+            //PluginLog.LogDebug(String.Format("========== Alarm has isAlive={2} | trgTime={0} | isRevivable={1} | isReviving={3} | hasBeenRezzed={6} | mOffset={4} | isInOnceMode={5}",
+            //                                this.mTriggerTime.HasValue ? this.mTriggerTime.ToString() : "null",
+            //                                this.mIsRevivable,
+            //                                this.mIsAlive,
+            //                                pIsReviving,
+            //                                this.mOffset,
+            //                                tIsInOnceMode,
+            //                                this.mHasBeenRevived));
             // Flags validation
             if (!pIsReviving
                 && (!this.mIsAlive
                 || !this.mTriggerInt.HasValue))
             {
-                PluginLog.LogDebug($"CHECK FAILED: Alarm is dead (isAlive={this.mIsAlive}) or has no sufficient info (trgInt={this.mTriggerInt.HasValue})!");
-                PluginLog.LogDebug("ALARM KILLED: Alarm killed by flags validation!");
+                //PluginLog.LogDebug($"CHECK FAILED: Alarm is dead (isAlive={this.mIsAlive}) or has no sufficient info (trgInt={this.mTriggerInt.HasValue})!");
+                //PluginLog.LogDebug("ALARM KILLED: Alarm killed by flags validation!");
                 this.Kill();
                 return false;
             }
@@ -54,11 +54,11 @@ namespace BozjaBuddy.Data.Alarm
 
             if (pIsReviving)
             {
-                PluginLog.LogDebug($"Revive failed. Either all msg is met, or not out of Offset's range yet (tDelta={tDelta} > tOffset={this.mOffset})");
+                //PluginLog.LogDebug($"Revive failed. Either all msg is met, or not out of Offset's range yet (tDelta={tDelta} > tOffset={this.mOffset})");
             }
             else
             {
-                PluginLog.LogDebug($"ALARM KILLED: Alarm killed by final! (tDelta={tDelta} > tOffset={this.mOffset})");
+                //PluginLog.LogDebug($"ALARM KILLED: Alarm killed by final! (tDelta={tDelta} > tOffset={this.mOffset})");
                 this.Kill();
             }
             return true;
@@ -68,24 +68,24 @@ namespace BozjaBuddy.Data.Alarm
         {
             if (pPlugin == null) 
             {
-                PluginLog.LogDebug("CHECK FAILED: No pPlugin given to perform the check.");
+                //PluginLog.LogDebug("CHECK FAILED: No pPlugin given to perform the check.");
                 return false; 
             }
             foreach (Dalamud.Game.ClientState.Fates.Fate iFate in pPlugin!.FateTable)
             {
                 if (this.mTriggerInt == iFate.FateId)
                 {
-                    PluginLog.LogDebug(String.Format("CHECK SUCCEEDED: Alarm's msgAlarm check is true! (trgInt={0} FateId={1})",
-                                    this.mTriggerInt,
-                                    iFate.FateId
-                                ));
+                    //PluginLog.LogDebug(String.Format("CHECK SUCCEEDED: Alarm's msgAlarm check is true! (trgInt={0} FateId={1})",
+                    //                this.mTriggerInt,
+                    //                iFate.FateId
+                    //            ));
                     return true;
                 }
             }
-            PluginLog.LogDebug(String.Format("CHECK FAILED: No msg is true. (trgInt={0}) ({1})",
-                                            this.mTriggerInt,
-                                            String.Join(", ", pPlugin!.FateTable.Select(o => o.FateId))
-                                            ));
+            //PluginLog.LogDebug(String.Format("CHECK FAILED: No msg is true. (trgInt={0}) ({1})",
+            //                                this.mTriggerInt,
+            //                                String.Join(", ", pPlugin!.FateTable.Select(o => o.FateId))
+            //                                ));
             return false;
         }
 

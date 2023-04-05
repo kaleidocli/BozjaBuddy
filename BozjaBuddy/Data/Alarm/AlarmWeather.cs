@@ -22,22 +22,22 @@ namespace BozjaBuddy.Data.Alarm
         public override bool CheckAlarm(DateTime pCurrTime, Dictionary<string, List<MsgAlarm>> pListeners, int pThresholdSeconds = 1380, bool pIsReviving = false, Plugin? pPlugin = null)
         {
             bool tIsInOnceMode = this.mTriggerTime.HasValue && !this.mIsRevivable;
-            PluginLog.LogDebug(String.Format("========== Alarm has isAlive={2} | trgTime={0} | isRevivable={1} | isReviving={3} | hasBeenRezzed={6} | mOffset={4} | isInOnceMode={5}",
-                                            this.mTriggerTime.HasValue ? this.mTriggerTime.ToString() : "null",
-                                            this.mIsRevivable,
-                                            this.mIsAlive,
-                                            pIsReviving,
-                                            this.mOffset,
-                                            tIsInOnceMode,
-                                            this.mHasBeenRevived));
+            //PluginLog.LogDebug(String.Format("========== Alarm has isAlive={2} | trgTime={0} | isRevivable={1} | isReviving={3} | hasBeenRezzed={6} | mOffset={4} | isInOnceMode={5}",
+            //                                this.mTriggerTime.HasValue ? this.mTriggerTime.ToString() : "null",
+            //                                this.mIsRevivable,
+            //                                this.mIsAlive,
+            //                                pIsReviving,
+            //                                this.mOffset,
+            //                                tIsInOnceMode,
+            //                                this.mHasBeenRevived));
             // Flags validation
             if (!pIsReviving
                 && (!this.mIsAlive 
                 || !this.mTriggerInt.HasValue 
                 || this.mTriggerString == ""))
             {
-                PluginLog.LogDebug($"CHECK FAILED: Alarm is dead (isAlive={this.mIsAlive}) or has no sufficient info (trgInt={this.mTriggerInt.HasValue} trgStr={this.mTriggerString})!");
-                PluginLog.LogDebug("ALARM KILLED: Alarm killed by flags validation!");
+                //PluginLog.LogDebug($"CHECK FAILED: Alarm is dead (isAlive={this.mIsAlive}) or has no sufficient info (trgInt={this.mTriggerInt.HasValue} trgStr={this.mTriggerString})!");
+                //PluginLog.LogDebug("ALARM KILLED: Alarm killed by flags validation!");
                 this.Kill();
                 return false;
             }
@@ -60,13 +60,13 @@ namespace BozjaBuddy.Data.Alarm
             {
                 if (tDelta < 0)
                 {
-                    PluginLog.LogDebug("CHECK FAILED: Time has not reached");
+                    //PluginLog.LogDebug("CHECK FAILED: Time has not reached");
                     return false;
                 }
                 else if (tDelta > 0)
                 {
-                    PluginLog.LogDebug("CHECK FAILED: Time has already gone past the threshold");
-                    PluginLog.LogDebug("ALARM KILLED: Alarm killed by trgTime!");
+                    //PluginLog.LogDebug("CHECK FAILED: Time has already gone past the threshold");
+                    //PluginLog.LogDebug("ALARM KILLED: Alarm killed by trgTime!");
                     this.Kill();
                     return false;
                 }
@@ -74,11 +74,11 @@ namespace BozjaBuddy.Data.Alarm
 
             if (pIsReviving)
             {
-                PluginLog.LogDebug($"Revive failed. Either all msg is met, or not out of Offset's range yet (tDelta={tDelta} > tOffset={this.mOffset})");
+                //PluginLog.LogDebug($"Revive failed. Either all msg is met, or not out of Offset's range yet (tDelta={tDelta} > tOffset={this.mOffset})");
             }
             else
             {
-                PluginLog.LogDebug($"ALARM KILLED: Alarm killed by final! (tDelta={tDelta} > tOffset={this.mOffset})");
+                //PluginLog.LogDebug($"ALARM KILLED: Alarm killed by final! (tDelta={tDelta} > tOffset={this.mOffset})");
                 this.Kill();
             }
             return true;
@@ -86,7 +86,7 @@ namespace BozjaBuddy.Data.Alarm
 
         private void ReloadTriggerTime()
         {
-            PluginLog.LogDebug("ALARM RELOADED!");
+            //PluginLog.LogDebug("ALARM RELOADED!");
             if (this.mTriggerString != "") 
                 this.mTriggerTime = Utils.Utils.ProcessToLocalTime(WeatherBarSection.GetWeatherNext(null, this.mTriggerString!, false).Item2);
         }
@@ -99,36 +99,36 @@ namespace BozjaBuddy.Data.Alarm
                 {
                     if (!pIsReviving && this.mMsgCheckCounter < 3)
                     {
-                        PluginLog.LogDebug(String.Format("CHECK VERIFYING: ({6}) Alarm's msgAlarm check is true, but needs verifying! (del={3} ch={0} lstMsg={1} almMsg={2}) (w={4}) (wSq={5})",
-                                                                            tDelta < 0 ? "weatherSequel" : "weather",
-                                                                            tMsg._msg,
-                                                                            tReceiverMsg._msg,
-                                                                            tDelta,
-                                                                            String.Join(", ", pListeners["weather"].Select(o => o._msg)),
-                                                                            String.Join(", ", pListeners["weatherSequel"].Select(o => o._msg)),
-                                                                            this.mMsgCheckCounter
-                                                                            ));
+                        //PluginLog.LogDebug(String.Format("CHECK VERIFYING: ({6}) Alarm's msgAlarm check is true, but needs verifying! (del={3} ch={0} lstMsg={1} almMsg={2}) (w={4}) (wSq={5})",
+                        //                                                    tDelta < 0 ? "weatherSequel" : "weather",
+                        //                                                    tMsg._msg,
+                        //                                                    tReceiverMsg._msg,
+                        //                                                    tDelta,
+                        //                                                    String.Join(", ", pListeners["weather"].Select(o => o._msg)),
+                        //                                                    String.Join(", ", pListeners["weatherSequel"].Select(o => o._msg)),
+                        //                                                    this.mMsgCheckCounter
+                        //                                                    ));
                         this.mMsgCheckCounter++;
                         return false;
                     }
-                    PluginLog.LogDebug(String.Format("CHECK SUCCEEDED: Alarm's msgAlarm check is true! (del={3} ch={0} lstMsg={1} almMsg={2}) (w={4}) (wSq={5})",
-                                                    tDelta < 0 ? "weatherSequel" : "weather",
-                                                    tMsg._msg,
-                                                    tReceiverMsg._msg,
-                                                    tDelta,
-                                                    String.Join(", ", pListeners["weather"].Select(o => o._msg)),
-                                                    String.Join(", ", pListeners["weatherSequel"].Select(o => o._msg))
-                                                    ));
+                    //PluginLog.LogDebug(String.Format("CHECK SUCCEEDED: Alarm's msgAlarm check is true! (del={3} ch={0} lstMsg={1} almMsg={2}) (w={4}) (wSq={5})",
+                    //                                tDelta < 0 ? "weatherSequel" : "weather",
+                    //                                tMsg._msg,
+                    //                                tReceiverMsg._msg,
+                    //                                tDelta,
+                    //                                String.Join(", ", pListeners["weather"].Select(o => o._msg)),
+                    //                                String.Join(", ", pListeners["weatherSequel"].Select(o => o._msg))
+                    //                                ));
                     this.mMsgCheckCounter = 0;
                     return true;
                 }
             }
-            PluginLog.LogDebug(String.Format("CHECK FAILED: No msg is true. (del={1} ch={0} (w={2}) (wSq={3})",
-                                            tDelta < 0 ? "weatherSequel" : "weather",
-                                            tDelta,
-                                            String.Join(", ", pListeners["weather"].Select(o => o._msg)),
-                                            String.Join(", ", pListeners["weatherSequel"].Select(o => o._msg))
-                                            ));
+            //PluginLog.LogDebug(String.Format("CHECK FAILED: No msg is true. (del={1} ch={0} (w={2}) (wSq={3})",
+            //                                tDelta < 0 ? "weatherSequel" : "weather",
+            //                                tDelta,
+            //                                String.Join(", ", pListeners["weather"].Select(o => o._msg)),
+            //                                String.Join(", ", pListeners["weatherSequel"].Select(o => o._msg))
+            //                                ));
             this.mMsgCheckCounter = 0;
             return false;
         }

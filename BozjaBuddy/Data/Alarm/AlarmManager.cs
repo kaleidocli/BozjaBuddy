@@ -173,7 +173,7 @@ namespace BozjaBuddy.Data.Alarm
         {
             List<List<Alarm>> tAlarmLists = new List<List<Alarm>> { this.mAlarmList, this.mExpiredAlarmList };
             string tJson = JsonConvert.SerializeObject(tAlarmLists);
-            PluginLog.LogDebug($">>> SAVING TO DISK: {tJson}");
+            //PluginLog.LogDebug($">>> SAVING TO DISK: {tJson}");
             File.WriteAllText(this.mPlugin.DATA_PATHS["alarm.json"], tJson);
         }
         private void LoadAlarmListsFromDisk()
@@ -185,7 +185,7 @@ namespace BozjaBuddy.Data.Alarm
                     );
             if (tAlarmLists == null)
             {
-                PluginLog.LogDebug(">>> A_MNG: Unable to load alarm from disk.");
+                //PluginLog.LogDebug(">>> A_MNG: Unable to load alarm from disk.");
                 return;
             }
             this.mAlarmList = tAlarmLists![0];
@@ -248,12 +248,12 @@ namespace BozjaBuddy.Data.Alarm
                     if (iAlarm.CheckAlarm(DateTime.Now, AlarmManager.Listeners, pPlugin: this.mPlugin))
                     {
                         this.mDurationLeft = iAlarm.mDuration;
-                        PluginLog.LogDebug($"========== A_MNG: Refreshing duration (duration={iAlarm.mDuration})");
+                        //PluginLog.LogDebug($"========== A_MNG: Refreshing duration (duration={iAlarm.mDuration})");
                     }
                     // alarm is dead. Check if the grace period is finished. Revive if possible, else throw to the bin.
                     else if (!iAlarm.mIsAlive && iAlarm.mTimeOfDeath.HasValue && (DateTime.Now - iAlarm.mTimeOfDeath!.Value).TotalSeconds > iAlarm.mDuration)      // x amount of seconds after alarm is dead
                     {
-                        PluginLog.LogDebug($"ALARM's has timeOfDeath? {iAlarm.mTimeOfDeath.HasValue} ({iAlarm.mTimeOfDeath})");
+                        //PluginLog.LogDebug($"ALARM's has timeOfDeath? {iAlarm.mTimeOfDeath.HasValue} ({iAlarm.mTimeOfDeath})");
                         if (iAlarm.mIsRevivable)
                         {
                             iAlarm.Revive(DateTime.Now, AlarmManager.Listeners, pPlugin: this.mPlugin);
@@ -263,7 +263,7 @@ namespace BozjaBuddy.Data.Alarm
                             tTempAlarmBin.Add(iAlarm);
                         }
                     }
-                    PluginLog.Debug($">>> A_MNG: tOD={iAlarm.mTimeOfDeath?.ToString()} timeSinceDeath={(iAlarm.mTimeOfDeath.HasValue ? (DateTime.Now - iAlarm.mTimeOfDeath!.Value).TotalSeconds : 0)} mDuration={iAlarm.mDuration}");
+                    //PluginLog.LogDebug($">>> A_MNG: tOD={iAlarm.mTimeOfDeath?.ToString()} timeSinceDeath={(iAlarm.mTimeOfDeath.HasValue ? (DateTime.Now - iAlarm.mTimeOfDeath!.Value).TotalSeconds : 0)} mDuration={iAlarm.mDuration}");
                 }
                 foreach (Alarm iAlarm in tTempAlarmBin)
                 {
