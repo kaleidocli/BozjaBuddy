@@ -12,7 +12,7 @@ namespace BozjaBuddy
         public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
         public float STYLE_ICON_SIZE { get; set; } = 20f;
         public float mAudioVolume = 1.0f;
-        public string mAudioPath = "";
+        public string? mAudioPath = null;
 
         // the below exist just to make saving less cumbersome
         [NonSerialized]

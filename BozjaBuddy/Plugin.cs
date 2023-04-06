@@ -48,15 +48,17 @@ namespace BozjaBuddy
             this.GameGui = gameGui;
             this.FateTable = fateTable;
 
-            this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            this.Configuration.Initialize(this.PluginInterface);
-
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
             this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
             this.DATA_PATHS["loadout_preset.json"] = Path.Combine(tDir, @"db\loadout_preset.json");
             this.DATA_PATHS["alarm_audio"] = Path.Combine(tDir, @"db\audio\epicsaxguy.mp3");
             this.DATA_PATHS["alarm.json"] = Path.Combine(tDir, @"db\alarm.json");
+
+            this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            this.Configuration.Initialize(this.PluginInterface);
+            if (this.Configuration.mAudioPath == null) this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
+            this.Configuration.Save();
 
             mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();

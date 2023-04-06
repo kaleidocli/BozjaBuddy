@@ -35,14 +35,25 @@ namespace BozjaBuddy.Windows
         public override void Draw()
         {
             // Menu bar
-            UtilsGUI.ShowHelpMarker($"- Alarm overview: \r\n+ Time-based: alarms which trigger at a specific time. Can only be created in Alarm window.\r\n+ Weather-based: alarms which trigger at a specific weather at a specific time (ONCE), or every time the weather occurs (REPEAT). Can be created in Alarm window, or clicking on Weather bar.\r\n+ FATE-based: alarms which trigger every time a FATE occurs (CEs not yet supported). Can be created in Alarm window, or click on Alarm column in Fate/CE table.\r\n- Alarm can be turned off, edited, deleted, or recycled once expire.");
-            ImGui.SameLine(); AlarmWindow.DrawAlarmNotificationBar(this.Plugin, "alarmWindow", pPadding: (float)2.5);
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Cog))
+            {
+                this.Plugin.WindowSystem.GetWindow("Config - BozjaBuddy")!.IsOpen = true;
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.Text("Open config window.");
+                ImGui.EndTooltip();
+            }
+            ImGui.SameLine(); AlarmWindow.DrawAlarmNotificationBar(this.Plugin, "alarmWindow", pPadding: (float)3);
             ImGui.SameLine(); AuxiliaryViewerSection.GUIAlignRight(1);
+            ImGui.SameLine();
             string tTempGUI_Key = "alarmWin";
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
             {
                 GUIAlarm.CreateACPU(tTempGUI_Key, pNameSuggestion: Alarm.kReprString);
             }
+            UtilsGUI.SetTooltipForLastItem($"Add an alarm.\r\n+ Time-based: alarms which trigger at a specific time. Can only be created in Alarm window.\r\n+ Weather-based: alarms which trigger at a specific weather at a specific time (ONCE), or every time the weather occurs (REPEAT). Can be created in Alarm window, or clicking on Weather bar.\r\n+ FATE-based: alarms which trigger every time a FATE occurs (CEs not yet supported). Can be created in Alarm window, or click on Alarm column in Fate/CE table.\r\n- Alarm can be turned off, edited, deleted, or recycled once expire.");
             GUIAlarm.DrawACPU_All(
                             this.Plugin,
                             tTempGUI_Key);
