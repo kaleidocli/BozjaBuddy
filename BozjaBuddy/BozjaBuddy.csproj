@@ -36,29 +36,6 @@
     <None Remove="db\_test\**" />
   </ItemGroup>
 
-  <ItemGroup>
-	  <Content Include="..\Data\x86\**">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		  <Link>x86\%(RecursiveDir)\%(Filename)%(Extension)</Link>
-	  </Content>
-	  <Content Include="..\Data\x64\**">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		  <Link>x64\%(RecursiveDir)\%(Filename)%(Extension)</Link>
-	  </Content>
-	  <Content Include="..\Data\sqlite3.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="..\Data\System.Data.SQLite.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="..\Data\System.Data.SQLite.EF6.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="..\Data\System.Data.SQLite.Linq.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-  </ItemGroup>
-
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
@@ -69,7 +46,6 @@
 
   <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="2.1.11" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.2" />
     <PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
