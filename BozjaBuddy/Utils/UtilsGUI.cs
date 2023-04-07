@@ -45,6 +45,8 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 NormalBar_Grey = Utils.RGBAtoVec4(165, 165, 165, 80);
             public readonly static Vector4 ActivatedBar_Green = Utils.RGBAtoVec4(176, 240, 6, 80);
             public readonly static Vector4 NormalText_Red = ImGuiColors.DalamudRed;
+            public readonly static Vector4 TableCell_Green = new System.Numerics.Vector4(0.67f, 1, 0.59f, 0.2f);
+            public readonly static Vector4 TableCell_Yellow = new System.Numerics.Vector4(0.93f, 0.93f, 0.35f, 0.2f);
         }
     }
 }
