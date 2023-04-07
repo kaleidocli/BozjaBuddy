@@ -133,6 +133,17 @@ namespace BozjaBuddy.Windows
                         tAlarmsToRemove.Add(iAlarm);
                     }
                     UtilsGUI.SetTooltipForLastItem("Permanently delete alarm. (NOT moving to expired list)");
+                    // location
+                    if (iAlarm.GetType() == typeof(AlarmFateCe)
+                        && iAlarm.mTriggerInt.HasValue
+                        && this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation != null)
+                    {
+                        AuxiliaryViewerSection.GUIButtonLocation(
+                            this.Plugin,
+                            this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation!,
+                            pUseIcon: true
+                            );
+                    }
                     ImGui.EndGroup();
                     ImGui.PopID();
 
@@ -191,6 +202,17 @@ namespace BozjaBuddy.Windows
                         tAlarmsToRemove.Add(iAlarm);
                     }
                     UtilsGUI.SetTooltipForLastItem("Permanently delete alarm.");
+                    // location
+                    if (iAlarm.GetType() == typeof(AlarmFateCe) 
+                        && iAlarm.mTriggerInt.HasValue
+                        && this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation != null)
+                    {
+                        AuxiliaryViewerSection.GUIButtonLocation(
+                            this.Plugin,
+                            this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation!,
+                            pUseIcon: true
+                            );
+                    }
                     ImGui.EndGroup();
                     ImGui.PopID();
 

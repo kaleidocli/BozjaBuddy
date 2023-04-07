@@ -524,14 +524,17 @@ namespace BozjaBuddy.GUI.Sections
             }
             ImGui.PopID();
         }
-        public static void GUIButtonLocation(Plugin pPlugin, Location pLocation, bool rightAlign = false)
+        public static void GUIButtonLocation(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false)
         {
             string tButtonText = $"{pLocation.mAreaFlag.ToString()} ({pLocation.mMapCoordX}, {pLocation.mMapCoordX})";
             if (rightAlign)
             {
                 AuxiliaryViewerSection.GUIAlignRight(ImGui.CalcTextSize(tButtonText).X);
             }
-            if (ImGui.Button(tButtonText))
+            if (pUseIcon
+                ? ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.LocationPinLock)
+                : ImGui.Button(tButtonText)
+                )
             {
                 pPlugin.GameGui.OpenMapWithMapLink(
                     new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(
