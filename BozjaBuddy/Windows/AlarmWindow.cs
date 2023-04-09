@@ -53,7 +53,7 @@ namespace BozjaBuddy.Windows
             {
                 GUIAlarm.CreateACPU(tTempGUI_Key, pNameSuggestion: Alarm.kReprString);
             }
-            UtilsGUI.SetTooltipForLastItem($"Add an alarm.\r\n+ Time-based: alarms which trigger at a specific time. Can only be created in Alarm window.\r\n+ Weather-based: alarms which trigger at a specific weather at a specific time (ONCE), or every time the weather occurs (REPEAT). Can be created in Alarm window, or clicking on Weather bar.\r\n+ FATE-based: alarms which trigger every time a FATE occurs (CEs not yet supported). Can be created in Alarm window, or click on Alarm column in Fate/CE table.\r\n- Alarm can be turned off, edited, deleted, or recycled once expire.");
+            UtilsGUI.SetTooltipForLastItem($"Add an alarm.\r\n---------- Time-based ----------\n+ Trigger at a specific time.\n+ Can only be created in Alarm window.\r\n---------- Weather-based ----------\n+ Trigger ONCE at a specific weather at a specific time, or REPEAT every time the weather occurs.\n+ Can be created in Alarm window, or clicking on Weather bar.\r\n---------- FATE-based ----------\n + Trigger every time a specific FATE occurs (CE Alarm only triggered when Mettle&Rank in-game window is open).\n+ Can be created in Alarm window, or click on Alarm column in Fate/CE table.\r\n------------------------------\n+ Alarm can be turned off, edited, deleted, or recycled once expire.");
             GUIAlarm.DrawACPU_All(
                             this.Plugin,
                             tTempGUI_Key);
@@ -136,6 +136,7 @@ namespace BozjaBuddy.Windows
                     // location
                     if (iAlarm.GetType() == typeof(AlarmFateCe)
                         && iAlarm.mTriggerInt.HasValue
+                        && iAlarm.mTriggerInt.Value != AlarmFateCe.kTriggerInt_AcceptAllCe
                         && this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation != null)
                     {
                         AuxiliaryViewerSection.GUIButtonLocation(
@@ -206,6 +207,7 @@ namespace BozjaBuddy.Windows
                     // location
                     if (iAlarm.GetType() == typeof(AlarmFateCe) 
                         && iAlarm.mTriggerInt.HasValue
+                        && iAlarm.mTriggerInt.Value != AlarmFateCe.kTriggerInt_AcceptAllCe
                         && this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation != null)
                     {
                         AuxiliaryViewerSection.GUIButtonLocation(
@@ -229,7 +231,7 @@ namespace BozjaBuddy.Windows
                 }
                 foreach (Alarm iAlarm in tAlarmsToRemove)
                 {
-                    this.Plugin.AlarmManager.RemoveAlarm(iAlarm);
+                    this.Plugin.AlarmManager.RemoveAlarm(iAlarm, pDoesAffectAAAACount: false);
                 }
                 foreach (Alarm iAlarm in tAlarmsToUnexpire)
                 {
@@ -267,7 +269,7 @@ namespace BozjaBuddy.Windows
                                                             {
                                                                 AlarmTime._kJsonid => $"Time",
                                                                 AlarmWeather._kJsonid => $"Weather | {WeatherBarSection._mTerritories[pAlarm.mTriggerString!]} | {WeatherBarSection._mWeatherNames[pAlarm.mTriggerInt!.Value]}",
-                                                                AlarmFateCe._kJsonid => $"Fate/Ce | {this.Plugin.mBBDataManager.mFates[pAlarm.mTriggerInt!.Value].mName}",
+                                                                AlarmFateCe._kJsonid => $"Fate/Ce | {(pAlarm.mTriggerInt!.Value == AlarmFateCe.kTriggerInt_AcceptAllCe ? "Any CE" : this.Plugin.mBBDataManager.mFates[pAlarm.mTriggerInt!.Value].mName)}",
                                                                 _ => "unknown"
                                                             }));
                 ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, String.Format("{0}{1}{2}",

@@ -10,13 +10,12 @@ namespace BozjaBuddy.Data.Alarm
         public new const string _kJsonid = "af";
         public new static string kReprString = "FateCe";
         public new static string kToolTip = "Alarm for a specific Fate or CE. Can go off once, or every time the FATE or CE comes around.";
-        private bool mAcceptAll = false;
+        public const int kTriggerInt_AcceptAllCe = -100;
         public override string _mJsonId { get; set; } = AlarmFateCe._kJsonid;
         public AlarmFateCe() : base(null, null, kReprString) { }
-        public AlarmFateCe(DateTime? pTriggerTime, int? pTriggerInt, string? pName = null, string? pTriggerString = null, bool pAcceptAll = false)
+        public AlarmFateCe(DateTime? pTriggerTime, int? pTriggerInt, string? pName = null, string? pTriggerString = null)
             : base(pTriggerTime, pTriggerInt, pName ?? kReprString, 60, true, false, pTriggerString ?? "")
         {
-            this.mAcceptAll = pAcceptAll;
         }
 
         public override bool CheckAlarm(DateTime pCurrTime, Dictionary<string, List<MsgAlarm>> pListeners, int pThresholdSeconds = 1380, bool pIsReviving = false, Plugin? pPlugin = null)
@@ -49,7 +48,7 @@ namespace BozjaBuddy.Data.Alarm
 
             double tDelta = (pCurrTime - this.mTriggerTime!.Value).TotalSeconds;
             // Check msg
-            if (!this.mAcceptAll && !this.CheckMsg(pListeners, tDelta, pIsReviving, pPlugin: pPlugin))
+            if (!this.CheckMsg(pListeners, tDelta, pIsReviving, pPlugin: pPlugin))
             {
                 return false;
             }
@@ -68,13 +67,23 @@ namespace BozjaBuddy.Data.Alarm
 
         private bool CheckMsg(Dictionary<string, List<MsgAlarm>> pListeners, double tDelta, bool pIsReviving = false, Plugin? pPlugin = null)
         {
-            MsgAlarmFateCe tReceiverMsg = new(this.mTriggerInt.HasValue ? this.mTriggerInt!.Value.ToString() : "0");
-            if (pPlugin == null) 
+            if (pPlugin == null)
             {
                 //PluginLog.LogDebug("CHECK FAILED: No pPlugin given to perform the check.");
-                return false; 
+                return false;
             }
-            if (AlarmManager.CheckMsg("fatece", tReceiverMsg)) return true;
+
+            if (this.mTriggerInt.HasValue && this.mTriggerInt.Value == AlarmFateCe.kTriggerInt_AcceptAllCe)
+            {
+                MsgAlarmCe tReceiverMsg = new(this.mTriggerInt!.Value.ToString());
+                if (AlarmManager.CheckMsg("fatece", tReceiverMsg)) return true;
+            }
+            else
+            {
+                MsgAlarmFateCe tReceiverMsg = new(this.mTriggerInt.HasValue ? this.mTriggerInt!.Value.ToString() : "0");
+                if (AlarmManager.CheckMsg("fatece", tReceiverMsg)) return true;
+            }
+
             foreach (Dalamud.Game.ClientState.Fates.Fate iFate in pPlugin!.FateTable)
             {
                 if (this.mTriggerInt == iFate.FateId)

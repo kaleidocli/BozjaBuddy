@@ -60,7 +60,7 @@ namespace BozjaBuddy.Data.Alarm
             // Save to disk
             this.SaveAlarmListsToDisk();
         }
-        public void RemoveAlarm(int pAlarmId)
+        public void RemoveAlarm(int pAlarmId,  bool pDoesAffectAAAACount = true)
         {
             // Active alarm
             Alarm? pTargetAlarm = null;
@@ -75,7 +75,7 @@ namespace BozjaBuddy.Data.Alarm
             if (pTargetAlarm != null)
             {
                 this.mAlarmList.Remove(pTargetAlarm);
-                if (pTargetAlarm.mIsAwake) this.mActiveAndAwakeAlarmCount--;
+                if (pTargetAlarm.mIsAwake && pDoesAffectAAAACount) this.mActiveAndAwakeAlarmCount--;
                 return;
             }
             // Expired alarm
@@ -90,18 +90,18 @@ namespace BozjaBuddy.Data.Alarm
             if (pTargetAlarm != null)
             {
                 this.mExpiredAlarmList.Remove(pTargetAlarm);
-                if (pTargetAlarm.mIsAwake) this.mActiveAndAwakeAlarmCount--;
+                if (pTargetAlarm.mIsAwake && pDoesAffectAAAACount) this.mActiveAndAwakeAlarmCount--;
                 return;
             }
 
             // Save to disk
             this.SaveAlarmListsToDisk();
         }
-        public void RemoveAlarm(Alarm pAlarm)
+        public void RemoveAlarm(Alarm pAlarm, bool pDoesAffectAAAACount = true)
         {
-            if (this.mAlarmList.Remove(pAlarm) && pAlarm.mIsAwake)
+            if (this.mAlarmList.Remove(pAlarm) && pAlarm.mIsAwake && pDoesAffectAAAACount)
                 this.mActiveAndAwakeAlarmCount--;
-            if (this.mExpiredAlarmList.Remove(pAlarm) && pAlarm.mIsAwake)
+            if (this.mExpiredAlarmList.Remove(pAlarm) && pAlarm.mIsAwake && pDoesAffectAAAACount)
                 this.mActiveAndAwakeAlarmCount--;
 
             // Save to disk
@@ -368,7 +368,7 @@ namespace BozjaBuddy.Data.Alarm
                 if (!AlarmManager.Listeners.ContainsKey(pChannel)) return false;
                 foreach (MsgAlarm iMsg in AlarmManager.Listeners[pChannel])
                 {
-                    if (iMsg.CompareMsg(pMsgToCheck)) return true;
+                    if (pMsgToCheck.CompareMsg(iMsg)) return true;
                 }
             }
             else
@@ -376,7 +376,7 @@ namespace BozjaBuddy.Data.Alarm
                 if (!AlarmManager.ListenersNondupe.ContainsKey(pChannel)) return false;
                 foreach (MsgAlarm iMsg in AlarmManager.ListenersNondupe[pChannel])
                 {
-                    if (iMsg.CompareMsg(pMsgToCheck)) return true;
+                    if (pMsgToCheck.CompareMsg(iMsg)) return true;
                 }
             }
             return false;
