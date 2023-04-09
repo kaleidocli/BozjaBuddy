@@ -160,7 +160,7 @@ public class ConfigWindow : Window, IDisposable
                     ImGui.PushTextWrapPos();
                     UtilsGUI.TextDescriptionForWidget("[1] Reminder: Keep recruitment window open for CE-related features. Only display when said features are being used.");
                     ImGui.SameLine();
-                    UtilsGUI.ShowHelpMarker("Features like CE status report in Fate/CE table and CE alarm needs the Recruitment window open to work, due to lack of better means.\nThis is understandably very cumbersome for users, and will be worked on later. Any suggestion appreciated!");
+                    UtilsGUI.ShowHelpMarker("Features like CE status report in Fate/CE table and CE alarm needs the Resistance Recruitment in-game window open to work, due to lack of better means.\nThis is understandably very cumbersome for users, and will be worked on later. Any suggestion appreciated!");
                     ImGui.PopTextWrapPos();
                     this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBox] = tField1;
                     this.mPlugin.Configuration.Save();
