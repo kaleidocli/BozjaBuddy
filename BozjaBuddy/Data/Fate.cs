@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Dalamud.Game.ClientState.Fates;
 using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace BozjaBuddy.Data
 {
@@ -23,6 +24,7 @@ namespace BozjaBuddy.Data
         private string mTerritoryType { get; set; } = string.Empty;
         private double mMapCoordX { get; set; }
         private double mMapCoordY { get; set; }
+        public DateTime? mLastActive { get; set; } = null;
         private Dalamud.Game.ClientState.Fates.Fate? _mCSFate = null;
         public Dalamud.Game.ClientState.Fates.Fate? mCSFate
         {
@@ -34,6 +36,7 @@ namespace BozjaBuddy.Data
             }
             set { this._mCSFate = value; }
         }
+        public MycDynamicEvent? mDynamicEvent = null;
         protected override Plugin mPlugin { get; set; }
 
         public Fate(Plugin pPlugin, SQLiteDataReader pPackage)

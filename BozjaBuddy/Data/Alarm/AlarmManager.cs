@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BozjaBuddy.GUI.Sections;
@@ -13,7 +14,8 @@ namespace BozjaBuddy.Data.Alarm
 {
     public class AlarmManager : IDisposable
     {
-        public static Dictionary<string, List<MsgAlarm>> Listeners = new Dictionary<string, List<MsgAlarm>>();
+        private static Dictionary<string, List<MsgAlarm>> Listeners = new();
+        private static Dictionary<string, HashSet<MsgAlarm>> ListenersNondupe = new();
         private const int INTERVAL = 1000;
         private List<Alarm> mAlarmList = new List<Alarm>();
         private List<Alarm> mExpiredAlarmList = new List<Alarm>();
@@ -216,16 +218,25 @@ namespace BozjaBuddy.Data.Alarm
         private void MyAlarm()
         {
             int tCounter = 0;
+            bool tNeedToUnrequest = false;       // mainly for unrequesting GUIAssist
 
             while (mIsEnabled)
             {
                 if (this.mActiveAndAwakeAlarmCount == 0 && !(this.mDurationLeft > 0))
                 {
+                    if (tNeedToUnrequest)
+                    {
+                        this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBox);
+                        tNeedToUnrequest = false;
+                    }
                     Thread.Sleep(INTERVAL);
                     continue;
                 }
                 if (tCounter % 5 == 0) // refresh every 5 secs
+                {
                     WeatherBarSection._updateWeatherCurr(mPlugin);
+                    BBDataManager.UpdateAllFateStatus(mPlugin);
+                }
                 tCounter = tCounter == 5 ? 0 : tCounter + 1;
                 //if (Native.ApplicationIsActivated() && !mIsAppActivated)
                 //{
@@ -240,9 +251,11 @@ namespace BozjaBuddy.Data.Alarm
                 //    PluginLog.Information("App stops being focused.");
                 //}
                 List<Alarm> tTempAlarmBin = new List<Alarm>();
+                int tFateCeAlarmCount = 0;
                 foreach (Alarm iAlarm in this.mAlarmList)
                 {
                     if (!iAlarm.mIsAwake) continue;
+                    if (iAlarm.GetType() == typeof(AlarmFateCe) && iAlarm.mTriggerInt.HasValue && iAlarm.mTriggerInt < 50) tFateCeAlarmCount++;
                     // check if alarm should be killed. If yes, refresh the duration => trigger the sound player
                     if (iAlarm.CheckAlarm(DateTime.Now, AlarmManager.Listeners, pPlugin: this.mPlugin))
                     {
@@ -268,6 +281,17 @@ namespace BozjaBuddy.Data.Alarm
                 {
                     this.ExpireAlarm(iAlarm);
                 }
+                // GUIAssist stuff
+                if (tFateCeAlarmCount > 0)
+                {
+                    this.mPlugin.GUIAssistManager.RequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBox);
+                    tNeedToUnrequest = true;
+                }
+                else if (tNeedToUnrequest)
+                {
+                    this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBox);
+                    tNeedToUnrequest = false;
+                }   
 
                 if (this.mDurationLeft > 0)
                 {
@@ -304,6 +328,77 @@ namespace BozjaBuddy.Data.Alarm
         {
             this.mIsEnabled = false;
             this.mAudioPlayer.Dispose();
+        }
+
+        public static void NotifyListener(string pChannel, MsgAlarm pMsg, int pCapacityToReachAndClearChannel = 0)
+        {
+            if (pMsg.mIsDupable)
+            {
+                if (!AlarmManager.Listeners.ContainsKey(pChannel))
+                {
+                    AlarmManager.Listeners.Add(pChannel, new List<MsgAlarm>());
+                }
+                if (pCapacityToReachAndClearChannel != 0 && AlarmManager.Listeners[pChannel].Count >= pCapacityToReachAndClearChannel)
+                {
+                    AlarmManager.Listeners[pChannel].Clear();
+                }
+                AlarmManager.Listeners[pChannel].Add(pMsg);
+            }
+            else
+            {
+                if (!AlarmManager.ListenersNondupe.ContainsKey(pChannel))
+                {
+                    AlarmManager.ListenersNondupe.Add(pChannel, new HashSet<MsgAlarm>());
+                }
+                else if (AlarmManager.ListenersNondupe[pChannel].Contains(pMsg))
+                {
+                    return;
+                }
+                if (pCapacityToReachAndClearChannel != 0 && AlarmManager.ListenersNondupe[pChannel].Count >= pCapacityToReachAndClearChannel)
+                {
+                    AlarmManager.ListenersNondupe[pChannel].Clear();
+                }
+                AlarmManager.ListenersNondupe[pChannel].Add(pMsg);
+            }
+        }
+        public static bool CheckMsg(string pChannel, MsgAlarm pMsgToCheck)
+        {
+            if (pMsgToCheck.mIsDupable)
+            {
+                if (!AlarmManager.Listeners.ContainsKey(pChannel)) return false;
+                foreach (MsgAlarm iMsg in AlarmManager.Listeners[pChannel])
+                {
+                    if (iMsg.CompareMsg(pMsgToCheck)) return true;
+                }
+            }
+            else
+            {
+                if (!AlarmManager.ListenersNondupe.ContainsKey(pChannel)) return false;
+                foreach (MsgAlarm iMsg in AlarmManager.ListenersNondupe[pChannel])
+                {
+                    if (iMsg.CompareMsg(pMsgToCheck)) return true;
+                }
+            }
+            return false;
+        }
+        public static void RemoveMsg(string pChannel, MsgAlarm pMsgToRemove)
+        {
+            if (pMsgToRemove.mIsDupable)
+            {
+                if (!AlarmManager.Listeners.ContainsKey(pChannel)) return;
+                AlarmManager.Listeners[pChannel] = AlarmManager.Listeners[pChannel]
+                                                    .Select(o => o)
+                                                    .Where(o => !o.CompareMsg(pMsgToRemove))
+                                                    .ToList();
+            }
+            else
+            {
+                if (!AlarmManager.ListenersNondupe.ContainsKey(pChannel)) return;
+                AlarmManager.ListenersNondupe[pChannel] = AlarmManager.ListenersNondupe[pChannel]
+                                                    .Select(o => o)
+                                                    .Where(o => !o.CompareMsg(pMsgToRemove))
+                                                    .ToHashSet();
+            }
         }
     }
 

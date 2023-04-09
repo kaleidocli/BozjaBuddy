@@ -9,8 +9,6 @@ using Dalamud.Interface.Components;
 using BozjaBuddy.Utils;
 using BozjaBuddy.Data.Alarm;
 using Dalamud.Logging;
-using System.Threading.Channels;
-using System.Security.Cryptography;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -115,27 +113,14 @@ namespace BozjaBuddy.GUI.Sections
 
         private void DrawTableContent(List<int> pIDs)
         {
-            // PRIORITIZED CONTENT
-            for (int ii = 0; ii < this.mPlugin.FateTable.Length; ii++)      // if it is null, update if available
-            {
-                if (this.mPlugin.FateTable[ii] is Dalamud.Game.ClientState.Fates.Fate)
-                {
-                    int tID = this.mPlugin.FateTable[ii]!.FateId;
-                    if (this.mPlugin.mBBDataManager.mFates.ContainsKey(tID)) 
-                        this.mPlugin.mBBDataManager.mFates[tID].mCSFate = this.mPlugin.FateTable[ii];
-                    else continue;
-                }
-            }
+            // Trying to update all Fate's status
+            unsafe { BBDataManager.UpdateAllFateStatus(this.mPlugin); }
             // CONTENT
             List<int> tTableFateIds = this.mPlugin.FateTable
                                         .Select(o => Convert.ToInt32(o.FateId))
                                         .ToList();
             foreach (int iID in pIDs)
             {
-                if (!tTableFateIds.Contains(iID))
-                {
-                    this.mPlugin.mBBDataManager.mFates[iID].mCSFate = null;
-                }
                 this.DrawTableRow(iID, tTableFateIds);
             }
         }
@@ -160,16 +145,30 @@ namespace BozjaBuddy.GUI.Sections
                         AuxiliaryViewerSection.GUISelectableLink(mPlugin, tFate.mName, tFate.GetGenId());
                         break;
                     case 2:
-                        if (tFate.mCSFate is null)
-                            ImGui.Text("-----");
-                        else
+                        if (tFate.mDynamicEvent != null)
+                        {
+                            ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg,
+                            tFate.mDynamicEvent.Value.State == FFXIVClientStructs.FFXIV.Client.UI.Agent.MycDynamicEventState.Underway
+                                ? ImGui.GetColorU32(UtilsGUI.Colors.TableCell_Yellow)
+                                : ImGui.GetColorU32(UtilsGUI.Colors.TableCell_Green)
+                                );
+                            ImGui.TextUnformatted($"{tFate.mDynamicEvent.Value.State}");
+                        }
+                        else if (tFate.mCSFate is not null)
                         {
                             ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, 
                                 tFate.mCSFate.State == FateState.Running
-                                ? ImGui.GetColorU32(new System.Numerics.Vector4(0.67f, 1, 0.59f, 0.2f))     // GREEN
-                                : ImGui.GetColorU32(new System.Numerics.Vector4(0.93f, 0.93f, 0.35f, 0.2f))     // YELLOW
+                                ? ImGui.GetColorU32(UtilsGUI.Colors.TableCell_Yellow)
+                                : ImGui.GetColorU32(UtilsGUI.Colors.TableCell_Green)
                                 );
                             ImGui.TextUnformatted($"{tFate.mCSFate!.Progress} %");
+                        }
+                        else
+                        {
+                            ImGui.Text(
+                                tFate.mLastActive.HasValue
+                                ? $"{Math.Round((DateTime.Now - tFate.mLastActive.Value).TotalMinutes, MidpointRounding.ToPositiveInfinity)}m ago"
+                                : "-----");
                         }
                         break;
                     case 3:

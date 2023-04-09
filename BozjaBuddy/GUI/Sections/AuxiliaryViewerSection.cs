@@ -532,7 +532,7 @@ namespace BozjaBuddy.GUI.Sections
                 AuxiliaryViewerSection.GUIAlignRight(ImGui.CalcTextSize(tButtonText).X);
             }
             if (pUseIcon
-                ? ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.LocationPinLock)
+                ? ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.MapMarkerAlt)
                 : ImGui.Button(tButtonText)
                 )
             {

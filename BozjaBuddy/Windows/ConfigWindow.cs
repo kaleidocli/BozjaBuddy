@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Threading;
+using BozjaBuddy.Data;
 using BozjaBuddy.Data.Alarm;
+using BozjaBuddy.Utils;
 using BozjaBuddy.Utils.UtilsAudio;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using ImGuiNET;
 using NAudio.Wave;
-using Newtonsoft.Json.Linq;
+using static BozjaBuddy.GUI.GUIAssist.GUIAssistManager;
 
 namespace BozjaBuddy.Windows;
 
@@ -27,6 +29,8 @@ public class ConfigWindow : Window, IDisposable
     private string mFieldAudioPath = "";
     private HashSet<string> mErrors = new HashSet<string>();
     private AudioPlayer mTestAudioPlayer = new();
+    private int mCurrActiveTab = 0;
+    private int mLastActiveTab = 0;
 
     private float mGuiButtonsPadding = 32 * 3;
 
@@ -50,18 +54,25 @@ public class ConfigWindow : Window, IDisposable
     {
         ImGui.BeginTabBar("config");
 
-        // Alarm config
-        this.DrawTabAlarm();
+        if (this.DrawTabAlarm()) { this.mCurrActiveTab = 0; }
+        if (this.DrawTabUiHint()) { this.mCurrActiveTab = 1; }
+
+        // clear up kErrs when switching to another tab
+        if (this.mCurrActiveTab != this.mLastActiveTab)
+        {
+            this.mErrors.Clear();
+            this.mLastActiveTab = this.mCurrActiveTab;
+        }
 
         ImGui.EndTabBar();
     }
 
-    private void DrawTabAlarm()
+    private bool DrawTabAlarm()
     {
         if (ImGui.BeginTabItem("Alarm"))
         {
             // Audio path
-            ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, "Audio path ");
+            UtilsGUI.TextDescriptionForWidget("Audio path ");
             ImGui.SameLine();
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
             ImGui.InputText("##path", ref this.mFieldAudioPath, 1000);
@@ -93,7 +104,6 @@ public class ConfigWindow : Window, IDisposable
                         this.mErrors.Add("audio_path_err");
                     }
                     PluginLog.LogError($"Path might be invalid: {this.mFieldAudioPath}\n{e.Message}");
-                    return;
                 }
             }
             Utils.UtilsGUI.SetTooltipForLastItem("Save the audio path.\nThe audio path setting only applies after pressing save.\nClear the audio path to restore to the previous one.");
@@ -115,7 +125,7 @@ public class ConfigWindow : Window, IDisposable
             }
             Utils.UtilsGUI.SetTooltipForLastItem("Test the audio.");
             // Volume slider
-            ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, "Audio volume ");
+            UtilsGUI.TextDescriptionForWidget("Audio volume ");
             ImGui.SameLine();
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
             if (ImGui.SliderFloat("##vol", ref this.mPlugin.Configuration.mAudioVolume, 0.0f, 3.0f))
@@ -131,10 +141,35 @@ public class ConfigWindow : Window, IDisposable
             }
 
             ImGui.EndTabItem();
+            return true;
         }
-        else
+        return false;
+    }
+
+    private bool DrawTabUiHint()
+    {
+        if (ImGui.BeginTabItem("UI Hints"))
         {
-            this.mErrors.Clear();
+            if (ImGui.CollapsingHeader("[A] Mettle & Resistance rank"))
+            {
+                // Reminder: Recruitment window
+                {
+                    bool tField1 = this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBox];
+                    ImGuiComponents.ToggleButton("rewin", ref tField1);
+                    ImGui.SameLine();
+                    ImGui.PushTextWrapPos();
+                    UtilsGUI.TextDescriptionForWidget("[1] Reminder: Keep recruitment window open for CE-related features. Only display when said features are being used.");
+                    ImGui.SameLine();
+                    UtilsGUI.ShowHelpMarker("Features like CE status report in Fate/CE table and CE alarm needs the Recruitment window open to work, due to lack of better means.\nThis is understandably very cumbersome for users, and will be worked on later. Any suggestion appreciated!");
+                    ImGui.PopTextWrapPos();
+                    this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBox] = tField1;
+                    this.mPlugin.Configuration.Save();
+                }
+            }
+
+            ImGui.EndTabItem();
+            return true;
         }
+        return false;
     }
 }

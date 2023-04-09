@@ -24,7 +24,7 @@ namespace BozjaBuddy.Utils.UtilsAudio
                 this.StopAudio();
             }
 
-            PluginLog.Information("Alarm sound playing.");
+            //PluginLog.Information("Alarm sound playing.");
             CancellationToken tToken = this.mSoundPlayerTaskCTS.Token;
             this.mSoundPlayerTask = new Task(
                     () => this.SoundPlayer(pPath, pVolume, tToken, pIsLooping: pIsLooping),
@@ -33,7 +33,7 @@ namespace BozjaBuddy.Utils.UtilsAudio
         }
         public void StopAudio()
         {
-            PluginLog.Information("Alarm sound stopped.");
+            //PluginLog.Information("Alarm sound stopped.");
             this.mSoundPlayerTaskCTS.Cancel();
             this.mSoundPlayerTask.Wait();
             this.mSoundPlayerTaskCTS.Dispose();

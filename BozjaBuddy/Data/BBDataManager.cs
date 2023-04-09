@@ -4,13 +4,20 @@ using System.Collections.Generic;
 using System.IO;
 using BozjaBuddy.GUI.Sections;
 using System.Text.Json;
-using Dalamud.Plugin;
 using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using Lumina.Excel.GeneratedSheets;
+using BozjaBuddy.Data.Alarm;
+using System.Security.Cryptography;
 
 namespace BozjaBuddy.Data
 {
     public class BBDataManager
     {
+        private const int kFateTableUpdateInterval = 1;
+        private static DateTime kFateTableLastUpdate = DateTime.MinValue;
+
         private Plugin mPlugin;
         private string mCsLostAction;
         public Dictionary<int, GeneralObject> mGeneralObjects;
@@ -340,6 +347,91 @@ namespace BozjaBuddy.Data
                 pPlugin.mBBDataManager.SaveLoadouts();
                 AuxiliaryViewerSection.mTenpLoadout = null;
             }
+        }
+
+        public unsafe static MycDynamicEventData* GetMycDynamicEventArray()
+        {
+            // Get MycBattleAreaAgent, if possible
+            AgentMycBattleAreaInfo* tAgentMycBattleInfoInfo = BBDataManager.GetAgentMycBattleAreaInfo();
+            if (tAgentMycBattleInfoInfo == null) { return null; }
+            MycDynamicEventData* tMycDynamicEventArray = tAgentMycBattleInfoInfo->MycDynamicEventData;
+            return tMycDynamicEventArray;
+        }
+        public unsafe static AgentMycBattleAreaInfo* GetAgentMycBattleAreaInfo()
+        {
+            return (AgentMycBattleAreaInfo*)Framework.Instance()
+                                                            ->GetUiModule()
+                                                            ->GetAgentModule()
+                                                            ->GetAgentByInternalId(AgentId.MycBattleAreaInfo);
+        }
+        public unsafe static AgentMycInfo* GetAgentMycInfo()
+        {
+            return (AgentMycInfo*)Framework.Instance()
+                                                            ->GetUiModule()
+                                                            ->GetAgentModule()
+                                                            ->GetAgentByInternalId(AgentId.MycInfo);
+        }
+        /// <summary>
+        /// Update the status of all FateCE in FateTable. 
+        /// Returning false means MycBattleAreaAgent was not active.
+        /// </summary>
+        public unsafe static bool UpdateAllFateStatus(Plugin pPlugin)
+        {
+            bool tIsAgentActive = true;
+            // Get MycBattleAreaAgent, if possible
+            MycDynamicEventData* tMycDynamicEventArray = BBDataManager.GetMycDynamicEventArray();
+            if (tMycDynamicEventArray == null) tIsAgentActive = false;
+
+            // Check update interval, AFTER checkcing if the agent is active
+            if ((DateTime.Now - BBDataManager.kFateTableLastUpdate).TotalSeconds < BBDataManager.kFateTableUpdateInterval)
+            {
+                return tIsAgentActive;
+            }
+            else BBDataManager.kFateTableLastUpdate = DateTime.Now;
+
+            Span<MycDynamicEvent> tDeSpan = tIsAgentActive
+                                    ? new Span<MycDynamicEvent>(tMycDynamicEventArray->Array, tMycDynamicEventArray->Count)
+                                    : Span<MycDynamicEvent>.Empty;
+
+            //PluginLog.LogDebug(String.Format("> IsAgentActive={0}", tIsAgentActive));
+
+            // Reset all mCsFate to null
+            foreach (int iID in pPlugin.mBBDataManager.mFates.Keys)
+            {
+                pPlugin.mBBDataManager.mFates[iID].mCSFate = null;
+                // if MycAgentInfo is not opened, all DE is null
+                if (!tIsAgentActive)
+                {
+                    pPlugin.mBBDataManager.mFates[iID].mDynamicEvent = null;
+                    continue;
+                }
+                // mDE
+                foreach (MycDynamicEvent iDe in tDeSpan)
+                {
+                    //PluginLog.LogDebug(String.Format("> DE's id={0} timeLeft={1} participantCount={2} state={3} name={4}", iDe.Id, iDe.TimeLeft, iDe.ParticipantCount, iDe.State.ToString(), iDe.Name.ToString()));
+                    if (iID == iDe.Id)
+                    {
+                        pPlugin.mBBDataManager.mFates[iID].mDynamicEvent = iDe;
+                        AlarmManager.NotifyListener("fatece", new MsgAlarmFateCe(iID.ToString()));
+                        break;
+                    }
+                    AlarmManager.RemoveMsg("fatece", new MsgAlarmFateCe(iID.ToString()));
+                    pPlugin.mBBDataManager.mFates[iID].mDynamicEvent = null;
+                    pPlugin.mBBDataManager.mFates[iDe.Id].mLastActive = DateTime.Now;
+                }
+            }
+
+            for (int ii = 0; ii < pPlugin.FateTable.Length; ii++)      // if it is null, update if available
+            {
+                if (pPlugin.FateTable[ii] is null) { continue; }
+                // mCsFate
+                int tID = pPlugin.FateTable[ii]!.FateId;
+                if (!pPlugin.mBBDataManager.mFates.ContainsKey(tID)) continue;
+                
+                pPlugin.mBBDataManager.mFates[tID].mCSFate = pPlugin.FateTable[ii];
+                pPlugin.mBBDataManager.mFates[tID].mLastActive = DateTime.Now;
+            }
+            return tIsAgentActive;
         }
     }
 

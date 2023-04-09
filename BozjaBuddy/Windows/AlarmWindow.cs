@@ -144,6 +144,7 @@ namespace BozjaBuddy.Windows
                             pUseIcon: true
                             );
                     }
+                    UtilsGUI.SetTooltipForLastItem("Show on map.");
                     ImGui.EndGroup();
                     ImGui.PopID();
 
@@ -213,6 +214,7 @@ namespace BozjaBuddy.Windows
                             pUseIcon: true
                             );
                     }
+                    UtilsGUI.SetTooltipForLastItem("Show on map.");
                     ImGui.EndGroup();
                     ImGui.PopID();
 

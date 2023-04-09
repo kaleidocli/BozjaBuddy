@@ -13,6 +13,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Command;
 using Dalamud.Game.ClientState.Fates;
 using System.Collections.Generic;
+using BozjaBuddy.GUI.GUIAssist;
 
 namespace BozjaBuddy
 {
@@ -34,6 +35,7 @@ namespace BozjaBuddy
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("Bozja Buddy");
         public AlarmManager AlarmManager { get; init; }
+        public GUIAssistManager GUIAssistManager { get; init; }
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -78,6 +80,8 @@ namespace BozjaBuddy
 
             this.AlarmManager = new AlarmManager(this);
             this.AlarmManager.Start();
+
+            this.GUIAssistManager = new(this);
         }
 
         public void Dispose()
@@ -96,6 +100,7 @@ namespace BozjaBuddy
         private void DrawUI()
         {
             this.WindowSystem.Draw();
+            this.GUIAssistManager.Draw();
         }
 
         public void DrawConfigUI()
