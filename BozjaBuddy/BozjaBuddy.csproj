@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>0.2.0.0</Version>
+    <Version>0.2.1.0</Version>
     <Description>A sample plugin.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
@@ -18,7 +18,6 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <UseWindowsForms>false</UseWindowsForms>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
@@ -37,32 +36,6 @@
     <None Remove="db\_test\**" />
   </ItemGroup>
 
-  <ItemGroup>
-	  <Content Include="..\Data\x86\**">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		  <Link>x86\%(RecursiveDir)\%(Filename)%(Extension)</Link>
-	  </Content>
-	  <Content Include="..\Data\x64\**">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		  <Link>x64\%(RecursiveDir)\%(Filename)%(Extension)</Link>
-	  </Content>
-	  <Content Include="..\Data\sqlite3.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="..\Data\System.Data.SQLite.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="..\Data\System.Data.SQLite.EF6.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="..\Data\System.Data.SQLite.Linq.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="..\Data\FFXIVWeather.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-  </ItemGroup>
-
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
@@ -72,9 +45,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="2.1.10" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.2" />
-    <PackageReference Include="NAudio" Version="2.1.0" />
+    <PackageReference Include="DalamudPackager" Version="2.1.11" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
@@ -132,5 +104,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+	
+	<Target Name="Prune" AfterTargets="Build">
+		<RemoveDir Directories="$(TargetDir)runtimes/alpine-x64/;$(TargetDir)runtimes/linux-arm/;$(TargetDir)runtimes/linux-arm64/;$(TargetDir)runtimes/linux-armel/;$(TargetDir)runtimes/linux-mips64/;$(TargetDir)runtimes/linux-musl-x64/;$(TargetDir)runtimes/linux-s390x/;$(TargetDir)runtimes/linux-x64/;$(TargetDir)runtimes/linux-x86/;$(TargetDir)runtimes/osx-arm64/;$(TargetDir)runtimes/osx-x64/;$(TargetDir)runtimes/win-arm/;$(TargetDir)runtimes/win-arm64/;$(TargetDir)runtimes/win-x86/;$(TargetDir)runtimes/alpine-arm/;$(TargetDir)runtimes/alpine-arm64/;$(TargetDir)runtimes/browser-wasm/;$(TargetDir)runtimes/browser;$(TargetDir)runtimes/linux-musl-arm/;$(TargetDir)runtimes/linux-musl-arm64/;$(TargetDir)runtimes/maccatalyst-arm64/;$(TargetDir)runtimes/maccatalyst-x64/;" />
+	</Target>
 
 </Project>

@@ -32,7 +32,7 @@ namespace BozjaBuddy.Data
             this.mLinkFragments = new List<int>();
             this.mLocation = new Location(this.mPlugin, this.mTerritoryType, this.mMapCoordX, this.mMapCoordY);
 
-            this.mTabColor = new System.Numerics.Vector4(0.61f, 0.92f, 0.77f, 0.2f);
+            this.mTabColor = new System.Numerics.Vector4(0.61f, 0.92f, 0.77f, 0.4f);
 
             this.SetUpAuxiliary();
         }

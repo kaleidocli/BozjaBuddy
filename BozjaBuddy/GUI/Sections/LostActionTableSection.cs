@@ -4,6 +4,8 @@ using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Interface.Components;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -185,8 +187,11 @@ namespace BozjaBuddy.GUI.Sections
         }
         private void DrawOptionBar()
         {
-            AuxiliaryViewerSection.GUIAlignRight("Compact  ");
-            ImGui.Checkbox("Compact", ref this.mIsCompactModeActive);
+            AuxiliaryViewerSection.GUIAlignRight("Compact mode      ");
+            //ImGui.Checkbox("Compact", ref this.mIsCompactModeActive);
+            ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Compact mode");
+            ImGui.SameLine();
+            ImGuiComponents.ToggleButton("comTog", ref this.mIsCompactModeActive);
         }
         public override void DrawGUIDebug()
         {

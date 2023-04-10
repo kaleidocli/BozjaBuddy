@@ -199,26 +199,16 @@ namespace BozjaBuddy.GUI.Sections
         private static void _NotifyAlarmListener(string pTerritoryId)
         {
             if (WeatherBarSection._mForeCast[pTerritoryId].Count < 2) return;
-            if (!AlarmManager.Listeners.ContainsKey("weather"))
-            {
-                AlarmManager.Listeners.Add("weather", new List<MsgAlarm>());
-            }
-            if (AlarmManager.Listeners["weather"].Count >= 2)
-            {
-                AlarmManager.Listeners["weather"].Clear();
-            }
-            AlarmManager.Listeners["weather"].Add(new MsgAlarmWeather(pTerritoryId, WeatherBarSection._mForeCast[pTerritoryId][0].Item1.Id));
-            
+            AlarmManager.NotifyListener(
+                                    "weather",
+                                    new MsgAlarmWeather(pTerritoryId, WeatherBarSection._mForeCast[pTerritoryId][0].Item1.Id),
+                                    pCapacityToReachAndClearChannel: 2);
+
             // weatherSequel listener is for peeking into the next weather
-            if (!AlarmManager.Listeners.ContainsKey("weatherSequel"))
-            {
-                AlarmManager.Listeners.Add("weatherSequel", new List<MsgAlarm>());
-            }
-            if (AlarmManager.Listeners["weatherSequel"].Count >= 2)
-            {
-                AlarmManager.Listeners["weatherSequel"].Clear();
-            }
-            AlarmManager.Listeners["weatherSequel"].Add(new MsgAlarmWeather(pTerritoryId, WeatherBarSection._mForeCast[pTerritoryId][1].Item1.Id));
+            AlarmManager.NotifyListener(
+                                    "weatherSequel",
+                                    new MsgAlarmWeather(pTerritoryId, WeatherBarSection._mForeCast[pTerritoryId][1].Item1.Id),
+                                    pCapacityToReachAndClearChannel: 2);
         }
 
         public override void Dispose()

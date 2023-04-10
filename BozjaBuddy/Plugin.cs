@@ -13,6 +13,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Command;
 using Dalamud.Game.ClientState.Fates;
 using System.Collections.Generic;
+using BozjaBuddy.GUI.GUIAssist;
 
 namespace BozjaBuddy
 {
@@ -34,6 +35,7 @@ namespace BozjaBuddy
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("Bozja Buddy");
         public AlarmManager AlarmManager { get; init; }
+        public GUIAssistManager GUIAssistManager { get; init; }
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -48,9 +50,6 @@ namespace BozjaBuddy
             this.GameGui = gameGui;
             this.FateTable = fateTable;
 
-            this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            this.Configuration.Initialize(this.PluginInterface);
-
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
             this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
@@ -58,11 +57,18 @@ namespace BozjaBuddy
             this.DATA_PATHS["alarm_audio"] = Path.Combine(tDir, @"db\audio\epicsaxguy.mp3");
             this.DATA_PATHS["alarm.json"] = Path.Combine(tDir, @"db\alarm.json");
 
+            this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            this.Configuration.Initialize(this.PluginInterface);
+            if (this.Configuration.mAudioPath == null) this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
+            this.Configuration.Save();
+
             mBBDataManager = new BBDataManager(this);
             mBBDataManager.SetUpAuxiliary();
             WindowSystem.AddWindow(new ConfigWindow(this));
             WindowSystem.AddWindow(new MainWindow(this));
             WindowSystem.AddWindow(new AlarmWindow(this));
+
+            this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
 
             this.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
@@ -74,6 +80,8 @@ namespace BozjaBuddy
 
             this.AlarmManager = new AlarmManager(this);
             this.AlarmManager.Start();
+
+            this.GUIAssistManager = new(this);
         }
 
         public void Dispose()
@@ -92,6 +100,7 @@ namespace BozjaBuddy
         private void DrawUI()
         {
             this.WindowSystem.Draw();
+            this.GUIAssistManager.Draw();
         }
 
         public void DrawConfigUI()

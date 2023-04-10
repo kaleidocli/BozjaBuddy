@@ -98,10 +98,10 @@ namespace BozjaBuddy.Data.Alarm
         }
         public virtual void Revive(DateTime pCurrTime, Dictionary<string, List<MsgAlarm>> pListeners, Plugin? pPlugin = null)
         {
-            PluginLog.LogDebug("Trying to revive alarm...");
+            //PluginLog.LogDebug("Trying to revive alarm...");
             if (!this.CheckAlarm(pCurrTime, pListeners, pFlagRevival:true, pPlugin: pPlugin))
             {
-                PluginLog.LogDebug("Revive succeeds!");
+                //PluginLog.LogDebug("Revive succeeds!");
                 this.mIsAlive = true;
                 this.mHasBeenRevived = true;
             }

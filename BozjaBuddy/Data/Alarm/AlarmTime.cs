@@ -23,19 +23,19 @@ namespace BozjaBuddy.Data.Alarm
 
         public override bool CheckAlarm(DateTime pCurrTime, Dictionary<string, List<MsgAlarm>> pListeners, int pThresholdSeconds = 60, bool pIsReviving = false, Plugin? pPlugin = null)
         {
-            PluginLog.LogDebug(String.Format("========== ATime has isAlive={2} | trgTime={0} | isRevivable={1} | isReviving={3} | hasBeenRezzed={6} | mOffset={4} | isInOnceMode={5}",
-                                            this.mTriggerTime.HasValue ? this.mTriggerTime.ToString() : "null",
-                                            this.mIsRevivable,
-                                            this.mIsAlive,
-                                            pIsReviving,
-                                            this.mOffset,
-                                            false,
-                                            this.mHasBeenRevived));
+            //PluginLog.LogDebug(String.Format("========== ATime has isAlive={2} | trgTime={0} | isRevivable={1} | isReviving={3} | hasBeenRezzed={6} | mOffset={4} | isInOnceMode={5}",
+            //                                this.mTriggerTime.HasValue ? this.mTriggerTime.ToString() : "null",
+            //                                this.mIsRevivable,
+            //                                this.mIsAlive,
+            //                                pIsReviving,
+            //                                this.mOffset,
+            //                                false,
+            //                                this.mHasBeenRevived));
             // Flags validation
             if (!this.mIsAlive || !this.mTriggerTime.HasValue)
             {
-                PluginLog.LogDebug($"CHECK FAILED: Alarm is dead (isAlive={this.mIsAlive}) or not enough info (mTriggerTime={this.mTriggerTime.HasValue})!");
-                PluginLog.LogDebug("ALARM KILLED: Alarm killed by flags validation!");
+                //PluginLog.LogDebug($"CHECK FAILED: Alarm is dead (isAlive={this.mIsAlive}) or not enough info (mTriggerTime={this.mTriggerTime.HasValue})!");
+                //PluginLog.LogDebug("ALARM KILLED: Alarm killed by flags validation!");
                 this.Kill();
                 return false;
             }
@@ -46,19 +46,19 @@ namespace BozjaBuddy.Data.Alarm
             {
                 if (tDelta < 0)
                 {
-                    PluginLog.LogDebug("CHECK FAILED: Time has not reached");
+                    //PluginLog.LogDebug("CHECK FAILED: Time has not reached");
                     return false;
                 }
                 else if (tDelta > 0)
                 {
-                    PluginLog.LogDebug("CHECK FAILED: Time has already gone past the threshold");
-                    PluginLog.LogDebug("ALARM KILLED: Alarm killed by trgTime!");
+                    //PluginLog.LogDebug("CHECK FAILED: Time has already gone past the threshold");
+                    //PluginLog.LogDebug("ALARM KILLED: Alarm killed by trgTime!");
                     this.Kill();
                     return false;
                 }
             }
 
-            PluginLog.LogDebug($"ALARM KILLED: Alarm killed by final! (tDelta={tDelta} > tOffset={this.mOffset})");
+            //PluginLog.LogDebug($"ALARM KILLED: Alarm killed by final! (tDelta={tDelta} > tOffset={this.mOffset})");
             this.Kill();
 
             return true;

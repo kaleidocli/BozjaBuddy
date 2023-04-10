@@ -5,6 +5,7 @@ namespace BozjaBuddy.Data.Alarm
     public class MsgAlarm
     {
         public string _msg = "";
+        public bool mIsDupable = true;
 
         protected MsgAlarm()
         { 
@@ -17,6 +18,18 @@ namespace BozjaBuddy.Data.Alarm
         {
             if (pMsgIn._msg == this._msg) return true;
             return false;
+        }
+        public override bool Equals(object? obj)
+        {
+            if (obj is not null && obj!.GetType() == typeof(MsgAlarm))
+            {
+                return CompareMsg((obj as MsgAlarm)!);
+            }
+            return base.Equals(obj);
+        }
+        public override int GetHashCode()
+        {
+            return this._msg.GetHashCode();
         }
     }
 }

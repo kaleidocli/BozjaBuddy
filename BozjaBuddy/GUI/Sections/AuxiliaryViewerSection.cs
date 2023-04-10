@@ -8,6 +8,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using System.Text.Json;
 using Dalamud.Logging;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -200,12 +201,12 @@ namespace BozjaBuddy.GUI.Sections
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
                 ImGui.BeginChild("loadout_actionlist", 
-                    new System.Numerics.Vector2(ImGui.GetWindowWidth() / 2 - ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetStyle().FramePadding.Y),
+                    new System.Numerics.Vector2(ImGui.GetWindowWidth() / 3 - ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetStyle().FramePadding.Y),
                     true,
                     ImGuiWindowFlags.MenuBar);
                 if (ImGui.BeginMenuBar())
                 {
-                    ImGui.Text($"WEIGHT: {tLoadout.mWeight} / 99");
+                    ImGui.TextColored(tLoadout.mWeight > 99 ? UtilsGUI.Colors.NormalText_Red : UtilsGUI.Colors.BackgroundText_Grey, $"WEIGHT: {tLoadout.mWeight} / 99");
                     ImGui.EndMenuBar();
                 }
                 foreach (int iActionId in tLoadout.mActionIds.Keys)
@@ -232,9 +233,9 @@ namespace BozjaBuddy.GUI.Sections
             // Description
             ImGui.SameLine();
             {
-                ImGui.BeginChild("loadout_description", new System.Numerics.Vector2(ImGui.GetWindowWidth() / 2, ImGui.GetWindowHeight() - ImGui.GetCursorPosY()));
+                ImGui.BeginChild("loadout_description", new System.Numerics.Vector2(ImGui.GetWindowWidth() / 3 * 2 - ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() - ImGui.GetCursorPosY()));
                 ImGui.TextUnformatted(tLoadout.mName);
-                string tTemp = $"[{tLoadout.mGroup}] � [{tLoadout.mRole.ToString()}]";
+                string tTemp = $"[{tLoadout.mGroup}] • [{tLoadout.mRole.ToString()}]";
                 AuxiliaryViewerSection.GUIAlignRight(tTemp); ImGui.TextUnformatted(tTemp);
                 ImGui.Spacing();
                 ImGui.Separator();
@@ -250,12 +251,12 @@ namespace BozjaBuddy.GUI.Sections
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
                 ImGui.BeginChild("loadout_actionlist",
-                    new System.Numerics.Vector2(ImGui.GetWindowWidth() / 2 - ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetStyle().FramePadding.Y),
+                    new System.Numerics.Vector2(ImGui.GetWindowWidth() / 3 - ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetStyle().FramePadding.Y),
                     true,
-                    ImGuiWindowFlags.MenuBar);
+                    ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoScrollbar);
                 if (ImGui.BeginMenuBar())
                 {
-                    ImGui.Text($"WEIGHT: {tLoadout.mWeight} / 99");
+                    ImGui.TextColored(tLoadout.mWeight > 99 ? UtilsGUI.Colors.NormalText_Red : UtilsGUI.Colors.BackgroundText_Grey, $"WEIGHT: {tLoadout.mWeight} / 99");
                     ImGui.EndMenuBar();
                 }
                 foreach (int iActionId in tLoadout.mActionIds.Keys)
@@ -269,12 +270,15 @@ namespace BozjaBuddy.GUI.Sections
                     }
                     // link
                     ImGui.SameLine();
+
                     AuxiliaryViewerSection.GUISelectableLink(
                         this.mPlugin,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
                         true
                         );
+                    ImGui.SameLine(); 
+                    ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, $"[{this.mPlugin.mBBDataManager.mLostActions[iActionId].mWeight}]");
                     ImGui.SameLine();
                     AuxiliaryViewerSection.GUIAlignRight(33);
                     // adjuster
@@ -287,7 +291,7 @@ namespace BozjaBuddy.GUI.Sections
             // Description
             ImGui.SameLine();
             {
-                ImGui.BeginChild("loadout_description", new System.Numerics.Vector2(ImGui.GetWindowWidth() / 2, ImGui.GetWindowHeight() - ImGui.GetCursorPosY()));
+                ImGui.BeginChild("loadout_description", new System.Numerics.Vector2(ImGui.GetWindowWidth() / 3 * 2 - ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() - ImGui.GetCursorPosY()));
                 // Name
                 ImGui.InputText("##name", ref AuxiliaryViewerSection.mTenpLoadout!._mName, 120);
                 // Group & Role
@@ -295,7 +299,7 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PushItemWidth(ImGui.GetFontSize() * 4);
                 ImGui.InputText("##group", ref AuxiliaryViewerSection.mTenpLoadout!._mGroup, 120);
                 ImGui.PopItemWidth();
-                ImGui.SameLine(); ImGui.Text(" � ");
+                ImGui.SameLine(); ImGui.Text(" • ");
                 ImGui.SameLine(); AuxiliaryViewerSection.mGUIFilter.HeaderRoleSelectables(AuxiliaryViewerSection.mTenpLoadout!._mRole);
 
 
@@ -307,7 +311,7 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.InputTextMultiline("##description",
                                         ref AuxiliaryViewerSection.mTenpLoadout!._mDescription,
                                         1024,
-                                        new Vector2(ImGui.GetWindowWidth() - ImGui.GetStyle().WindowPadding.X, ImGui.GetTextLineHeight() * 5));
+                                        new Vector2(ImGui.GetWindowWidth() - ImGui.GetStyle().WindowPadding.X, ImGui.GetTextLineHeight() * 10));
 
                 ImGui.Spacing();
                 ImGui.Separator();
@@ -495,7 +499,7 @@ namespace BozjaBuddy.GUI.Sections
                 if (ImGui.Selectable(pContent, 
                                         true, 
                                         ImGuiSelectableFlags.None, 
-                                        new System.Numerics.Vector2(ImGui.GetFontSize() * pContent.Length * 0.5f, ImGui.GetFontSize())))
+                                        new System.Numerics.Vector2(ImGui.GetFontSize() * pContent.Length * 0.35f, ImGui.GetFontSize())))
                 {
                     if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
                     {
@@ -520,14 +524,17 @@ namespace BozjaBuddy.GUI.Sections
             }
             ImGui.PopID();
         }
-        public static void GUIButtonLocation(Plugin pPlugin, Location pLocation, bool rightAlign = false)
+        public static void GUIButtonLocation(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false)
         {
             string tButtonText = $"{pLocation.mAreaFlag.ToString()} ({pLocation.mMapCoordX}, {pLocation.mMapCoordX})";
             if (rightAlign)
             {
                 AuxiliaryViewerSection.GUIAlignRight(ImGui.CalcTextSize(tButtonText).X);
             }
-            if (ImGui.Button(tButtonText))
+            if (pUseIcon
+                ? ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.MapMarkerAlt)
+                : ImGui.Button(tButtonText)
+                )
             {
                 pPlugin.GameGui.OpenMapWithMapLink(
                     new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(
@@ -588,7 +595,12 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.BeginChild("loadout_description_actionfilter");
             unsafe
             {
-                AuxiliaryViewerSection.mFilter.Draw("");
+                ImGui.BeginChild("filter", new Vector2(ImGui.GetContentRegionAvail().X / 3, ImGui.GetContentRegionAvail().Y));
+                AuxiliaryViewerSection.mFilter.Draw("", ImGui.GetContentRegionAvail().X);
+                ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Action filter");
+                ImGui.EndChild();
+                ImGui.SameLine();
+                ImGui.BeginChild("filterResult", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y));
                 foreach (LostAction iAction in pPlugin.mBBDataManager.mLostActions.Values)
                 {
                     if (AuxiliaryViewerSection.mFilter.PassFilter(iAction.mName))
@@ -598,10 +610,13 @@ namespace BozjaBuddy.GUI.Sections
                             AuxiliaryViewerSection.GUILoadoutEditAdjuster(pPlugin, iAction.mId);
                             ImGui.SameLine();
                         }
-                        ImGui.Text($"[{iAction.mWeight}] ");
-                        ImGui.SameLine(); AuxiliaryViewerSection.GUISelectableLink(pPlugin, iAction.mName, iAction.GetGenId());
+                        AuxiliaryViewerSection.GUISelectableLink(pPlugin, iAction.mName, iAction.GetGenId());
+                        ImGui.SameLine();
+                        ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, $"[{iAction.mWeight}]");
                     }
                 }
+                ImGui.EndChild();
+
                 ImGui.EndChild();
                 ImGui.PopStyleVar();
             }

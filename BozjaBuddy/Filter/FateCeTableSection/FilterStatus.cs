@@ -29,17 +29,29 @@ namespace BozjaBuddy.Filter.FateCeTableSection
             {
 
                 return tIDs.OrderBy(
-                    id => this.mPlugin.mBBDataManager.mFates[id].mCSFate is not null 
-                    ? this.mPlugin.mBBDataManager.mFates[id].mCSFate!.State + this.mPlugin.mBBDataManager.mFates[id].mCSFate!.Progress
-                    : 0
-                    ).ToList();
+                        id =>
+                        this.mPlugin.mBBDataManager.mFates[id].mDynamicEvent != null
+                        ? (int)(this.mPlugin.mBBDataManager.mFates[id].mDynamicEvent!.Value.State - 4)
+                        : (int)(
+                                this.mPlugin.mBBDataManager.mFates[id].mCSFate is not null 
+                                ? this.mPlugin.mBBDataManager.mFates[id].mCSFate!.State + this.mPlugin.mBBDataManager.mFates[id].mCSFate!.Progress
+                                : 0
+                          )
+                    )
+                    .ToList();
             }
             else
                 return tIDs.OrderByDescending(
-                    id => this.mPlugin.mBBDataManager.mFates[id].mCSFate is not null
-                    ? this.mPlugin.mBBDataManager.mFates[id].mCSFate!.State + this.mPlugin.mBBDataManager.mFates[id].mCSFate!.Progress
-                    : 0
-                    ).ToList();
+                        id =>
+                        this.mPlugin.mBBDataManager.mFates[id].mDynamicEvent != null
+                        ? (int)(this.mPlugin.mBBDataManager.mFates[id].mDynamicEvent!.Value.State - 4)
+                        : (int)(
+                                this.mPlugin.mBBDataManager.mFates[id].mCSFate is not null
+                                ? this.mPlugin.mBBDataManager.mFates[id].mCSFate!.State + this.mPlugin.mBBDataManager.mFates[id].mCSFate!.Progress
+                                : 0
+                          )
+                    )
+                    .ToList();
         }
 
         public override void DrawFilterGUI()

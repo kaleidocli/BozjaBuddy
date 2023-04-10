@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
-using BozjaBuddy.GUI;
+using System.Threading.Tasks;
 using BozjaBuddy.GUI.Sections;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using NAudio.Wave;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace BozjaBuddy.Data.Alarm
 {
     public class AlarmManager : IDisposable
     {
-        public static Dictionary<string, List<MsgAlarm>> Listeners = new Dictionary<string, List<MsgAlarm>>();
+        private static Dictionary<string, List<MsgAlarm>> Listeners = new();
+        private static Dictionary<string, HashSet<MsgAlarm>> ListenersNondupe = new();
         private const int INTERVAL = 1000;
         private List<Alarm> mAlarmList = new List<Alarm>();
         private List<Alarm> mExpiredAlarmList = new List<Alarm>();
@@ -25,18 +25,13 @@ namespace BozjaBuddy.Data.Alarm
         private bool mIsAppActivated = false;
         private bool mIsAlarmTriggered = false;
         private bool mIsSoundMute = false;
-        private bool mIsAudioFileReloaded = false;
+        private Utils.UtilsAudio.AudioPlayer mAudioPlayer = new();
         private Plugin mPlugin;
-        private WaveOutEvent? mOutputDevice;
-        private LoopStream? mAudioFile;
 
         public AlarmManager(Plugin pPlugin)
         {
             mPlugin = pPlugin;
             this.LoadAlarmListsFromDisk();
-            mAudioFile = new LoopStream(new AudioFileReader(mPlugin.DATA_PATHS["alarm_audio"]));
-            mOutputDevice = new WaveOutEvent();
-            mOutputDevice?.Init(mAudioFile);
         }
         /// <summary>
         /// Primarily for testing
@@ -45,17 +40,6 @@ namespace BozjaBuddy.Data.Alarm
         public void _SetTrigger(bool pStatus)
         {
             this.mIsAlarmTriggered = pStatus;
-        }
-        public void ReloadAudio()
-        {
-            // Dispose
-            mOutputDevice?.Dispose();
-            mAudioFile?.Dispose();
-
-            // Load
-            mAudioFile = new LoopStream(new AudioFileReader(mPlugin.DATA_PATHS["alarm_audio"]));
-            mOutputDevice = new WaveOutEvent();
-            mOutputDevice?.Init(mAudioFile);
         }
         public void MuteSound() { this.mIsSoundMute = true; }
         public void UnmuteSound() { this.mIsSoundMute = false; }
@@ -76,7 +60,7 @@ namespace BozjaBuddy.Data.Alarm
             // Save to disk
             this.SaveAlarmListsToDisk();
         }
-        public void RemoveAlarm(int pAlarmId)
+        public void RemoveAlarm(int pAlarmId,  bool pDoesAffectAAAACount = true)
         {
             // Active alarm
             Alarm? pTargetAlarm = null;
@@ -91,7 +75,7 @@ namespace BozjaBuddy.Data.Alarm
             if (pTargetAlarm != null)
             {
                 this.mAlarmList.Remove(pTargetAlarm);
-                if (pTargetAlarm.mIsAwake) this.mActiveAndAwakeAlarmCount--;
+                if (pTargetAlarm.mIsAwake && pDoesAffectAAAACount) this.mActiveAndAwakeAlarmCount--;
                 return;
             }
             // Expired alarm
@@ -106,18 +90,18 @@ namespace BozjaBuddy.Data.Alarm
             if (pTargetAlarm != null)
             {
                 this.mExpiredAlarmList.Remove(pTargetAlarm);
-                if (pTargetAlarm.mIsAwake) this.mActiveAndAwakeAlarmCount--;
+                if (pTargetAlarm.mIsAwake && pDoesAffectAAAACount) this.mActiveAndAwakeAlarmCount--;
                 return;
             }
 
             // Save to disk
             this.SaveAlarmListsToDisk();
         }
-        public void RemoveAlarm(Alarm pAlarm)
+        public void RemoveAlarm(Alarm pAlarm, bool pDoesAffectAAAACount = true)
         {
-            if (this.mAlarmList.Remove(pAlarm) && pAlarm.mIsAwake)
+            if (this.mAlarmList.Remove(pAlarm) && pAlarm.mIsAwake && pDoesAffectAAAACount)
                 this.mActiveAndAwakeAlarmCount--;
-            if (this.mExpiredAlarmList.Remove(pAlarm) && pAlarm.mIsAwake)
+            if (this.mExpiredAlarmList.Remove(pAlarm) && pAlarm.mIsAwake && pDoesAffectAAAACount)
                 this.mActiveAndAwakeAlarmCount--;
 
             // Save to disk
@@ -190,7 +174,7 @@ namespace BozjaBuddy.Data.Alarm
         {
             List<List<Alarm>> tAlarmLists = new List<List<Alarm>> { this.mAlarmList, this.mExpiredAlarmList };
             string tJson = JsonConvert.SerializeObject(tAlarmLists);
-            PluginLog.LogDebug($">>> SAVING TO DISK: {tJson}");
+            //PluginLog.LogDebug($">>> SAVING TO DISK: {tJson}");
             File.WriteAllText(this.mPlugin.DATA_PATHS["alarm.json"], tJson);
         }
         private void LoadAlarmListsFromDisk()
@@ -202,7 +186,7 @@ namespace BozjaBuddy.Data.Alarm
                     );
             if (tAlarmLists == null)
             {
-                PluginLog.LogDebug(">>> A_MNG: Unable to load alarm from disk.");
+                //PluginLog.LogDebug(">>> A_MNG: Unable to load alarm from disk.");
                 return;
             }
             this.mAlarmList = tAlarmLists![0];
@@ -234,16 +218,25 @@ namespace BozjaBuddy.Data.Alarm
         private void MyAlarm()
         {
             int tCounter = 0;
+            bool tNeedToUnrequest = false;       // mainly for unrequesting GUIAssist
+
             while (mIsEnabled)
             {
                 if (this.mActiveAndAwakeAlarmCount == 0 && !(this.mDurationLeft > 0))
                 {
+                    if (tNeedToUnrequest)
+                    {
+                        this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBox);
+                        tNeedToUnrequest = false;
+                    }
                     Thread.Sleep(INTERVAL);
                     continue;
                 }
-
                 if (tCounter % 5 == 0) // refresh every 5 secs
+                {
                     WeatherBarSection._updateWeatherCurr(mPlugin);
+                    BBDataManager.UpdateAllFateStatus(mPlugin);
+                }
                 tCounter = tCounter == 5 ? 0 : tCounter + 1;
                 //if (Native.ApplicationIsActivated() && !mIsAppActivated)
                 //{
@@ -258,19 +251,21 @@ namespace BozjaBuddy.Data.Alarm
                 //    PluginLog.Information("App stops being focused.");
                 //}
                 List<Alarm> tTempAlarmBin = new List<Alarm>();
+                int tFateCeAlarmCount = 0;
                 foreach (Alarm iAlarm in this.mAlarmList)
                 {
                     if (!iAlarm.mIsAwake) continue;
+                    if (iAlarm.GetType() == typeof(AlarmFateCe) && iAlarm.mTriggerInt.HasValue && iAlarm.mTriggerInt < 50) tFateCeAlarmCount++;
                     // check if alarm should be killed. If yes, refresh the duration => trigger the sound player
                     if (iAlarm.CheckAlarm(DateTime.Now, AlarmManager.Listeners, pPlugin: this.mPlugin))
                     {
                         this.mDurationLeft = iAlarm.mDuration;
-                        PluginLog.LogDebug($"========== A_MNG: Refreshing duration (duration={iAlarm.mDuration})");
+                        //PluginLog.LogDebug($"========== A_MNG: Refreshing duration (duration={iAlarm.mDuration})");
                     }
                     // alarm is dead. Check if the grace period is finished. Revive if possible, else throw to the bin.
                     else if (!iAlarm.mIsAlive && iAlarm.mTimeOfDeath.HasValue && (DateTime.Now - iAlarm.mTimeOfDeath!.Value).TotalSeconds > iAlarm.mDuration)      // x amount of seconds after alarm is dead
                     {
-                        PluginLog.LogDebug($"ALARM's has timeOfDeath? {iAlarm.mTimeOfDeath.HasValue} ({iAlarm.mTimeOfDeath})");
+                        //PluginLog.LogDebug($"ALARM's has timeOfDeath? {iAlarm.mTimeOfDeath.HasValue} ({iAlarm.mTimeOfDeath})");
                         if (iAlarm.mIsRevivable)
                         {
                             iAlarm.Revive(DateTime.Now, AlarmManager.Listeners, pPlugin: this.mPlugin);
@@ -280,12 +275,23 @@ namespace BozjaBuddy.Data.Alarm
                             tTempAlarmBin.Add(iAlarm);
                         }
                     }
-                    PluginLog.Debug($">>> A_MNG: tOD={iAlarm.mTimeOfDeath?.ToString()} timeSinceDeath={(iAlarm.mTimeOfDeath.HasValue ? (DateTime.Now - iAlarm.mTimeOfDeath!.Value).TotalSeconds : 0)} mDuration={iAlarm.mDuration}");
+                    //PluginLog.LogDebug($">>> A_MNG: tOD={iAlarm.mTimeOfDeath?.ToString()} timeSinceDeath={(iAlarm.mTimeOfDeath.HasValue ? (DateTime.Now - iAlarm.mTimeOfDeath!.Value).TotalSeconds : 0)} mDuration={iAlarm.mDuration}");
                 }
                 foreach (Alarm iAlarm in tTempAlarmBin)
                 {
                     this.ExpireAlarm(iAlarm);
                 }
+                // GUIAssist stuff
+                if (tFateCeAlarmCount > 0)
+                {
+                    this.mPlugin.GUIAssistManager.RequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBox);
+                    tNeedToUnrequest = true;
+                }
+                else if (tNeedToUnrequest)
+                {
+                    this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBox);
+                    tNeedToUnrequest = false;
+                }   
 
                 if (this.mDurationLeft > 0)
                 {
@@ -298,47 +304,15 @@ namespace BozjaBuddy.Data.Alarm
                     this.UnmuteSound();
                 }
 
-                // Audio stuff
                 try
                 {
-                    if (this.mIsAudioFileReloaded)
-                    {
-                        this.mIsAudioFileReloaded = false;
-                        this.mIsSoundMute = true;
-                        this.mOutputDevice!.Stop();
-                        this.mOutputDevice!.Dispose();
-                        this.mOutputDevice = null;
-                        this.mAudioFile?.Dispose();
-                        this.mAudioFile = null;
-                    }
                     if (this.mIsAlarmTriggered && !this.mIsSoundMute)
                     {
-                        if (this.mOutputDevice == null || this.mAudioFile == null)
-                        {
-                            this.mOutputDevice?.Dispose();
-                            this.mAudioFile?.Dispose();
-                            this.mAudioFile = new LoopStream(new AudioFileReader(mPlugin.DATA_PATHS["alarm_audio"]));
-                            this.mOutputDevice = new WaveOutEvent();
-                            this.mOutputDevice?.Init(this.mAudioFile);
-                        }
-                        if (!this.mIsSoundMute && this.mOutputDevice != null && this.mOutputDevice.PlaybackState == PlaybackState.Stopped)
-                        {
-                            PluginLog.Information("Alarm sound playing.");
-                            this.mOutputDevice!.Play();
-                        }
+                        this.mAudioPlayer.StartAudio(this.mPlugin.Configuration.mAudioPath ?? "", this.mPlugin.Configuration.mAudioVolume);
                     }
-                    else
+                    else if (!this.mIsAlarmTriggered || (this.mIsAlarmTriggered && this.mIsSoundMute))
                     {
-                        if (this.mOutputDevice != null && this.mOutputDevice.PlaybackState == PlaybackState.Playing)
-                        {
-                            PluginLog.Information("Alarm sound stopped.");
-                            this.mOutputDevice!.Stop();
-                            this.mOutputDevice!.Dispose();
-                            this.mOutputDevice = null;
-                            this.mAudioFile?.Dispose();
-                            this.mAudioFile = null;
-                        }
-
+                        this.mAudioPlayer.StopAudio();
                     }
                 }
                 catch (Exception e)
@@ -352,82 +326,79 @@ namespace BozjaBuddy.Data.Alarm
 
         public void Dispose()
         {
-            mIsEnabled = false;
-            mOutputDevice?.Dispose();
-            mOutputDevice = null;
-            mAudioFile?.Dispose();
-            mAudioFile = null;
-        }
-    }
-
-    /// <summary>
-    /// Stream for looping playback
-    /// </summary>
-    public class LoopStream : WaveStream
-    {
-        WaveStream sourceStream;
-
-        /// <summary>
-        /// Creates a new Loop stream
-        /// </summary>
-        /// <param name="sourceStream">The stream to read from. Note: the Read method of this stream should return 0 when it reaches the end
-        /// or else we will not loop to the start again.</param>
-        public LoopStream(WaveStream sourceStream)
-        {
-            this.sourceStream = sourceStream;
-            EnableLooping = true;
+            this.mIsEnabled = false;
+            this.mAudioPlayer.Dispose();
         }
 
-        /// <summary>
-        /// Use this to turn looping on or off
-        /// </summary>
-        public bool EnableLooping { get; set; }
-
-        /// <summary>
-        /// Return source stream's wave format
-        /// </summary>
-        public override WaveFormat WaveFormat
+        public static void NotifyListener(string pChannel, MsgAlarm pMsg, int pCapacityToReachAndClearChannel = 0)
         {
-            get { return sourceStream.WaveFormat; }
-        }
-
-        /// <summary>
-        /// LoopStream simply returns
-        /// </summary>
-        public override long Length
-        {
-            get { return sourceStream.Length; }
-        }
-
-        /// <summary>
-        /// LoopStream simply passes on positioning to source stream
-        /// </summary>
-        public override long Position
-        {
-            get { return sourceStream.Position; }
-            set { sourceStream.Position = value; }
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            int totalBytesRead = 0;
-
-            while (totalBytesRead < count)
+            if (pMsg.mIsDupable)
             {
-                int bytesRead = sourceStream.Read(buffer, offset + totalBytesRead, count - totalBytesRead);
-                if (bytesRead == 0 || sourceStream.Position > sourceStream.Length)
+                if (!AlarmManager.Listeners.ContainsKey(pChannel))
                 {
-                    if (sourceStream.Position == 0 || !EnableLooping)
-                    {
-                        // something wrong with the source stream
-                        break;
-                    }
-                    // loop
-                    sourceStream.Position = 0;
+                    AlarmManager.Listeners.Add(pChannel, new List<MsgAlarm>());
                 }
-                totalBytesRead += bytesRead;
+                if (pCapacityToReachAndClearChannel != 0 && AlarmManager.Listeners[pChannel].Count >= pCapacityToReachAndClearChannel)
+                {
+                    AlarmManager.Listeners[pChannel].Clear();
+                }
+                AlarmManager.Listeners[pChannel].Add(pMsg);
             }
-            return totalBytesRead;
+            else
+            {
+                if (!AlarmManager.ListenersNondupe.ContainsKey(pChannel))
+                {
+                    AlarmManager.ListenersNondupe.Add(pChannel, new HashSet<MsgAlarm>());
+                }
+                else if (AlarmManager.ListenersNondupe[pChannel].Contains(pMsg))
+                {
+                    return;
+                }
+                if (pCapacityToReachAndClearChannel != 0 && AlarmManager.ListenersNondupe[pChannel].Count >= pCapacityToReachAndClearChannel)
+                {
+                    AlarmManager.ListenersNondupe[pChannel].Clear();
+                }
+                AlarmManager.ListenersNondupe[pChannel].Add(pMsg);
+            }
+        }
+        public static bool CheckMsg(string pChannel, MsgAlarm pMsgToCheck)
+        {
+            if (pMsgToCheck.mIsDupable)
+            {
+                if (!AlarmManager.Listeners.ContainsKey(pChannel)) return false;
+                foreach (MsgAlarm iMsg in AlarmManager.Listeners[pChannel])
+                {
+                    if (pMsgToCheck.CompareMsg(iMsg)) return true;
+                }
+            }
+            else
+            {
+                if (!AlarmManager.ListenersNondupe.ContainsKey(pChannel)) return false;
+                foreach (MsgAlarm iMsg in AlarmManager.ListenersNondupe[pChannel])
+                {
+                    if (pMsgToCheck.CompareMsg(iMsg)) return true;
+                }
+            }
+            return false;
+        }
+        public static void RemoveMsg(string pChannel, MsgAlarm pMsgToRemove)
+        {
+            if (pMsgToRemove.mIsDupable)
+            {
+                if (!AlarmManager.Listeners.ContainsKey(pChannel)) return;
+                AlarmManager.Listeners[pChannel] = AlarmManager.Listeners[pChannel]
+                                                    .Select(o => o)
+                                                    .Where(o => !o.CompareMsg(pMsgToRemove))
+                                                    .ToList();
+            }
+            else
+            {
+                if (!AlarmManager.ListenersNondupe.ContainsKey(pChannel)) return;
+                AlarmManager.ListenersNondupe[pChannel] = AlarmManager.ListenersNondupe[pChannel]
+                                                    .Select(o => o)
+                                                    .Where(o => !o.CompareMsg(pMsgToRemove))
+                                                    .ToHashSet();
+            }
         }
     }
 

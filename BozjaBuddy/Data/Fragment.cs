@@ -22,7 +22,7 @@ namespace BozjaBuddy.Data
             mName = (string)pPackage["name"];
             mIsClusterBuyable = (int)(long)pPackage["isClusterBuyable"] == 1 ? true : false;
 
-            this.mTabColor = new System.Numerics.Vector4(0.89f, 0.92f, 0.61f, 0.2f);
+            this.mTabColor = new System.Numerics.Vector4(0.89f, 0.92f, 0.61f, 0.4f);
 
             this.SetUpAuxiliary();
         }

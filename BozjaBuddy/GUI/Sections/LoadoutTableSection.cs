@@ -5,6 +5,7 @@ using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -20,6 +21,7 @@ namespace BozjaBuddy.GUI.Sections
         float FIXED_LINE_HEIGHT;
         private List<int> mLoadoutIds;
         private Filter.Filter[] mFilters;
+        private bool mIsShowingRec = true;
 
         protected override Plugin mPlugin { get; set; }
 
@@ -30,7 +32,7 @@ namespace BozjaBuddy.GUI.Sections
             this.mPlugin = pPlugin;
 
             this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
-            this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 3);
+            this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 1);
 
             this.mFilters = new Filter.Filter[]{
                 new Filter.LoadoutTableSection.FilterName(),
@@ -73,13 +75,15 @@ namespace BozjaBuddy.GUI.Sections
             {
                 DrawTableHeader();
                 List<int> tIDs =  SortTableContent(this.mLoadoutIds, this.mFilters);
-                DrawTableContent(tIDs);
+                DrawTableContent(tIDs, this.mIsShowingRec);
 
                 ImGui.EndTable();
             }
         }
         private void DrawTableHeader()
         {
+            ImGui.TableSetupScrollFreeze(0, 1);
+
             for (int i = 0; i < this.mFilters.Length; i++)
                 ImGui.TableSetupColumn(this.mFilters[i].mFilterName,
                                         this.mFilters[i].mIsSortingActive ? ImGuiTableColumnFlags.None : ImGuiTableColumnFlags.NoSort,
@@ -104,11 +108,12 @@ namespace BozjaBuddy.GUI.Sections
         {
             this.DrawTableContent(this.mLoadoutIds);
         }
-        private void DrawTableContent(List<int> pIDs)
+        private void DrawTableContent(List<int> pIDs, bool pIsShowingRec = true)
         {
             // CONTENT
             foreach (int iID in pIDs)
             {
+                if (!pIsShowingRec && iID > 9999) continue;
                 Loadout tLoadout = this.mPlugin.mBBDataManager.mLoadouts[iID];
                 if (!this.CheckFilter(tLoadout)) continue;
 
@@ -138,7 +143,21 @@ namespace BozjaBuddy.GUI.Sections
         private void DrawOptionBar()
         {
             ImGuiIOPtr io = ImGui.GetIO();
-            AuxiliaryViewerSection.GUIAlignRight(20*3);
+            AuxiliaryViewerSection.GUIAlignRight((float)(21*12.7));
+            // Toggle rec visibility
+            ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Recommended loadouts");
+            ImGui.SameLine();
+            ImGuiComponents.ToggleButton("recToggle", ref this.mIsShowingRec);
+            // Restore preset
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowsSpin) && io.KeyShift)
+            {
+                this.mPlugin.mBBDataManager.ReloadLoadoutsPreset();
+            }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to return recommended loadouts to default. (user's loadouts are intact)"); }
+            ImGui.SameLine();
+            ImGui.Text(" | ");
+            ImGui.SameLine();
             // Add
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus) && io.KeyShift)
             {
@@ -146,6 +165,11 @@ namespace BozjaBuddy.GUI.Sections
                 Loadout tLoadoutNew = new Loadout(this.mPlugin, new LoadoutJson());
                 BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
                 this.mIsForcingSort = true;
+                // Open Auxiliary tab
+                if (!AuxiliaryViewerSection.mTabGenIds[tLoadoutNew.GetGenId()])
+                {
+                    AuxiliaryViewerSection.AddTab(this.mPlugin, tLoadoutNew.GetGenId());
+                }
             }
             if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to add a new entry"); }
             // Import
@@ -159,16 +183,14 @@ namespace BozjaBuddy.GUI.Sections
                     Loadout tLoadoutNew = new Loadout(this.mPlugin, tLoadoutJson, true);
                     BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
                     this.mIsForcingSort = true;
+                    // Open Auxiliary tab
+                    if (!AuxiliaryViewerSection.mTabGenIds[tLoadoutNew.GetGenId()])
+                    {
+                        AuxiliaryViewerSection.AddTab(this.mPlugin, tLoadoutNew.GetGenId());
+                    }
                 }
             }
             if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to import an entry from clipboard"); }
-            // Restore preset
-            ImGui.SameLine();
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowsSpin) && io.KeyShift)
-            {
-                this.mPlugin.mBBDataManager.ReloadLoadoutsPreset();
-            }
-            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to return recommended loadouts to default. (user's loadouts are intact)"); }
         }
 
         public override void DrawGUIDebug()

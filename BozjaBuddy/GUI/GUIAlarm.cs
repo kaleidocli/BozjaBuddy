@@ -1,16 +1,11 @@
 ﻿using BozjaBuddy.Data.Alarm;
 using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
-using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
-using Dalamud.Logging;
-using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms.VisualStyles;
 
 namespace BozjaBuddy.GUI
 {
@@ -31,6 +26,7 @@ namespace BozjaBuddy.GUI
         private static bool kFieldIsRevivable = false;
         private static string? kFieldTriggerString = "";
         private static int? kFieldTriggerInt = 0;
+        private static bool kFieldAcceptAll = false;
 
         private static string[] kAlarmLabels = { "Time", "Weather", "FateCE" };
         private static List<string> kAlarmTerritories = WeatherBarSection._mTerritories.Keys.ToList();
@@ -362,22 +358,37 @@ namespace BozjaBuddy.GUI
             {
                 if (pAlarmToEdit == null)
                 {
-                    GUIAlarm.kFieldTriggerInt = pTriggerInt ?? GUIAlarm.kFieldTriggerInt ?? pPlugin.mBBDataManager.mFates.Keys.ToList()[0];
+                    GUIAlarm.kFieldTriggerInt =
+                        GUIAlarm.kFieldAcceptAll 
+                        ? AlarmFateCe.kTriggerInt_AcceptAllCe
+                        : pTriggerInt ?? GUIAlarm.kFieldTriggerInt ?? pPlugin.mBBDataManager.mFates.Keys.ToList()[0];
                 }
                 else
                 {
                     GUIAlarm.kFieldTriggerString = GUIAlarm.kComboCurrTerritoryId;
-                    GUIAlarm.kFieldTriggerInt = GUIAlarm.kComboCurrWeatherId;
+                    GUIAlarm.kFieldTriggerInt = GUIAlarm.kFieldAcceptAll ? AlarmFateCe.kTriggerInt_AcceptAllCe : GUIAlarm.kComboCurrWeatherId;
                 }
 
                 // Text input
                 ImGui.BeginGroup();
                 GUIAlarm.DrawACPUTextInput_Default();
+
+                ImGui.Checkbox("##aa", ref GUIAlarm.kFieldAcceptAll);
+                ImGui.SameLine(); UtilsGUI.TextDescriptionForWidget("Any CE (FATEs excluded)");
+
                 if (pIsLabelEditable || pAlarmToEdit != null)
                 {
-                    GUIAlarm.DrawComboFateCe(pPlugin, pAlarmToEdit: pAlarmToEdit);
-                    GUIAlarm.kFieldTriggerInt = pPlugin.mBBDataManager.mFates[GUIAlarm.kComboCurrFateId].mId;
+                    if (GUIAlarm.kFieldAcceptAll)
+                    {
+                        ImGui.BeginDisabled();
+                        GUIAlarm.DrawComboFateCe(pPlugin, pAlarmToEdit: pAlarmToEdit);
+                        ImGui.EndDisabled();
+                    }
+                    else { GUIAlarm.DrawComboFateCe(pPlugin, pAlarmToEdit: pAlarmToEdit); }
+
+                    GUIAlarm.kFieldTriggerInt = GUIAlarm.kFieldAcceptAll ? AlarmFateCe.kTriggerInt_AcceptAllCe : pPlugin.mBBDataManager.mFates[GUIAlarm.kComboCurrFateId].mId;
                 }
+
                 ImGui.EndGroup();
 
                 ImGui.SameLine();
@@ -470,6 +481,7 @@ namespace BozjaBuddy.GUI
             GUIAlarm.kFieldIsRevivable = false;
             GUIAlarm.kFieldTriggerInt = null;
             GUIAlarm.kFieldTriggerString = null;
+            GUIAlarm.kFieldAcceptAll = false;
 
             GUIAlarm.kComboCurrTerritoryId = "";
             GUIAlarm.kComboCurrWeatherId = 0;
@@ -485,6 +497,7 @@ namespace BozjaBuddy.GUI
             GUIAlarm.kFieldIsRevivable = pAlarm.mIsRevivable;
             GUIAlarm.kFieldTriggerInt = pAlarm.mTriggerInt ?? null;
             GUIAlarm.kFieldTriggerString = pAlarm.mTriggerString ?? null;
+            GUIAlarm.kFieldAcceptAll = false;
 
             GUIAlarm.kFieldDateDD = pAlarm.mTriggerTime!.Value.Day.ToString();
             GUIAlarm.kFieldDateMM = pAlarm.mTriggerTime!.Value.Month.ToString();

@@ -1,3 +1,4 @@
+using BozjaBuddy.GUI.GUIAssist;
 using BozjaBuddy.GUI.Sections;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,19 @@ namespace BozjaBuddy.GUI.Tabs
                 { 1, new FateCeTableSection(this.mPlugin) },
                 { 2, new AuxiliaryViewerSection(this.mPlugin) }
             };
+        }
+        public override bool DrawGUI()
+        {
+            bool tRes = base.DrawGUI();
+            if (tRes)
+            {
+                this.mPlugin.GUIAssistManager.RequestOption(this.GetHashCode(), GUIAssistManager.GUIAssistOption.MycInfoBox);
+            }
+            else
+            {
+                this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUIAssistManager.GUIAssistOption.MycInfoBox);
+            }
+            return tRes;
         }
 
         public void Dispose()
