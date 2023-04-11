@@ -19,7 +19,7 @@ namespace BozjaBuddy.GUI.Sections
         public static LoadoutJson? mTenpLoadout = null;
         public static bool mIsRefreshRequired = false;
         private static TextureCollection? mTextureCollection = null;
-        private static int mGenIdToTabFocus = -1;
+        public static int _mGenIdToTabFocus = -1;
         private static ImGuiTabBarFlags AUXILIARY_TAB_FLAGS = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
         private static GUIFilter mGUIFilter = new GUIFilter();
         unsafe static ImGuiTextFilterPtr mFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
@@ -55,11 +55,11 @@ namespace BozjaBuddy.GUI.Sections
             
             if (pObj.mTabColor != null) ImGui.PushStyleColor(ImGuiCol.Tab, pObj.mTabColor.Value);
 
-            if (ImGui.BeginTabItem($"{pObj.mName}##{pObj.mId}", ref tIsOpened[0], pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus
+            if (ImGui.BeginTabItem($"{pObj.mName}##{pObj.mId}", ref tIsOpened[0], pObj.GetGenId() == AuxiliaryViewerSection._mGenIdToTabFocus
                                                                     ? ImGuiTabItemFlags.SetSelected
                                                                     : ImGuiTabItemFlags.None))
             {
-                if (pObj.GetGenId() == AuxiliaryViewerSection.mGenIdToTabFocus) AuxiliaryViewerSection.mGenIdToTabFocus = -1;   // Release selected
+                if (pObj.GetGenId() == AuxiliaryViewerSection._mGenIdToTabFocus) AuxiliaryViewerSection._mGenIdToTabFocus = -1;   // Release selected
                 if (pObj is Loadout)
                 {
                     this.DrawTabHeaderLoadout(pObj);
@@ -123,7 +123,7 @@ namespace BozjaBuddy.GUI.Sections
             if (pObj.mLocation != null)
             {
                 ImGui.SameLine();
-                AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, pObj.mLocation, true);
+                UtilsGUI.LocationLinkButton(this.mPlugin, pObj.mLocation, true);
             }
             ImGui.EndGroup();
         }
@@ -217,7 +217,7 @@ namespace BozjaBuddy.GUI.Sections
                     if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width * 0.75f, tIconWrap.Height * 0.75f));
                     // link
                     ImGui.SameLine();
-                    AuxiliaryViewerSection.GUISelectableLink(
+                    UtilsGUI.SelectableLink(
                         this.mPlugin,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId()
@@ -271,7 +271,7 @@ namespace BozjaBuddy.GUI.Sections
                     // link
                     ImGui.SameLine();
 
-                    AuxiliaryViewerSection.GUISelectableLink(
+                    UtilsGUI.SelectableLink(
                         this.mPlugin,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
@@ -340,7 +340,7 @@ namespace BozjaBuddy.GUI.Sections
                 do
                 {
                     ImGui.SameLine();
-                    AuxiliaryViewerSection.GUISelectableLink(this.mPlugin,
+                    UtilsGUI.SelectableLink(this.mPlugin,
                         this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName,
                         this.mPlugin.mBBDataManager.mFates[iCurrFateId].GetGenId(),
                         true);
@@ -367,11 +367,11 @@ namespace BozjaBuddy.GUI.Sections
                     // LOCATION
                     if (tFragment.mLocation != null)
                     {
-                        AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tFragment.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tFragment.mLocation);
                         ImGui.SameLine();
                     }
                     // NAME
-                    AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"Forgetten Fragment of {tFragment.mName}", tFragment.GetGenId());
+                    UtilsGUI.SelectableLink(this.mPlugin, $"Forgetten Fragment of {tFragment.mName}", tFragment.GetGenId());
                     // Display as vendor's stock
                     if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Vendor)
                     {
@@ -390,11 +390,11 @@ namespace BozjaBuddy.GUI.Sections
                     // LOCATION
                     if (tFate.mLocation != null)
                     {
-                        AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tFate.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tFate.mLocation);
                         ImGui.SameLine();
                     }
                     // NAME
-                    AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"{tFate.mName}", tFate.GetGenId());
+                    UtilsGUI.SelectableLink(this.mPlugin, $"{tFate.mName}", tFate.GetGenId());
                     ImGui.Separator();
                 }
             }
@@ -406,11 +406,11 @@ namespace BozjaBuddy.GUI.Sections
                     // LOCATION
                     if (tMob.mLocation != null)
                     {
-                        AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tMob.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tMob.mLocation);
                         ImGui.SameLine();
                     }
                     // NAME
-                    AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"{tMob.mName}", tMob.GetGenId());
+                    UtilsGUI.SelectableLink(this.mPlugin, $"{tMob.mName}", tMob.GetGenId());
                     ImGui.Separator();
                 }
             }
@@ -422,11 +422,11 @@ namespace BozjaBuddy.GUI.Sections
                     // LOCATION
                     if (tAction.mLocation != null)
                     {
-                        AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tAction.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tAction.mLocation);
                         ImGui.SameLine();
                     }
                     // NAME
-                    AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"{tAction.mName}", tAction.GetGenId());
+                    UtilsGUI.SelectableLink(this.mPlugin, $"{tAction.mName}", tAction.GetGenId());
                     ImGui.Separator();
                 }
             }
@@ -438,11 +438,11 @@ namespace BozjaBuddy.GUI.Sections
                     // LOCATION
                     if (tVendor.mLocation != null)
                     {
-                        AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tVendor.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tVendor.mLocation);
                         ImGui.SameLine();
                     }
                     // NAME
-                    AuxiliaryViewerSection.GUISelectableLink(this.mPlugin, $"{tVendor.mName}\t({tVendor.GetAmountPriceCurrency(pObj.mId).Item1}) {tVendor.GetAmountPriceCurrency(pObj.mId).Item2} {tVendor.GetAmountPriceCurrency(pObj.mId).Item3.ToString()}", tVendor.GetGenId());
+                    UtilsGUI.SelectableLink(this.mPlugin, $"{tVendor.mName}\t({tVendor.GetAmountPriceCurrency(pObj.mId).Item1}) {tVendor.GetAmountPriceCurrency(pObj.mId).Item2} {tVendor.GetAmountPriceCurrency(pObj.mId).Item3.ToString()}", tVendor.GetGenId());
                     ImGui.Separator();
                 }
             }
@@ -470,7 +470,7 @@ namespace BozjaBuddy.GUI.Sections
             GeneralObject.GeneralObjectSalt tSalt = pPlugin.mBBDataManager.mGeneralObjects[pGenId].GetSalt();
             AuxiliaryViewerSection.mTabGenIds[pGenId] = true;
             AuxiliaryViewerSection.mTabGenIdsToDraw.Add(pGenId);
-            AuxiliaryViewerSection.mGenIdToTabFocus = pGenId;
+            AuxiliaryViewerSection._mGenIdToTabFocus = pGenId;
             AuxiliaryViewerSection.mTextureCollection ??= new TextureCollection(pPlugin);
             AuxiliaryViewerSection.mTextureCollection.AddTextureFromItemId(Convert.ToUInt32(tId), tSalt);
         }
@@ -491,61 +491,6 @@ namespace BozjaBuddy.GUI.Sections
             }
         }
 
-        public static void GUISelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = false)
-        {
-            ImGui.PushID(pTargetGenId);
-            if (pIsWrappedToText)
-            {
-                if (ImGui.Selectable(pContent, 
-                                        true, 
-                                        ImGuiSelectableFlags.None, 
-                                        new System.Numerics.Vector2(ImGui.GetFontSize() * pContent.Length * 0.35f, ImGui.GetFontSize())))
-                {
-                    if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
-                    {
-                        AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
-                    }
-                    else
-                    {
-                        AuxiliaryViewerSection.mGenIdToTabFocus = pTargetGenId;
-                    }
-                }
-            }
-            else if (ImGui.Selectable(pContent))
-            {
-                if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
-                {
-                    AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
-                }
-                else
-                {
-                    AuxiliaryViewerSection.mGenIdToTabFocus = pTargetGenId;
-                }
-            }
-            ImGui.PopID();
-        }
-        public static void GUIButtonLocation(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false)
-        {
-            string tButtonText = $"{pLocation.mAreaFlag.ToString()} ({pLocation.mMapCoordX}, {pLocation.mMapCoordX})";
-            if (rightAlign)
-            {
-                AuxiliaryViewerSection.GUIAlignRight(ImGui.CalcTextSize(tButtonText).X);
-            }
-            if (pUseIcon
-                ? ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.MapMarkerAlt)
-                : ImGui.Button(tButtonText)
-                )
-            {
-                pPlugin.GameGui.OpenMapWithMapLink(
-                    new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(
-                        pLocation.mTerritoryID, 
-                        pLocation.mMapID, 
-                        (float)pLocation.mMapCoordX, 
-                        (float)pLocation.mMapCoordY)
-                    );
-                //PluginLog.LogInformation($"Showing map: {pLocation.mTerritoryID} - {pLocation.mMapID} - {(float)pLocation.mMapCoordX} - {(float)pLocation.mMapCoordY}");
-            }
-        }
         public static void GUIAlignRight(float pTargetItemWidth)
         {
             ImGuiStylePtr tStyle = ImGui.GetStyle();
@@ -610,7 +555,7 @@ namespace BozjaBuddy.GUI.Sections
                             AuxiliaryViewerSection.GUILoadoutEditAdjuster(pPlugin, iAction.mId);
                             ImGui.SameLine();
                         }
-                        AuxiliaryViewerSection.GUISelectableLink(pPlugin, iAction.mName, iAction.GetGenId());
+                        UtilsGUI.SelectableLink(pPlugin, iAction.mName, iAction.GetGenId());
                         ImGui.SameLine();
                         ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, $"[{iAction.mWeight}]");
                     }

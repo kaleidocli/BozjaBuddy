@@ -145,7 +145,7 @@ namespace BozjaBuddy.GUI.Sections
                             AuxiliaryViewerSection.GUILoadoutEditAdjuster(this.mPlugin, iID);
                             break;
                         case 1:
-                            ImGui.PushTextWrapPos(0); AuxiliaryViewerSection.GUISelectableLink(mPlugin, tLostAction.mName, tLostAction.GetGenId()); ImGui.PopTextWrapPos();
+                            ImGui.PushTextWrapPos(0); UtilsGUI.SelectableLink_WithPopup(mPlugin, tLostAction.mName, tLostAction.GetGenId()); ImGui.PopTextWrapPos();
                             break; 
                         case 2:
                             ImGui.Text(RoleFlag.FlagToString(tLostAction.mRole.mRoleFlagBit));
@@ -164,7 +164,8 @@ namespace BozjaBuddy.GUI.Sections
                             foreach (int iiID in tLostAction.mLinkFragments)
                             {
                                 Fragment tFragment = this.mPlugin.mBBDataManager.mFragments[iiID];
-                                ImGui.PushTextWrapPos(0); AuxiliaryViewerSection.GUISelectableLink(mPlugin, tFragment.mName + $"##{iID}", tFragment.GetGenId()); ImGui.PopTextWrapPos();
+                                ImGui.PushTextWrapPos(0); 
+                                UtilsGUI.SelectableLink_WithPopup(mPlugin, tFragment.mName + $"##{iID}", tFragment.GetGenId()); ImGui.PopTextWrapPos();
                             }
                             break;
                         case 5:

@@ -35,16 +35,7 @@ namespace BozjaBuddy.Windows
         public override void Draw()
         {
             // Menu bar
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Cog))
-            {
-                this.Plugin.WindowSystem.GetWindow("Config - BozjaBuddy")!.IsOpen = true;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.BeginTooltip();
-                ImGui.Text("Open config window.");
-                ImGui.EndTooltip();
-            }
+            UtilsGUI.WindowLinkedButton(this.Plugin, "Config - BozjaBuddy", Dalamud.Interface.FontAwesomeIcon.Cog, "Open config window.");
             ImGui.SameLine(); AlarmWindow.DrawAlarmNotificationBar(this.Plugin, "alarmWindow", pPadding: (float)3);
             ImGui.SameLine(); AuxiliaryViewerSection.GUIAlignRight(1);
             ImGui.SameLine();
@@ -139,7 +130,7 @@ namespace BozjaBuddy.Windows
                         && iAlarm.mTriggerInt.Value != AlarmFateCe.kTriggerInt_AcceptAllCe
                         && this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation != null)
                     {
-                        AuxiliaryViewerSection.GUIButtonLocation(
+                        UtilsGUI.LocationLinkButton(
                             this.Plugin,
                             this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation!,
                             pUseIcon: true
@@ -210,7 +201,7 @@ namespace BozjaBuddy.Windows
                         && iAlarm.mTriggerInt.Value != AlarmFateCe.kTriggerInt_AcceptAllCe
                         && this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation != null)
                     {
-                        AuxiliaryViewerSection.GUIButtonLocation(
+                        UtilsGUI.LocationLinkButton(
                             this.Plugin,
                             this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation!,
                             pUseIcon: true

@@ -1,10 +1,7 @@
-using Lumina.Excel.GeneratedSheets;
 using System.Data.SQLite;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.Data
 {
@@ -26,6 +23,9 @@ namespace BozjaBuddy.Data
 
             this.SetUpAuxiliary();
         }
+        public override SeString? GetReprItemLink() => SeString.CreateItemLink((uint)mId, false);
+        public override string GetReprSynopsis() 
+            => $"[{this.mName}] • [Tradable: {(this.mIsClusterBuyable ? "yes" : "no")}]";
 
         protected override void SetUpAuxiliary()
         {

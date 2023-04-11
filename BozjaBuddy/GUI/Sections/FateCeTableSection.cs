@@ -142,7 +142,7 @@ namespace BozjaBuddy.GUI.Sections
                         if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, Utils.Utils.ResizeToIcon(this.mPlugin, tIconWrap!));
                         break;
                     case 1:
-                        AuxiliaryViewerSection.GUISelectableLink(mPlugin, tFate.mName, tFate.GetGenId());
+                        UtilsGUI.SelectableLink_WithPopup(mPlugin, tFate.mName, tFate.GetGenId());
                         break;
                     case 2:
                         if (tFate.mDynamicEvent != null)
@@ -181,7 +181,7 @@ namespace BozjaBuddy.GUI.Sections
                         ImGui.Text($"{tFate.mRewardTome}");
                         break;
                     case 6:
-                        AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tFate.mLocation!);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tFate.mLocation!);
                         break;
                     case 7:
                         ImGui.PushID($"a{tFate.mId}");

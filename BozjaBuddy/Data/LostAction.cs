@@ -1,6 +1,7 @@
 using System.Data.SQLite;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BozjaBuddy.Data
 {
@@ -33,13 +34,16 @@ namespace BozjaBuddy.Data
             mType = (LostActionType)(int)(long)(pPackage["type"] is System.DBNull ? (long)6 : pPackage["type"]);
             mCast = Convert.ToDouble(pPackage["cast"] is System.DBNull ? -1 : pPackage["cast"]);
             mRecast = Convert.ToDouble(pPackage["cooldown"] is System.DBNull ? -1 : pPackage["cooldown"]);
-            mCharges = Convert.ToInt32(pPackage["weight"] is System.DBNull ? -1 : pPackage["weight"]);
+            mCharges = Convert.ToInt32(pPackage["charges"] is System.DBNull ? -1 : pPackage["charges"]);
 
             this.mTabColor = new System.Numerics.Vector4(0.61f, 0.79f, 0.92f, 0.4f);
 
             this.SetUpAuxiliary();
         }
 
+        public override string GetReprSynopsis()
+            => $"[{this.mName}] • [Role: {this.mRole}] • [Charges: {this.mCharges}] • [Weight: {this.mWeight}] • [Cast/Recast: {this.mCast}s/{this.mRecast}s] • [Desc: {this.mDescription_semi.Replace("\n", ". ")}] • [Frags: {String.Join(", ", this.mLinkFragments.Select(id => this.mPlugin.mBBDataManager.mFragments[id].mName))}]";
+        
         protected override void SetUpAuxiliary()
         {
             this.mDetail = $"[{this.mCharges}/{this.mCharges}]\t•\t[Weight: {this.mWeight}]\t•\t[Cast: {this.mCast}s]\t•\t[Recast: {this.mRecast}]";

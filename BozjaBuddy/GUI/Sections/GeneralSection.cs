@@ -7,6 +7,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -22,29 +23,10 @@ namespace BozjaBuddy.GUI.Sections
         public override bool DrawGUI()
         {
             // Button Config
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Cog))
-            {
-                this.mPlugin.WindowSystem.GetWindow("Config - BozjaBuddy")!.IsOpen = true;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.BeginTooltip();
-                ImGui.Text("Open config window.");
-                ImGui.EndTooltip();
-            }
-
+            UtilsGUI.WindowLinkedButton(mPlugin, "Config - BozjaBuddy", Dalamud.Interface.FontAwesomeIcon.Cog, "Open config window.");
             ImGui.SameLine();
             // Button Alarm
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Bell))
-            {
-                this.mPlugin.WindowSystem.GetWindow("Alarm - BozjaBuddy")!.IsOpen = true;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.BeginTooltip();
-                ImGui.Text("Open alarm window.");
-                ImGui.EndTooltip();
-            }
+            UtilsGUI.WindowLinkedButton(mPlugin, "Alarm - BozjaBuddy", Dalamud.Interface.FontAwesomeIcon.Bell, "Open alarm window.");
             ImGui.SameLine();
             // Alarm notification bar
             AlarmWindow.DrawAlarmNotificationBar(this.mPlugin, "generalSection", pIsStretching: false, ImGui.GetContentRegionAvail().X / 4 + (float)2.5);

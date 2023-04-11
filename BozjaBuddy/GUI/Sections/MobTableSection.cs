@@ -4,6 +4,7 @@ using BozjaBuddy.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -123,13 +124,13 @@ namespace BozjaBuddy.GUI.Sections
                             if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, Utils.Utils.ResizeToIcon(this.mPlugin, tIconWrap!));
                             break;
                         case 1:
-                            AuxiliaryViewerSection.GUISelectableLink(mPlugin, tMob.mName, tMob.GetGenId());
+                            UtilsGUI.SelectableLink_WithPopup(mPlugin, tMob.mName, tMob.GetGenId());
                             break;
                         case 2:
                             ImGui.Text($"{tMob.mLevel}");
                             break;
                         case 3:
-                            AuxiliaryViewerSection.GUIButtonLocation(this.mPlugin, tMob.mLocation!);
+                            UtilsGUI.LocationLinkButton(this.mPlugin, tMob.mLocation!);
                             break;
                         default: break;
                     }
