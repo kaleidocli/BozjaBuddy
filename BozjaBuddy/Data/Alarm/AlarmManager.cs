@@ -263,6 +263,7 @@ namespace BozjaBuddy.Data.Alarm
                     if (iAlarm.CheckAlarm(DateTime.Now, AlarmManager.Listeners, pPlugin: this.mPlugin))
                     {
                         this.mDurationLeft = iAlarm.mDuration;
+                        this.mPlugin.ChatGui.Print($"[Bozja Buddy] Alarm triggered! ({iAlarm.mName} at: {DateTime.Now})");
                         //PluginLog.LogDebug($"========== A_MNG: Refreshing duration (duration={iAlarm.mDuration})");
                     }
                     // alarm is dead. Check if the grace period is finished. Revive if possible, else throw to the bin.

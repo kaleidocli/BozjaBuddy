@@ -92,7 +92,7 @@ namespace BozjaBuddy.Utils
         }
         public static void SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true)
         {
-            UtilsGUI.SelectableLink(pPlugin, pContent, pTargetGenId, pIsWrappedToText);
+            UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText);
             UtilsGUI.SetTooltipForLastItem("Right-click for options");
 
             if (ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
@@ -100,23 +100,22 @@ namespace BozjaBuddy.Utils
                 if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
                 {
                     ImGui.Text("<unrecognizable obj>");
+                    return;
                 }
                 GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
                 // Item link to Clipboard + Chat
                 UtilsGUI.ItemLinkButton(pPlugin, pReprName: tObj.GetReprName(), pReprItemLink: tObj.GetReprItemLink());
                 ImGui.Separator();
-                // Map_link to Clipboard + Chat
-                var tLocation = tObj.GetReprLocation();
-                if (tLocation != null)
-                {
-                    UtilsGUI.LocationLinkButton(pPlugin, tLocation, pDesc: "Link position");
-                    ImGui.Separator();
-                }
                 // Clipboard sypnosis
                 UtilsGUI.SypnosisClipboardButton(tObj.GetReprSynopsis());
+                ImGui.Separator();
+                // Map_link to Clipboard + Chat
+                var tLocation = tObj.GetReprLocation();
+                UtilsGUI.LocationLinkButton(pPlugin, tLocation!, pDesc: "Link position", pIsDisabled: tLocation == null ? true : false);
+                ImGui.Separator();
 
                 // Invoke: Marketboard
-
+                UtilsGUI.MarketboardButton(pPlugin, tObj.mId, pIsDisabled: tObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fragment ? false : true);
 
                 ImGui.EndPopup();
             }
@@ -125,7 +124,7 @@ namespace BozjaBuddy.Utils
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, UtilsGUI.FRAME_ROUNDING);
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, UtilsGUI.FRAME_PADDING);
-            if (ImGui.Button("Copy info"))
+            if (ImGui.Button("Copy quick info"))
             {
                 ImGui.SetClipboardText(pSypnosis);
                 UtilsGUI.kTimeSinceLastClipboardCopied = DateTime.Now;
@@ -165,7 +164,7 @@ namespace BozjaBuddy.Utils
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
-        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null)
+        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, UtilsGUI.FRAME_ROUNDING);
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, UtilsGUI.FRAME_PADDING);
@@ -173,6 +172,18 @@ namespace BozjaBuddy.Utils
             if (rightAlign)
             {
                 AuxiliaryViewerSection.GUIAlignRight(ImGui.CalcTextSize(tButtonText).X);
+            }
+            if (pIsDisabled)
+            {
+                ImGui.BeginDisabled();
+                if (pUseIcon)
+                    ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.MapMarkerAlt);
+                else 
+                    ImGui.Button(tButtonText);
+                ImGui.EndDisabled();
+                ImGui.PopStyleVar();
+                ImGui.PopStyleVar();
+                return;
             }
             if (pUseIcon
                 ? ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.MapMarkerAlt)
@@ -198,6 +209,24 @@ namespace BozjaBuddy.Utils
             }
             UtilsGUI.SetTooltipForLastItem("Mark position on map + Link location to Chat (if available)");
             ImGui.PopStyleVar();
+            ImGui.PopStyleVar();
+        }
+        public static void MarketboardButton(Plugin pPlugin, int pItemId, bool pIsDisabled = false)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, UtilsGUI.FRAME_PADDING);
+            if (pIsDisabled)
+            {
+                ImGui.BeginDisabled();
+                ImGui.Button("Marketboard");
+                ImGui.EndDisabled();
+                ImGui.PopStyleVar();
+                return;
+            }
+            if (ImGui.Button("Marketboard"))
+            {
+                pPlugin.CommandManager.ProcessCommand($"/pmb {pItemId}");
+            }
+            UtilsGUI.SetTooltipForLastItem("Look up marketboard. (Requires plugin [Market board] by <fmauNeko>)");
             ImGui.PopStyleVar();
         }
         public static void WindowLinkedButton(Plugin pPlugin, string pWinHandle, FontAwesomeIcon pButtonIcon, string? pHoveredText = null)

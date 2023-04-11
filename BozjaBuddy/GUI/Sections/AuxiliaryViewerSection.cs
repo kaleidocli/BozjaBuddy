@@ -118,7 +118,8 @@ namespace BozjaBuddy.GUI.Sections
             }
             // Name and Details and Location
             ImGui.BeginGroup();
-            ImGui.Text(pObj.mName);
+            UtilsGUI.SelectableLink_WithPopup(this.mPlugin, pObj.mName, pObj.GetGenId());
+            //ImGui.Text(pObj.mName);
             ImGui.Text(pObj.mDetail);
             if (pObj.mLocation != null)
             {
@@ -217,7 +218,7 @@ namespace BozjaBuddy.GUI.Sections
                     if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width * 0.75f, tIconWrap.Height * 0.75f));
                     // link
                     ImGui.SameLine();
-                    UtilsGUI.SelectableLink(
+                    UtilsGUI.SelectableLink_WithPopup(
                         this.mPlugin,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId()
@@ -271,7 +272,7 @@ namespace BozjaBuddy.GUI.Sections
                     // link
                     ImGui.SameLine();
 
-                    UtilsGUI.SelectableLink(
+                    UtilsGUI.SelectableLink_WithPopup(
                         this.mPlugin,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
@@ -340,7 +341,7 @@ namespace BozjaBuddy.GUI.Sections
                 do
                 {
                     ImGui.SameLine();
-                    UtilsGUI.SelectableLink(this.mPlugin,
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin,
                         this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName,
                         this.mPlugin.mBBDataManager.mFates[iCurrFateId].GetGenId(),
                         true);
@@ -371,7 +372,7 @@ namespace BozjaBuddy.GUI.Sections
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink(this.mPlugin, $"Forgetten Fragment of {tFragment.mName}", tFragment.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"Forgetten Fragment of {tFragment.mName}", tFragment.GetGenId());
                     // Display as vendor's stock
                     if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Vendor)
                     {
@@ -394,7 +395,7 @@ namespace BozjaBuddy.GUI.Sections
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink(this.mPlugin, $"{tFate.mName}", tFate.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tFate.mName}", tFate.GetGenId());
                     ImGui.Separator();
                 }
             }
@@ -410,7 +411,7 @@ namespace BozjaBuddy.GUI.Sections
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink(this.mPlugin, $"{tMob.mName}", tMob.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tMob.mName}", tMob.GetGenId());
                     ImGui.Separator();
                 }
             }
@@ -426,7 +427,7 @@ namespace BozjaBuddy.GUI.Sections
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink(this.mPlugin, $"{tAction.mName}", tAction.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tAction.mName}", tAction.GetGenId());
                     ImGui.Separator();
                 }
             }
@@ -442,7 +443,7 @@ namespace BozjaBuddy.GUI.Sections
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink(this.mPlugin, $"{tVendor.mName}\t({tVendor.GetAmountPriceCurrency(pObj.mId).Item1}) {tVendor.GetAmountPriceCurrency(pObj.mId).Item2} {tVendor.GetAmountPriceCurrency(pObj.mId).Item3.ToString()}", tVendor.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tVendor.mName}\t({tVendor.GetAmountPriceCurrency(pObj.mId).Item1}) {tVendor.GetAmountPriceCurrency(pObj.mId).Item2} {tVendor.GetAmountPriceCurrency(pObj.mId).Item3.ToString()}", tVendor.GetGenId());
                     ImGui.Separator();
                 }
             }
@@ -555,7 +556,7 @@ namespace BozjaBuddy.GUI.Sections
                             AuxiliaryViewerSection.GUILoadoutEditAdjuster(pPlugin, iAction.mId);
                             ImGui.SameLine();
                         }
-                        UtilsGUI.SelectableLink(pPlugin, iAction.mName, iAction.GetGenId());
+                        UtilsGUI.SelectableLink_WithPopup(pPlugin, iAction.mName, iAction.GetGenId());
                         ImGui.SameLine();
                         ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, $"[{iAction.mWeight}]");
                     }

@@ -47,8 +47,8 @@ namespace BozjaBuddy.GUI.Sections
                 new Filter.LostActionTableSection.FilterType(),
                 new Filter.LostActionTableSection.FilterName(),
                 new Filter.LostActionTableSection.FilterRole(),
-                new Filter.LostActionTableSection.FilterDescription(),
                 new Filter.LostActionTableSection.FilterFragment(true, this.mPlugin, true),
+                new Filter.LostActionTableSection.FilterDescription(),
                 new Filter.LostActionTableSection.FilterWeight(true, this.mPlugin, true),
                 new Filter.LostActionTableSection.FilterCharges(),
                 new Filter.LostActionTableSection.FilterCast(false),
@@ -151,6 +151,14 @@ namespace BozjaBuddy.GUI.Sections
                             ImGui.Text(RoleFlag.FlagToString(tLostAction.mRole.mRoleFlagBit));
                             break;
                         case 3:
+                            foreach (int iiID in tLostAction.mLinkFragments)
+                            {
+                                Fragment tFragment = this.mPlugin.mBBDataManager.mFragments[iiID];
+                                ImGui.PushTextWrapPos(0);
+                                UtilsGUI.SelectableLink_WithPopup(mPlugin, tFragment.mName + $"  »##{iID}", tFragment.GetGenId()); ImGui.PopTextWrapPos();
+                            }
+                            break;
+                        case 4:
                             if (this.mIsCompactModeActive)
                             {
                                 ImGui.Text("<hover to view>");
@@ -159,14 +167,6 @@ namespace BozjaBuddy.GUI.Sections
                             }
                             else
                                 ImGui.TextUnformatted(tLostAction.mDescription_semi);
-                            break;
-                        case 4:
-                            foreach (int iiID in tLostAction.mLinkFragments)
-                            {
-                                Fragment tFragment = this.mPlugin.mBBDataManager.mFragments[iiID];
-                                ImGui.PushTextWrapPos(0); 
-                                UtilsGUI.SelectableLink_WithPopup(mPlugin, tFragment.mName + $"##{iID}", tFragment.GetGenId()); ImGui.PopTextWrapPos();
-                            }
                             break;
                         case 5:
                             ImGui.Text(tLostAction.mWeight.ToString());

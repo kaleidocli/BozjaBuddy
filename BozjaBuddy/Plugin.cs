@@ -14,7 +14,6 @@ using Dalamud.Game.ClientState.Fates;
 using System.Collections.Generic;
 using BozjaBuddy.GUI.GUIAssist;
 using System;
-using BozjaBuddy.Utils;
 
 namespace BozjaBuddy
 {
@@ -29,7 +28,7 @@ namespace BozjaBuddy
         public Dictionary<string, string> DATA_PATHS = new Dictionary<string, string>();
 
         public DalamudPluginInterface PluginInterface { get; init; }
-        private CommandManager CommandManager { get; init; }
+        public CommandManager CommandManager { get; init; }
         public GameGui GameGui { get; init; }
         public FateTable FateTable { get; init; }
         public ChatGui ChatGui { get; init; }
@@ -105,7 +104,9 @@ namespace BozjaBuddy
 
         private void DrawUI()
         {
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
             this.WindowSystem.Draw();
+            ImGui.PopStyleVar();
             this.GUIAssistManager.Draw();
 
             if ((DateTime.Now - this._mCycle1).TotalSeconds > 2)
