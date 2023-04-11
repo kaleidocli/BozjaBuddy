@@ -85,6 +85,14 @@ namespace BozjaBuddy.GUI.GUIAssist
         }
         private void Draw_MycInfo()
         {
+            //PluginLog.LogDebug($"> GUIAssistMng: isMainFocus={this.mPlugin.WindowSystem.HasAnyFocus} hasInfoKey={this.mOptionRequests.ContainsKey(GUIAssistOption.MycInfoBox)} keys={(this.mOptionRequests.ContainsKey(GUIAssistOption.MycInfoBox) ? String.Join(", ", this.mOptionRequests[GUIAssistOption.MycInfoBox].ToList()) : 0)} keyAlmMng={this.mPlugin.AlarmManager.mHash}");
+            if (!this.mPlugin.mIsMainWindowActive
+                && this.mOptionRequests.ContainsKey(GUIAssistOption.MycInfoBox)
+                && !this.mOptionRequests[GUIAssistOption.MycInfoBox].Contains(this.mPlugin.AlarmManager.mHash)
+                    )
+            {
+                return;         // Abort when Main window is not active + AlarmManager is not requesting GUIAssist
+            }
             unsafe
             {
                 try

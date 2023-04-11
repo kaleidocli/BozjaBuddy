@@ -28,10 +28,13 @@ namespace BozjaBuddy.Data.Alarm
         private Utils.UtilsAudio.AudioPlayer mAudioPlayer = new();
         private Plugin mPlugin;
 
+        public int mHash;
+
         public AlarmManager(Plugin pPlugin)
         {
             mPlugin = pPlugin;
             this.LoadAlarmListsFromDisk();
+            this.mHash = this.GetHashCode();
         }
         /// <summary>
         /// Primarily for testing
