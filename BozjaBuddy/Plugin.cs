@@ -1,7 +1,6 @@
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using System.IO;
-using System.Reflection;
 using Dalamud.Interface.Windowing;
 using BozjaBuddy.Windows;
 using BozjaBuddy.Data;
@@ -14,6 +13,7 @@ using Dalamud.Game.Command;
 using Dalamud.Game.ClientState.Fates;
 using System.Collections.Generic;
 using BozjaBuddy.GUI.GUIAssist;
+using System;
 
 namespace BozjaBuddy
 {
@@ -21,14 +21,17 @@ namespace BozjaBuddy
     {
         public string Name => "Bozja Buddy";
         private const string CommandName = "/bb";
+        public bool mIsMainWindowActive = false;
+        private DateTime _mCycle1 = DateTime.Now;
 
         public float TEXT_BASE_HEIGHT = ImGui.GetTextLineHeightWithSpacing();
         public Dictionary<string, string> DATA_PATHS = new Dictionary<string, string>();
 
         public DalamudPluginInterface PluginInterface { get; init; }
-        private CommandManager CommandManager { get; init; }
+        public CommandManager CommandManager { get; init; }
         public GameGui GameGui { get; init; }
         public FateTable FateTable { get; init; }
+        public ChatGui ChatGui { get; init; }
         public DataManager DataManager { get; init; }
         public BBDataManager mBBDataManager;
 
@@ -42,13 +45,15 @@ namespace BozjaBuddy
             [RequiredVersion("1.0")] CommandManager commandManager,
             [RequiredVersion("1.0")] DataManager dataManager,
             [RequiredVersion("1.0")] GameGui gameGui,
-            [RequiredVersion("1.0")] FateTable fateTable)
+            [RequiredVersion("1.0")] FateTable fateTable,
+            [RequiredVersion("1.0")] ChatGui chatGui)
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
             this.DataManager = dataManager;
             this.GameGui = gameGui;
             this.FateTable = fateTable;
+            this.ChatGui = chatGui;
 
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
@@ -99,8 +104,17 @@ namespace BozjaBuddy
 
         private void DrawUI()
         {
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
             this.WindowSystem.Draw();
+            ImGui.PopStyleVar();
             this.GUIAssistManager.Draw();
+
+            if ((DateTime.Now - this._mCycle1).TotalSeconds > 2)
+            {
+                this.mIsMainWindowActive = WindowSystem.GetWindow("Bozja Buddy")!.IsOpen;
+
+                this._mCycle1 = DateTime.Now;
+            }
         }
 
         public void DrawConfigUI()

@@ -125,7 +125,7 @@ namespace BozjaBuddy.GUI.Sections
                     switch (i)
                     {
                         case 0:
-                            AuxiliaryViewerSection.GUISelectableLink(mPlugin, tLoadout.mName, tLoadout.GetGenId());
+                            UtilsGUI.SelectableLink_WithPopup(mPlugin, tLoadout.mName, tLoadout.GetGenId());
                             break;
                         case 1:
                             ImGui.Text(RoleFlag.FlagToString(tLoadout.mRole.mRoleFlagBit));

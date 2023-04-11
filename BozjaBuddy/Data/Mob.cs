@@ -1,6 +1,7 @@
 using System.Data.SQLite;
 using System;
 using System.Collections.Generic;
+using BozjaBuddy.GUI.Sections;
 
 namespace BozjaBuddy.Data
 {
@@ -35,6 +36,10 @@ namespace BozjaBuddy.Data
             this.mTabColor = new System.Numerics.Vector4(0.61f, 0.92f, 0.77f, 0.4f);
 
             this.SetUpAuxiliary();
+        }
+        public override string GetReprSynopsis()
+        {
+            return $"[{this.mName}] • [Type: {this.mType}] • [Lcoation: {WeatherBarSection._mTerritories[this.mTerritoryType]} x:{this.mMapCoordX} y:{this.mMapCoordY}] • [{this.mNote}]";
         }
         protected override void SetUpAuxiliary()
         {

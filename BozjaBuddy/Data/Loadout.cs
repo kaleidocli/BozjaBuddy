@@ -39,6 +39,15 @@ namespace BozjaBuddy.Data
         {
             return new Loadout(this.mPlugin, this.mPackageJson);
         }
+        public override string GetReprSynopsis()
+        {
+            string tLoadoutText = "";
+            foreach (int iActionid in this.mActionIds.Keys)
+            {
+                tLoadoutText += $"[{this.mPlugin.mBBDataManager.mLostActions[iActionid].mName} x{this.mActionIds[iActionid]}]";
+            }
+            return $"[{this.mName}] • [Group: {this.mGroup}] • [Role: {this.mRole}] • {tLoadoutText}";
+        }
 
         protected override void SetUpAuxiliary()
         {

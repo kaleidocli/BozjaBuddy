@@ -1,4 +1,5 @@
 using BozjaBuddy.GUI.IGMarkup;
+using Dalamud.Game.Text.SeStringHandling;
 using System.Collections.Generic;
 
 namespace BozjaBuddy.Data
@@ -25,6 +26,11 @@ namespace BozjaBuddy.Data
         public virtual bool mIsExist { get; set; } = true;
 
         public virtual int GetGenId() => GeneralObject.IdToGenId(this.mId, (int)this.mIdSalt);
+        public virtual string GetReprName() => this.mName;
+        public virtual string GetReprSynopsis() => this.mDescription;
+        public virtual Location? GetReprLocation() => this.mLocation;
+        public virtual SeString? GetReprItemLink() => null;
+
         protected abstract void SetUpAuxiliary();
 
         public virtual GeneralObjectSalt GetSalt() => mIdSalt;

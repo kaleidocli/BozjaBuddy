@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using Dalamud.Game.ClientState.Fates;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using BozjaBuddy.GUI.Sections;
+using BozjaBuddy.Utils;
+using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 
 namespace BozjaBuddy.Data
 {
@@ -67,6 +71,29 @@ namespace BozjaBuddy.Data
             this.mTabColor = new System.Numerics.Vector4(0.9f, 0.61f, 0.9f, 0.4f);
 
             this.SetUpAuxiliary();
+        }
+        public override string GetReprSynopsis()
+        {
+            string tFateChainText = "";
+            if (this.mPlugin.mBBDataManager.mFates[this.mId].mChainFatePrev != -1
+                || this.mPlugin.mBBDataManager.mFates[this.mId].mChainFateNext != -1)
+            {
+                int iCurrFateId = this.mPlugin.mBBDataManager.mFates[this.mId].mChainFatePrev != -1
+                                ? this.mPlugin.mBBDataManager.mFates[this.mId].mChainFatePrev
+                                : this.mPlugin.mBBDataManager.mFates[this.mId].mChainFateNext;
+                while (this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev != -1)        // Find the starting point of FATE chain
+                    iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev;
+                do
+                {
+                    tFateChainText += $"{this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName} > ";
+                    iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFateNext;
+                }
+                while (iCurrFateId != -1);
+            }
+
+            return $"[{this.mName}] • [Mettle: {this.mRewardMettleMin}-{this.mRewardMettleMax}] • [Exp: {this.mRewardExpMin}-{this.mRewardExpMax}] • [Tome: {this.mRewardTome}]"
+                    + (this.mLocation != null ? $" • [Loc: {WeatherBarSection._mTerritories[this.mLocation!.mTerritoryType]} x:{this.mLocation!.mMapCoordX} y:{this.mLocation!.mMapCoordY}]" : "")
+                    + $" • [FATE chain: {tFateChainText}]";
         }
 
         protected override void SetUpAuxiliary()
