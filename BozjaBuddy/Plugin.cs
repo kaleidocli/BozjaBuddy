@@ -68,7 +68,6 @@ namespace BozjaBuddy
             this.Configuration.Save();
 
             mBBDataManager = new BBDataManager(this);
-            mBBDataManager.SetUpAuxiliary();
             WindowSystem.AddWindow(new ConfigWindow(this));
             WindowSystem.AddWindow(new MainWindow(this));
             WindowSystem.AddWindow(new AlarmWindow(this));
