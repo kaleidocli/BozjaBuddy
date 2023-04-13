@@ -10,12 +10,18 @@ namespace BozjaBuddy
     public class Configuration : IPluginConfiguration
     {
         public int Version { get; set; } = 0;
+        public const int kDefaultAlarmDuration = 30;
+        public const int kDefaultAlarmOffset = 30;
+        public const float kDefaultVolume = 1.0f;
 
         public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
         public float STYLE_ICON_SIZE { get; set; } = 20f;
-        public float mAudioVolume = 1.0f;
+        public float mAudioVolume = Configuration.kDefaultVolume;
         public string? mAudioPath = null;
+        public int mDefaultAlarmDuration = Configuration.kDefaultAlarmDuration;
+        public int mDefaultAlarmOffset = Configuration.kDefaultAlarmOffset;
         public Dictionary<GUIAssistOption, bool> mOptionState = new();
+        public bool mMuteAAudioOnGameFocused = true;
 
         // the below exist just to make saving less cumbersome
         [NonSerialized]

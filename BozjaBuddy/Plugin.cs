@@ -14,6 +14,7 @@ using Dalamud.Game.ClientState.Fates;
 using System.Collections.Generic;
 using BozjaBuddy.GUI.GUIAssist;
 using System;
+using Dalamud.Game.ClientState;
 
 namespace BozjaBuddy
 {
@@ -32,6 +33,7 @@ namespace BozjaBuddy
         public GameGui GameGui { get; init; }
         public FateTable FateTable { get; init; }
         public ChatGui ChatGui { get; init; }
+        public ClientState ClientState { get; init; }
         public DataManager DataManager { get; init; }
         public BBDataManager mBBDataManager;
 
@@ -46,7 +48,8 @@ namespace BozjaBuddy
             [RequiredVersion("1.0")] DataManager dataManager,
             [RequiredVersion("1.0")] GameGui gameGui,
             [RequiredVersion("1.0")] FateTable fateTable,
-            [RequiredVersion("1.0")] ChatGui chatGui)
+            [RequiredVersion("1.0")] ChatGui chatGui,
+            [RequiredVersion("1.0")] ClientState clientState)
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
@@ -54,6 +57,7 @@ namespace BozjaBuddy
             this.GameGui = gameGui;
             this.FateTable = fateTable;
             this.ChatGui = chatGui;
+            this.ClientState = clientState;
 
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");

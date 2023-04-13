@@ -449,6 +449,13 @@ namespace BozjaBuddy.Data
         Detrimental,
         Item
     }
+    public enum StatusId
+    {
+        None = 0,
+        HoofingItA = 1778,
+        HoofingItB = 1945
+    }
+
     public class LoadoutListJson
     {
         public List<LoadoutJson> mLoadouts { get; set; } = new List<LoadoutJson>();

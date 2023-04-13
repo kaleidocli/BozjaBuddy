@@ -185,16 +185,7 @@ namespace BozjaBuddy.GUI.Sections
                         break;
                     case 7:
                         ImGui.PushID($"a{tFate.mId}");
-                        if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Bell))
-                        {
-                            GUIAlarm.CreateACPU(tFate.mId.ToString(), pNameSuggestion: $"Fate/CE {Alarm.GetIdCounter()}: {tFate.mName} (fateId={tFate.mId})");
-                        }
-                        GUIAlarm.DrawACPU_FateCe(
-                            this.mPlugin, 
-                            tFate.mId.ToString(), 
-                            tFate.mId
-                            );
-                        UtilsGUI.SetTooltipForLastItem("Set an alarm for this Fate/CE");
+                        UtilsGUI.ACPUFateCeButton(this.mPlugin, tFate.mId, tFate.mName);
                         ImGui.PopID();
                         break;
                     default: break;

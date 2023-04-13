@@ -119,12 +119,18 @@ namespace BozjaBuddy.GUI.Sections
             // Name and Details and Location
             ImGui.BeginGroup();
             UtilsGUI.SelectableLink_WithPopup(this.mPlugin, pObj.mName, pObj.GetGenId());
-            //ImGui.Text(pObj.mName);
             ImGui.Text(pObj.mDetail);
+            // Alarm button
+            if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate)
+            {
+                ImGui.SameLine();
+                AuxiliaryViewerSection.GUIAlignRight(1);
+                UtilsGUI.ACPUFateCeButton(this.mPlugin, pObj.mId, pObj.mName);
+            }
             if (pObj.mLocation != null)
             {
                 ImGui.SameLine();
-                UtilsGUI.LocationLinkButton(this.mPlugin, pObj.mLocation, true);
+                UtilsGUI.LocationLinkButton(this.mPlugin, pObj.mLocation, true, pRightAlignOffset: 12f);
             }
             ImGui.EndGroup();
         }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BozjaBuddy.GUI.Sections;
+using BozjaBuddy.interop;
 using Dalamud.Logging;
 using NAudio.Wave;
 using Newtonsoft.Json;
@@ -173,7 +174,7 @@ namespace BozjaBuddy.Data.Alarm
             this.mExpiredAlarmList.Remove(pAlarm);
             this.mActiveAndAwakeAlarmCount += 1;
         }
-        private void SaveAlarmListsToDisk()
+        public void SaveAlarmListsToDisk()
         {
             List<List<Alarm>> tAlarmLists = new List<List<Alarm>> { this.mAlarmList, this.mExpiredAlarmList };
             string tJson = JsonConvert.SerializeObject(tAlarmLists);
@@ -241,18 +242,24 @@ namespace BozjaBuddy.Data.Alarm
                     BBDataManager.UpdateAllFateStatus(mPlugin);
                 }
                 tCounter = tCounter == 5 ? 0 : tCounter + 1;
+
+                // Mute when game window is focused, if config allows.
+                this.mIsAppActivated = Native.ApplicationIsActivated();
+                if (this.mPlugin.Configuration.mMuteAAudioOnGameFocused && this.mIsAppActivated)
+                {
+                    this.MuteSound();
+                }
                 //if (Native.ApplicationIsActivated() && !mIsAppActivated)
                 //{
                 //    mIsAppActivated = true;
-                //    //this.mIsAlarmTriggered = true;
                 //    PluginLog.Information("App is being focused.");
                 //}
                 //else if (!Native.ApplicationIsActivated() && mIsAppActivated)
                 //{
                 //    mIsAppActivated = false;
-                //    //this.mIsAlarmTriggered = false;
                 //    PluginLog.Information("App stops being focused.");
                 //}
+
                 List<Alarm> tTempAlarmBin = new List<Alarm>();
                 int tFateCeAlarmCount = 0;
                 foreach (Alarm iAlarm in this.mAlarmList)

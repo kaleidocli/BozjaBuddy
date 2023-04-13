@@ -93,7 +93,9 @@ namespace BozjaBuddy.GUI.Sections
                     {
                         GUIAlarm.CreateACPU(
                             tTempGUI_Key,
-                            pNameSuggestion: $"{AlarmWeather.kReprString} {Alarm.GetIdCounter()} | {tWeather.Item1.GetName()} | {WeatherBarSection._mTerritories[pTerritoryId]}");
+                            pNameSuggestion: $"{AlarmWeather.kReprString} {Alarm.GetIdCounter()} | {tWeather.Item1.GetName()} | {WeatherBarSection._mTerritories[pTerritoryId]}",
+                            pDefaultDuration: this.mPlugin.Configuration.mDefaultAlarmDuration,
+                            pDefaultOffset: this.mPlugin.Configuration.mDefaultAlarmOffset);
                     }
                     //else if (!ImGui.IsPopupOpen($"{GUIAlarm.GUI_ID}##{tTempGUI_Key}"))
                     //{
@@ -115,7 +117,9 @@ namespace BozjaBuddy.GUI.Sections
                     {
                         GUIAlarm.CreateACPU(
                             tTempGUI_Key, 
-                            pNameSuggestion: $"{AlarmWeather.kReprString} {Alarm.GetIdCounter()} | {tWeather.Item1.GetName()} | {WeatherBarSection._mTerritories[pTerritoryId]}");
+                            pNameSuggestion: $"{AlarmWeather.kReprString} {Alarm.GetIdCounter()} | {tWeather.Item1.GetName()} | {WeatherBarSection._mTerritories[pTerritoryId]}",
+                            pDefaultDuration: this.mPlugin.Configuration.mDefaultAlarmDuration,
+                            pDefaultOffset: this.mPlugin.Configuration.mDefaultAlarmOffset);
                     }
                 }
                 ImGui.PopStyleVar();

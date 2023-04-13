@@ -6,6 +6,7 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace BozjaBuddy.GUI
 {
@@ -38,10 +39,14 @@ namespace BozjaBuddy.GUI
         private static int kComboCurrFateId = 0;
         
         /// <summary>Do nothing if pop-up has already been opened.</summary>
-        public static void CreateACPU(string pGUI_Key, bool pUseDateTimeNow = true, string? pNameSuggestion = null)
+        public static void CreateACPU(string pGUI_Key, bool pUseDateTimeNow = true, string? pNameSuggestion = null, int? pDefaultDuration = null, int? pDefaultOffset = null)
         {
             if (ImGui.IsPopupOpen($"{GUIAlarm.GUI_ID}##{pGUI_Key}")) return;
-            GUIAlarm.ResetFields(pUseDateTimeNow: pUseDateTimeNow, pNameSuggestion:pNameSuggestion);
+            GUIAlarm.ResetFields(
+                pUseDateTimeNow: pUseDateTimeNow, 
+                pNameSuggestion:pNameSuggestion, 
+                pDefaultDuration: pDefaultDuration, 
+                pDefaultOffset: pDefaultOffset);
             ImGui.OpenPopup($"{GUIAlarm.GUI_ID}##{pGUI_Key}");
         }
         public static void CreateACPU(string pGUI_Key, Alarm pAlarm)
@@ -247,6 +252,7 @@ namespace BozjaBuddy.GUI
                 pAlarm.mDuration = GUIAlarm.kFieldDuration;
                 pAlarm.mIsRevivable = GUIAlarm.kFieldIsRevivable;
                 pAlarm.mOffset = GUIAlarm.kFieldOffset;
+                pPlugin.AlarmManager.SaveAlarmListsToDisk();
 
                 ImGui.CloseCurrentPopup();
                 pPlugin.WindowSystem.GetWindow("Alarm - BozjaBuddy")!.IsOpen = true;
@@ -365,8 +371,9 @@ namespace BozjaBuddy.GUI
                 }
                 else
                 {
+                    GUIAlarm.kComboCurrFateId = pAlarmToEdit.mTriggerInt.HasValue ? pAlarmToEdit.mTriggerInt.Value : GUIAlarm.kComboCurrFateId;
                     GUIAlarm.kFieldTriggerString = GUIAlarm.kComboCurrTerritoryId;
-                    GUIAlarm.kFieldTriggerInt = GUIAlarm.kFieldAcceptAll ? AlarmFateCe.kTriggerInt_AcceptAllCe : GUIAlarm.kComboCurrWeatherId;
+                    GUIAlarm.kFieldTriggerInt = GUIAlarm.kFieldAcceptAll ? AlarmFateCe.kTriggerInt_AcceptAllCe : GUIAlarm.kComboCurrFateId;
                 }
 
                 // Text input
@@ -452,7 +459,7 @@ namespace BozjaBuddy.GUI
             }
         }
 
-        private static void ResetFields(bool pUseDateTimeNow = false, string? pNameSuggestion = null)
+        private static void ResetFields(bool pUseDateTimeNow = false, string? pNameSuggestion = null, int? pDefaultDuration = null, int? pDefaultOffset = null)
         {
             GUIAlarm._kErrors.Clear();
 
@@ -476,8 +483,8 @@ namespace BozjaBuddy.GUI
                 GUIAlarm.kFieldDateMm = "59";
                 GUIAlarm.kFieldDateSs = "59";
             }
-            GUIAlarm.kFieldDuration = Alarm.kDurationMin;
-            GUIAlarm.kFieldOffset = Alarm.kOffsetMin;
+            GUIAlarm.kFieldDuration = pDefaultDuration ?? Alarm.kDurationMin;
+            GUIAlarm.kFieldOffset = pDefaultOffset ?? Alarm.kOffsetMin;
             GUIAlarm.kFieldIsRevivable = false;
             GUIAlarm.kFieldTriggerInt = null;
             GUIAlarm.kFieldTriggerString = null;

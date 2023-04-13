@@ -7,18 +7,21 @@ using Dalamud.Logging;
 using ImGuiScene;
 using System.Numerics;
 using System.Linq;
+using Lumina.Excel.GeneratedSheets;
 
 namespace BozjaBuddy.GUI.GUIAssist
 {
     public class GUIAssistManager
     {
         private Plugin mPlugin;
-        private Dictionary<GUIAssistOption, Action> mOptionFunctions = new();
+        private Dictionary<GUIAssistOption, System.Action> mOptionFunctions = new();
         private Dictionary<GUIAssistOption, bool> mOptionStateDefault = new()
         {
             { GUIAssistOption.MycInfoBox , true }
         };
         private Dictionary<GUIAssistOption, HashSet<int>> mOptionRequests = new();
+        private DateTime _cycleOneSecond = DateTime.Now;
+        private GUIAssistManager.GUIAssistStatusFlag mStatus = GUIAssistStatusFlag.None;
 
         private GUIAssistManager() { }
         public GUIAssistManager(Plugin pPlugin) 
@@ -93,6 +96,23 @@ namespace BozjaBuddy.GUI.GUIAssist
             {
                 return;         // Abort when Main window is not active + AlarmManager is not requesting GUIAssist
             }
+            // abort if user is in a raid, or a Fate/CE
+            if ((DateTime.Now - this._cycleOneSecond).TotalSeconds > 1 && this.mPlugin.ClientState.LocalPlayer != null)
+            {
+                this._cycleOneSecond = DateTime.Now;
+                var tStatusList = this.mPlugin.ClientState.LocalPlayer.StatusList.Select(s => s.StatusId);
+                if (tStatusList.Contains((uint)StatusId.HoofingItA))
+                {
+                    this.mStatus |= GUIAssistStatusFlag.InRaidCe;
+                    return;
+                }
+                else
+                {
+                    this.mStatus &= ~GUIAssistStatusFlag.InRaidCe;
+                }
+            }
+            if (this.mStatus.HasFlag(GUIAssistStatusFlag.InRaidCe)) { return; }
+
             unsafe
             {
                 try
@@ -138,6 +158,12 @@ namespace BozjaBuddy.GUI.GUIAssist
         {
             None = 0,
             MycInfoBox = 1
+        }
+        [Flags]
+        private enum GUIAssistStatusFlag
+        {
+            None = 0,
+            InRaidCe = 1
         }
     }
 }

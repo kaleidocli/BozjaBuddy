@@ -1,4 +1,6 @@
 ﻿using BozjaBuddy.Data;
+using BozjaBuddy.Data.Alarm;
+using BozjaBuddy.GUI;
 using BozjaBuddy.GUI.Sections;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
@@ -102,6 +104,7 @@ namespace BozjaBuddy.Utils
                     ImGui.Text("<unrecognizable obj>");
                     return;
                 }
+                ImGui.BeginGroup();
                 GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
                 // Item link to Clipboard + Chat
                 UtilsGUI.ItemLinkButton(pPlugin, pReprName: tObj.GetReprName(), pReprItemLink: tObj.GetReprItemLink());
@@ -113,9 +116,13 @@ namespace BozjaBuddy.Utils
                 var tLocation = tObj.GetReprLocation();
                 UtilsGUI.LocationLinkButton(pPlugin, tLocation!, pDesc: "Link position", pIsDisabled: tLocation == null ? true : false);
                 ImGui.Separator();
-
                 // Invoke: Marketboard
                 UtilsGUI.MarketboardButton(pPlugin, tObj.mId, pIsDisabled: tObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fragment ? false : true);
+                ImGui.EndGroup();
+
+                ImGui.SameLine();
+                // ACPU button
+                UtilsGUI.ACPUFateCeButton(pPlugin, tObj.mId, tObj.mName, pIsDisabled: tObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate ? false : true);
 
                 ImGui.EndPopup();
             }
@@ -164,14 +171,14 @@ namespace BozjaBuddy.Utils
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
-        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false)
+        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false, float pRightAlignOffset = 0f)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, UtilsGUI.FRAME_ROUNDING);
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, UtilsGUI.FRAME_PADDING);
             string tButtonText = pDesc ?? $"{pLocation.mAreaFlag} ({pLocation.mMapCoordX}, {pLocation.mMapCoordX})";
             if (rightAlign)
             {
-                AuxiliaryViewerSection.GUIAlignRight(ImGui.CalcTextSize(tButtonText).X);
+                AuxiliaryViewerSection.GUIAlignRight(ImGui.CalcTextSize(tButtonText).X + pRightAlignOffset);
             }
             if (pIsDisabled)
             {
@@ -254,6 +261,40 @@ namespace BozjaBuddy.Utils
                 ImGui.Text(pHoveredText);
                 ImGui.EndTooltip();
             }
+        }
+        public static void ACPUFateCeButton(Plugin pPlugin, int pId, string pName, bool pIsDisabled = false)
+        {
+            if (pIsDisabled)
+            {
+                ImGui.BeginDisabled();
+                ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Bell);
+                ImGui.EndDisabled();
+                return;
+            }
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Bell))
+            {
+                GUIAlarm.CreateACPU(
+                    pId.ToString(),
+                    pNameSuggestion: $"Fate/CE {Alarm.GetIdCounter()}: {pName} (fateId={pId})",
+                    pDefaultDuration: pPlugin.Configuration.mDefaultAlarmDuration,
+                    pDefaultOffset: pPlugin.Configuration.mDefaultAlarmOffset);
+            }
+            GUIAlarm.DrawACPU_FateCe(
+                pPlugin,
+                pId.ToString(),
+                pId
+                );
+            UtilsGUI.SetTooltipForLastItem("Set an alarm for this Fate/CE");
+        }
+        public static bool Checkbox(string pDesc, ref bool tValue, int? pGuiId = null)
+        {
+            bool tRes = false;
+            if (pGuiId != null) ImGui.PushID(pGuiId.Value);
+            tRes = ImGui.Checkbox("##cb", ref tValue);
+            ImGui.SameLine();
+            ImGui.TextColored(Colors.BackgroundText_Grey, pDesc);
+            if (pGuiId != null) ImGui.PopID();
+            return tRes;
         }
 
         public unsafe static AtkResNode* GetNodeByIdPath(AtkUnitBase* pAddonBase, int[] pNoteIdPath)

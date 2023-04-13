@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Numerics;
-using System.Threading;
-using BozjaBuddy.Data;
 using BozjaBuddy.Data.Alarm;
 using BozjaBuddy.Utils;
 using BozjaBuddy.Utils.UtilsAudio;
@@ -65,6 +63,13 @@ public class ConfigWindow : Window, IDisposable
         }
 
         ImGui.EndTabBar();
+
+        //if (this.mPlugin.ClientState.LocalPlayer != null)
+        //{
+        //    PluginLog.LogDebug(String.Join(
+        //        ", ",
+        //        this.mPlugin.ClientState.LocalPlayer.StatusList.Select(s => s.StatusId)));
+        //}
     }
 
     private bool DrawTabAlarm()
@@ -133,6 +138,51 @@ public class ConfigWindow : Window, IDisposable
                 this.mPlugin.Configuration.Save();
             }
             ImGui.PopItemWidth();
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton("##vol", Dalamud.Interface.FontAwesomeIcon.ArrowsSpin))
+            {
+                this.mPlugin.Configuration.mAudioVolume = Configuration.kDefaultVolume;
+                this.mPlugin.Configuration.Save();
+            }
+            Utils.UtilsGUI.SetTooltipForLastItem("Restore to default.");
+            // Duration slider
+            UtilsGUI.TextDescriptionForWidget("Default duration ");
+            ImGui.SameLine();
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
+            if (ImGui.SliderInt("##dura", ref this.mPlugin.Configuration.mDefaultAlarmDuration, Alarm.kDurationMin, Alarm.kDurationMax))
+            {
+                this.mPlugin.Configuration.Save();
+            }
+            ImGui.PopItemWidth();
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton("##dura", Dalamud.Interface.FontAwesomeIcon.ArrowsSpin))
+            {
+                this.mPlugin.Configuration.mDefaultAlarmDuration = Configuration.kDefaultAlarmDuration;
+                this.mPlugin.Configuration.Save();
+            }
+            Utils.UtilsGUI.SetTooltipForLastItem("Restore to default.");
+            // Offset slider
+            UtilsGUI.TextDescriptionForWidget("Default offset ");
+            ImGui.SameLine();
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
+            if (ImGui.SliderInt("##off", ref this.mPlugin.Configuration.mDefaultAlarmOffset, Alarm.kOffsetMin, Alarm.kOffsetMax))
+            {
+                this.mPlugin.Configuration.Save();
+            }
+            ImGui.PopItemWidth();
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton("##off", Dalamud.Interface.FontAwesomeIcon.ArrowsSpin))
+            {
+                this.mPlugin.Configuration.mDefaultAlarmOffset = Configuration.kDefaultAlarmOffset;
+                this.mPlugin.Configuration.Save();
+            }
+            UtilsGUI.SetTooltipForLastItem("Restore to default.");
+
+            // CheckBox: MuteOnGameFocused
+            if (UtilsGUI.Checkbox("Mute alarm sound when game window is focused.", ref this.mPlugin.Configuration.mMuteAAudioOnGameFocused))
+            {
+                this.mPlugin.Configuration.Save();
+            }
 
             // Errors
             foreach (string tErrKey in this.mErrors)

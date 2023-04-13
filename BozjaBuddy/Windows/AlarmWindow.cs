@@ -42,7 +42,11 @@ namespace BozjaBuddy.Windows
             string tTempGUI_Key = "alarmWin";
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
             {
-                GUIAlarm.CreateACPU(tTempGUI_Key, pNameSuggestion: Alarm.kReprString);
+                GUIAlarm.CreateACPU(
+                    tTempGUI_Key, 
+                    pNameSuggestion: Alarm.kReprString,
+                    pDefaultDuration: Plugin.Configuration.mDefaultAlarmDuration,
+                    pDefaultOffset: Plugin.Configuration.mDefaultAlarmOffset);
             }
             UtilsGUI.SetTooltipForLastItem($"Add an alarm.\r\n---------- Time-based ----------\n+ Trigger at a specific time.\n+ Can only be created in Alarm window.\r\n---------- Weather-based ----------\n+ Trigger ONCE at a specific weather at a specific time, or REPEAT every time the weather occurs.\n+ Can be created in Alarm window, or clicking on Weather bar.\r\n---------- FATE-based ----------\n + Trigger every time a specific FATE occurs (CE Alarm only triggered when Resistance Recruitment in-game window is open).\n+ Can be created in Alarm window, or click on Alarm column in Fate/CE table.\r\n------------------------------\n+ Alarm can be turned off, edited, deleted, or recycled once expire.");
             GUIAlarm.DrawACPU_All(
