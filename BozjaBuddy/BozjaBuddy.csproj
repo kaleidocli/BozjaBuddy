@@ -94,6 +94,9 @@
     <None Update="db\loadout_preset.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+	<None Update="db\UIMap_LostAction.json">
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</None>
     <None Update="db\audio\epicsaxguy.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

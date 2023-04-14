@@ -21,7 +21,7 @@ public class MainWindow : Window, IDisposable
     {
         this.SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(850, 485),
+            MinimumSize = new Vector2(675, 485),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
         this.Plugin = plugin;

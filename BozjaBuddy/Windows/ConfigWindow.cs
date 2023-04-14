@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using BozjaBuddy.Data.Alarm;
+using BozjaBuddy.GUI.GUIAssist;
+using BozjaBuddy.Interface;
 using BozjaBuddy.Utils;
 using BozjaBuddy.Utils.UtilsAudio;
 using Dalamud.Interface.Components;
@@ -88,6 +90,13 @@ public class ConfigWindow : Window, IDisposable
             }
             Utils.UtilsGUI.SetTooltipForLastItem(this.mFieldAudioPath);
             ImGui.SameLine();
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowsSpin))
+            {
+                this.mPlugin.Configuration.mAudioPath = this.mPlugin.DATA_PATHS["alarm_audio"];
+                this.mPlugin.Configuration.Save();
+            }
+            Utils.UtilsGUI.SetTooltipForLastItem("Restore to default. (song: Epic Sax Guy)");
+            ImGui.SameLine();
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save))
             {
                 try
@@ -113,13 +122,6 @@ public class ConfigWindow : Window, IDisposable
             }
             Utils.UtilsGUI.SetTooltipForLastItem("Save the audio path.\nThe audio path setting only applies after pressing save.\nClear the audio path to restore to the previous one.");
             ImGui.SameLine();
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowsSpin))
-            {
-                this.mPlugin.Configuration.mAudioPath = this.mPlugin.DATA_PATHS["alarm_audio"];
-                this.mPlugin.Configuration.Save();
-            }
-            Utils.UtilsGUI.SetTooltipForLastItem("Restore to default.");
-            ImGui.SameLine();
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Play))
             {
                 this.mTestAudioPlayer.StartAudio(
@@ -144,7 +146,7 @@ public class ConfigWindow : Window, IDisposable
                 this.mPlugin.Configuration.mAudioVolume = Configuration.kDefaultVolume;
                 this.mPlugin.Configuration.Save();
             }
-            Utils.UtilsGUI.SetTooltipForLastItem("Restore to default.");
+            Utils.UtilsGUI.SetTooltipForLastItem($"Restore to default. ({Configuration.kDefaultVolume})");
             // Duration slider
             UtilsGUI.TextDescriptionForWidget("Default duration ");
             ImGui.SameLine();
@@ -160,7 +162,7 @@ public class ConfigWindow : Window, IDisposable
                 this.mPlugin.Configuration.mDefaultAlarmDuration = Configuration.kDefaultAlarmDuration;
                 this.mPlugin.Configuration.Save();
             }
-            Utils.UtilsGUI.SetTooltipForLastItem("Restore to default.");
+            Utils.UtilsGUI.SetTooltipForLastItem($"Restore to default. ({Configuration.kDefaultAlarmDuration}s)");
             // Offset slider
             UtilsGUI.TextDescriptionForWidget("Default offset ");
             ImGui.SameLine();
@@ -176,7 +178,9 @@ public class ConfigWindow : Window, IDisposable
                 this.mPlugin.Configuration.mDefaultAlarmOffset = Configuration.kDefaultAlarmOffset;
                 this.mPlugin.Configuration.Save();
             }
-            UtilsGUI.SetTooltipForLastItem("Restore to default.");
+            Utils.UtilsGUI.SetTooltipForLastItem($"Restore to default. ({Configuration.kDefaultAlarmOffset}s)");
+            ImGui.SameLine();
+            UtilsGUI.ShowHelpMarker($"Offset to alarm.\ne.g. An alarm for Raining will trigger X seconds before it actually rain. X is its offset.\nRange from {Alarm.kOffsetMin} to {Alarm.kOffsetMax}.");
 
             // CheckBox: MuteOnGameFocused
             if (UtilsGUI.Checkbox("Mute alarm sound when game window is focused.", ref this.mPlugin.Configuration.mMuteAAudioOnGameFocused))
@@ -200,7 +204,7 @@ public class ConfigWindow : Window, IDisposable
     {
         if (ImGui.BeginTabItem("UI Hints"))
         {
-            if (ImGui.CollapsingHeader("[A] Mettle & Resistance rank"))
+            if (ImGui.CollapsingHeader("[A] Mettle & Resistance Rank window"))
             {
                 // Reminder: Recruitment window
                 {
@@ -208,13 +212,38 @@ public class ConfigWindow : Window, IDisposable
                     ImGuiComponents.ToggleButton("rewin", ref tField1);
                     ImGui.SameLine();
                     ImGui.PushTextWrapPos();
-                    UtilsGUI.TextDescriptionForWidget("[1] Reminder: Keep recruitment window open for CE-related features. Only display when said features are being used.");
+                    UtilsGUI.TextDescriptionForWidget("[1] Draw a rectangle as a reminder to keep Recruting window open.");
                     ImGui.SameLine();
-                    UtilsGUI.ShowHelpMarker("Features like CE status report in Fate/CE table and CE alarm needs the Resistance Recruitment in-game window open to work, due to lack of better means.\nThis is understandably very cumbersome for users, and will be worked on later. Any suggestion appreciated!");
+                    UtilsGUI.ShowHelpMarker("Only visible when Fate/CE features are active, or when user is not in any CE or raids.\nFeatures like CE status report in Fate/CE table and CE alarm needs the Resistance Recruitment in-game window open to work, due to lack of better means.\nThis is understandably cumbersome for users, and will be worked on later. Any suggestion appreciated!");
                     ImGui.PopTextWrapPos();
                     this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBox] = tField1;
                     this.mPlugin.Configuration.Save();
                 }
+            }
+            if (ImGui.CollapsingHeader("[B] Lost Find Cache window"))
+            {
+                // Role hint
+                UtilsGUI.TextDescriptionForWidget("Role Hint ");
+                ImGui.SameLine();
+                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
+                if (ImGui.SliderInt("##ibfl", ref this.mPlugin.Configuration.mGUIAssist_IBFilterRoleLevel, 0, 2))
+                {
+                    this.mPlugin.Configuration.Save();
+                }
+                ImGui.PopItemWidth();
+                ImGui.SameLine();
+                UtilsGUI.ShowHelpMarker("0: No hint.\n1: Non-qualified actions are darkened.\n2: Non-qualified actions are disabled.");
+                // Loadout hint
+                UtilsGUI.TextDescriptionForWidget("Loadout Hint ");
+                ImGui.SameLine();
+                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
+                if (ImGui.SliderInt("##ibll", ref this.mPlugin.Configuration.mGUIAssist_IBFilterLoadoutLevel, 0, 2))
+                {
+                    this.mPlugin.Configuration.Save();
+                }
+                ImGui.PopItemWidth();
+                ImGui.SameLine();
+                UtilsGUI.ShowHelpMarker("0: No hint.\n1: Qualified actions are highlighted.\n2: Qualified actions are highlighted. Non-qualified actions are disabled.");
             }
 
             ImGui.EndTabItem();

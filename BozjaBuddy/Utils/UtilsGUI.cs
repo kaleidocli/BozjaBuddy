@@ -12,6 +12,7 @@ using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
@@ -305,6 +306,10 @@ namespace BozjaBuddy.Utils
         {
             return UtilsGUI.GetNodeByIdPath(pPlugin, pAddonName, new Queue(pNoteIdPath));
         }
+        public unsafe static AtkResNode* GetNodeByIdPath(Plugin pPlugin, string pAddonName, List<int> pNoteIdPath)
+        {
+            return UtilsGUI.GetNodeByIdPath(pPlugin, pAddonName, new Queue(pNoteIdPath));
+        }
         private unsafe static AtkResNode* GetNodeByIdPath(Plugin pPlugin, string pAddonName, Queue pNoteIdPath)
         {
             AtkUnitBase* tAddon = (AtkUnitBase*)pPlugin.GameGui.GetAddonByName(pAddonName);
@@ -351,6 +356,7 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 NormalText_Red = ImGuiColors.DalamudRed;
             public readonly static Vector4 TableCell_Green = new System.Numerics.Vector4(0.67f, 1, 0.59f, 0.2f);
             public readonly static Vector4 TableCell_Yellow = new System.Numerics.Vector4(0.93f, 0.93f, 0.35f, 0.2f);
+            public readonly static Vector4 MycItemBoxOverlay_Black = new System.Numerics.Vector4(0, 0, 0, 0.5f);
         }
     }
 }
