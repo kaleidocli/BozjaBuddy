@@ -177,19 +177,25 @@ namespace BozjaBuddy.Data.Alarm
         public void SaveAlarmListsToDisk()
         {
             List<List<Alarm>> tAlarmLists = new List<List<Alarm>> { this.mAlarmList, this.mExpiredAlarmList };
-            this.mPlugin.Configuration.UserAlarms = tAlarmLists;
-            this.mPlugin.Configuration.Save();
-            //string tJson = JsonConvert.SerializeObject(tAlarmLists);
-            //File.WriteAllText(this.mPlugin.DATA_PATHS["alarm.json"], tJson);
+            string tJson = JsonConvert.SerializeObject(tAlarmLists);
+            File.WriteAllText(this.mPlugin.DATA_PATHS["alarm.json"], tJson);
         }
         private void LoadAlarmListsFromDisk()
         {
-            //JsonConverter[] tConverters = { new AlarmConverter() };
-            //List<List<Alarm>>? tAlarmLists = JsonConvert.DeserializeObject<List<List<Alarm>>>(
-            //            File.ReadAllText(this.mPlugin.DATA_PATHS["alarm.json"]),
-            //            tConverters
-            //        );
-            List<List<Alarm>>? tAlarmLists = this.mPlugin.Configuration.UserAlarms;
+            JsonConverter[] tConverters = { new AlarmConverter() };
+            List<List<Alarm>>? tAlarmLists;
+            try
+            {
+                tAlarmLists = JsonConvert.DeserializeObject<List<List<Alarm>>>(
+                                        File.ReadAllText(this.mPlugin.DATA_PATHS["alarm.json"]),
+                                        tConverters
+                                    );
+            }
+            catch (FileNotFoundException)
+            {
+                tAlarmLists = null;
+            }
+            //List<List<Alarm>>? tAlarmLists = this.mPlugin.Configuration.UserAlarms;
             if (tAlarmLists == null)
             {
                 return;

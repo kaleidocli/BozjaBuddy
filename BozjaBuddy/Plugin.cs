@@ -64,7 +64,7 @@ namespace BozjaBuddy
             this.DATA_PATHS["loadout.json"] = Path.Combine(tDir, @"db\loadout.json");
             this.DATA_PATHS["loadout_preset.json"] = Path.Combine(tDir, @"db\loadout_preset.json");
             this.DATA_PATHS["alarm_audio"] = Path.Combine(tDir, @"db\audio\epicsaxguy.mp3");
-            this.DATA_PATHS["alarm.json"] = Path.Combine(tDir, @"db\alarm.json");
+            this.DATA_PATHS["alarm.json"] = Path.Combine(PluginInterface.GetPluginConfigDirectory(), @"alarm.json");
 
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(this.PluginInterface);
