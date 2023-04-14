@@ -2,6 +2,7 @@ using System.Data.SQLite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BozjaBuddy.GUI.GUIAssist;
 
 namespace BozjaBuddy.Data
 {
@@ -19,6 +20,7 @@ namespace BozjaBuddy.Data
         public double mCast { get; set; } = 0;
         public double mRecast { get; set; } = 0;
         public int mCharges { get; set; } = 0;
+        public UINode_MycItemBox? mUINode = null;
         protected override Plugin mPlugin { get; set; }
 
         public LostAction(Plugin pPlugin, SQLiteDataReader pPackage) {

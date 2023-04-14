@@ -8,6 +8,8 @@ using ImGuiScene;
 using System.Numerics;
 using System.Linq;
 using Lumina.Excel.GeneratedSheets;
+using BozjaBuddy.Utils;
+using Lumina.Data.Parsing.Uld;
 
 namespace BozjaBuddy.GUI.GUIAssist
 {
@@ -15,12 +17,16 @@ namespace BozjaBuddy.GUI.GUIAssist
     {
         private Plugin mPlugin;
         private Dictionary<GUIAssistOption, System.Action> mOptionFunctions = new();
+        private Dictionary<GUIAssistOption, System.Action> mRestoreFunctions = new();
+        private Dictionary<GUIAssistOption, HashSet<int>> mOptionRequests = new();
+        private HashSet<GUIAssistOption> mRestoreRequests = new();
         private Dictionary<GUIAssistOption, bool> mOptionStateDefault = new()
         {
-            { GUIAssistOption.MycInfoBox , true }
+            { GUIAssistOption.MycInfoBox , true },
+            { GUIAssistOption.MycItemBoxRoleFilter , true }
         };
-        private Dictionary<GUIAssistOption, HashSet<int>> mOptionRequests = new();
         private DateTime _cycleOneSecond = DateTime.Now;
+        private DateTime _cycle2 = DateTime.Now;
         private GUIAssistManager.GUIAssistStatusFlag mStatus = GUIAssistStatusFlag.None;
 
         private GUIAssistManager() { }
@@ -29,6 +35,9 @@ namespace BozjaBuddy.GUI.GUIAssist
             this.mPlugin = pPlugin;
 
             this.mOptionFunctions[GUIAssistOption.MycInfoBox] = this.Draw_MycInfo;
+            this.mOptionFunctions[GUIAssistOption.MycItemBoxRoleFilter] = this.Draw_IBFilterRole;
+
+            this.mRestoreFunctions[GUIAssistOption.MycItemBoxRoleFilter] = this.Restore_IBFilterRole;
 
             // update new options to config (only the one that is bound with an action)
             foreach (GUIAssistOption iOption in this.mOptionStateDefault.Keys)
@@ -38,6 +47,9 @@ namespace BozjaBuddy.GUI.GUIAssist
                     this.SetOptionState(iOption, this.mOptionStateDefault[iOption]);
                 }
             }
+
+            // Init always-on GUIAssist
+            this.RequestOption(this.GetHashCode(), GUIAssistOption.MycItemBoxRoleFilter);
         }
 
         /// <summary> Set if the GUI option should be enabled, regardless of visibility. Return false if option is not found </summary>
@@ -71,6 +83,11 @@ namespace BozjaBuddy.GUI.GUIAssist
             if (!this.mOptionRequests.ContainsKey(pOption)) { return; }
             this.mOptionRequests[pOption].Remove(pSenderObjHash);
         }
+        public void RequestRestore(GUIAssistOption pOption)
+        {
+            if (this.mRestoreRequests.Contains(pOption)) { return; }
+            this.mRestoreRequests.Add(pOption);
+        }
 
         public void Draw()
         {
@@ -84,6 +101,21 @@ namespace BozjaBuddy.GUI.GUIAssist
                 {
                     this.mOptionFunctions[iOption]();
                 }
+            }
+            // Restore req
+            //foreach (GUIAssistOption iOption in this.mRestoreFunctions.Keys)
+            //{
+            //    if (this.mRestoreRequests.Contains(iOption))
+            //    {
+            //        this.mRestoreFunctions[iOption]();
+            //        this.mRestoreRequests.Remove(iOption);
+            //    }
+            //}
+            if (this.mRestoreRequests.Contains(GUIAssistOption.MycItemBoxRoleFilter)
+                && this.mPlugin.Configuration.mGUIAssist_IBFilterRoleLevel != 2)
+            {
+                this.mRestoreFunctions[GUIAssistOption.MycItemBoxRoleFilter]();
+                this.mRestoreRequests.Remove(GUIAssistOption.MycItemBoxRoleFilter);
             }
         }
         private void Draw_MycInfo()
@@ -101,7 +133,7 @@ namespace BozjaBuddy.GUI.GUIAssist
             {
                 this._cycleOneSecond = DateTime.Now;
                 var tStatusList = this.mPlugin.ClientState.LocalPlayer.StatusList.Select(s => s.StatusId);
-                if (tStatusList.Contains((uint)StatusId.HoofingItA))
+                if (tStatusList.Contains((uint)StatusId.DutyAsAssigned))
                 {
                     this.mStatus |= GUIAssistStatusFlag.InRaidCe;
                     return;
@@ -153,11 +185,131 @@ namespace BozjaBuddy.GUI.GUIAssist
                 }
             }
         }
+        private void Draw_IBFilterRole()
+        {
+            if ((DateTime.Now - this._cycle2).TotalSeconds < 0.5) return;
+            unsafe
+            {
+                try
+                {
+                    var tAddonMycInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCItemBox");
+                    if (tAddonMycInfo == null) 
+                    {
+                        this._cycle2 = DateTime.Now;    // Set this on slower cycle if MYCItemBox is not active
+                        return; 
+                    }
+                    this._cycle2 = DateTime.MinValue;
+                    if (this.mPlugin.ClientState.LocalPlayer == null) return;
+                    var tJob = this.mPlugin.ClientState.LocalPlayer!.ClassJob;
+                    if (tJob == null) return;
+                    Role tRole = Role.None;
+                    tRole |= tJob.GameData!.Role switch
+                    {
+                        1 => Role.Tank,
+                        2 => Role.Melee,
+                        3 => tJob.GameData!.JobIndex == 2 ? Role.Range : Role.Caster,
+                        4 => Role.Healer,
+                        _ => ~tRole,
+                    };
+
+                    // Restore if possible
+                    if (this.mPlugin.Configuration.mGUIAssist_IBFilterRoleLevel != 2)
+                    {
+                        this.RequestRestore(GUIAssistOption.MycItemBoxRoleFilter);
+                    }
+
+                    foreach (LostAction iLostAction in this.mPlugin.mBBDataManager.mLostActions.Values)
+                    {
+                        if (iLostAction.mUINode == null) continue;
+                        if (iLostAction.mRole.mRoleFlagBit.HasFlag(tRole))
+                        {
+                            // lv2: Show node
+                            if (this.mPlugin.Configuration.mGUIAssist_IBFilterRoleLevel == 2)
+                            {
+                                this.ShowNode(iLostAction.mUINode);
+                            }
+                        }
+                        else
+                        {
+                            // lv1: Shadow over node
+                            if (this.mPlugin.Configuration.mGUIAssist_IBFilterRoleLevel == 1)
+                            {
+                                this.ShadowNode(iLostAction.mUINode);
+                            }
+                            // lv2: Hide node
+                            else if (this.mPlugin.Configuration.mGUIAssist_IBFilterRoleLevel == 2)
+                            {
+                                this.HideNode(iLostAction.mUINode);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    PluginLog.LogError(e.ToString());
+                }
+            }
+        }
+        private void Restore_IBFilterRole()
+        {
+            unsafe
+            {
+                foreach (LostAction iLostAction in this.mPlugin.mBBDataManager.mLostActions.Values)
+                {
+                    if (iLostAction.mUINode != null) this.ShowNode(iLostAction.mUINode);
+                }
+            }
+        }
+
+        private void HideNode(UINode pUiNode)
+        {
+            unsafe
+            {
+                var tNode_Button = UtilsGUI.GetNodeByIdPath(this.mPlugin, pUiNode.mAddonName, new int[] { pUiNode.mNodePath[^1] });
+                if (tNode_Button == null) { return; }
+
+                tNode_Button->ToggleVisibility(false);
+            }
+        }
+        private void ShowNode(UINode pUiNode)
+        {
+            unsafe
+            {
+                var tNode_Button = UtilsGUI.GetNodeByIdPath(this.mPlugin, pUiNode.mAddonName, new int[] { pUiNode.mNodePath[^1] });
+                if (tNode_Button == null) { return; }
+
+                tNode_Button->ToggleVisibility(true);
+            }
+        }
+        private void ShadowNode(UINode pUiNode)
+        {
+            unsafe
+            {
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(pUiNode.mAddonName);
+                if (tAddon == null) { return; }
+                var tNode_Button = UtilsGUI.GetNodeByIdPath(this.mPlugin, pUiNode.mAddonName, new int[] { pUiNode.mNodePath[^1] });
+                if (tNode_Button == null) { return; }
+
+                float tCoordX = tNode_Button->ScreenX;
+                float tCoordY = tNode_Button->ScreenY;
+                float tSizeX = tNode_Button->Width * tAddon->RootNode->GetScaleX();
+                float tSizeY = tNode_Button->Height * tAddon->RootNode->GetScaleY();
+
+                ImGui.GetBackgroundDrawList().AddRectFilled(
+                    new Vector2(tCoordX, tCoordY),
+                    new Vector2(tCoordX + tSizeX, tCoordY + tSizeY),
+                    ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.MycItemBoxOverlay_Black),
+                    1,
+                    ImDrawFlags.None
+                    );
+            }
+        }
 
         public enum GUIAssistOption
         {
             None = 0,
-            MycInfoBox = 1
+            MycInfoBox = 1,
+            MycItemBoxRoleFilter = 2
         }
         [Flags]
         private enum GUIAssistStatusFlag

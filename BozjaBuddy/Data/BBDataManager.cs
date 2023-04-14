@@ -10,6 +10,7 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Lumina.Excel.GeneratedSheets;
 using BozjaBuddy.Data.Alarm;
 using System.Security.Cryptography;
+using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 
 namespace BozjaBuddy.Data
 {
@@ -85,6 +86,12 @@ namespace BozjaBuddy.Data
 
             this.SetUpGeneralObjects();
             this.SetUpAuxiliary();
+
+            // json - UIMap
+            List<UIMap_MycItemBoxRow>? tUIMap_MycInfo = JsonSerializer.Deserialize<List<UIMap_MycItemBoxRow>>(
+                        File.ReadAllText(this.mPlugin.DATA_PATHS["UIMap_LostAction.json"])
+                    );
+            if (tUIMap_MycInfo != null) this.SetUpUiMap(tUIMap_MycInfo);
         }
 
         private Dictionary<int, TDbObj> DbLoader<TDbObj> (out Dictionary<int, TDbObj> pDict, SQLiteCommand pCommand, string pQuery, Func<Plugin, SQLiteDataReader, TDbObj> tDel, string pKeyCollumn = "id")
@@ -282,6 +289,27 @@ namespace BozjaBuddy.Data
             foreach (int id in this.mLoadouts.Keys)
                 AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mLoadouts[id].GetGenId());
         }
+        public void SetUpUiMap(List<UIMap_MycItemBoxRow> tUIMap_MycInfo)
+        {
+            unsafe
+            {
+                if (tUIMap_MycInfo != null)
+                {
+                    foreach (UIMap_MycItemBoxRow iRow in tUIMap_MycInfo)
+                    {
+                        for (int i = 0; i < iRow.objId.Count; i++)
+                        {
+                            this.mLostActions[iRow.objId[i]].mUINode = new(
+                                    "MYCItemBox",
+                                    new List<int>(new int[] { iRow.head, iRow.head + i + 1 }),
+                                    iRow.order,
+                                    i + 1
+                                );
+                        }
+                    }
+                }
+            }
+        }
         public LoadoutListJson SerializePseudo_Loadouts()
         {
             LoadoutListJson tLoadoutJsons = new LoadoutListJson();
@@ -453,7 +481,8 @@ namespace BozjaBuddy.Data
     {
         None = 0,
         HoofingItA = 1778,
-        HoofingItB = 1945
+        HoofingItB = 1945,
+        DutyAsAssigned = 2415
     }
 
     public class LoadoutListJson
@@ -547,5 +576,12 @@ namespace BozjaBuddy.Data
                 this.mWeight += pPlugin.mBBDataManager.mLostActions[iActionId].mWeight * this.mActionIds[iActionId];
             }
         }
+    }
+    
+    public class UIMap_MycItemBoxRow
+    {
+        public int order { get; set; }
+        public int head { get; set; }
+        public List<int> objId { get; set; }
     }
 }

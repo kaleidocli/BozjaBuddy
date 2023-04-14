@@ -22,6 +22,8 @@ namespace BozjaBuddy
         public int mDefaultAlarmOffset = Configuration.kDefaultAlarmOffset;
         public Dictionary<GUIAssistOption, bool> mOptionState = new();
         public bool mMuteAAudioOnGameFocused = true;
+        public int mGUIAssist_IBFilterRoleLevel = 0;
+        public int mGUIAssist_IBFilterLoadoutLevel = 0;
 
         // the below exist just to make saving less cumbersome
         [NonSerialized]
