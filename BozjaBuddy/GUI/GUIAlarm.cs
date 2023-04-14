@@ -371,7 +371,7 @@ namespace BozjaBuddy.GUI
                 }
                 else
                 {
-                    GUIAlarm.kComboCurrFateId = pAlarmToEdit.mTriggerInt.HasValue ? pAlarmToEdit.mTriggerInt.Value : GUIAlarm.kComboCurrFateId;
+                    GUIAlarm.kComboCurrFateId = GUIAlarm.kComboCurrFateId == 0 && pAlarmToEdit.mTriggerInt.HasValue ? pAlarmToEdit.mTriggerInt.Value : GUIAlarm.kComboCurrFateId;
                     GUIAlarm.kFieldTriggerString = GUIAlarm.kComboCurrTerritoryId;
                     GUIAlarm.kFieldTriggerInt = GUIAlarm.kFieldAcceptAll ? AlarmFateCe.kTriggerInt_AcceptAllCe : GUIAlarm.kComboCurrFateId;
                 }

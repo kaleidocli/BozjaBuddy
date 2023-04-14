@@ -87,6 +87,7 @@ namespace BozjaBuddy.Windows
                         {
                             this.Plugin.AlarmManager.WakeAlarm(iAlarm);
                         }
+                        this.Plugin.AlarmManager.SaveAlarmListsToDisk();
                     }
                     UtilsGUI.SetTooltipForLastItem("Turn alarm on/off. Turned-off alarms will not be triggered until they're on again.");
                     ImGui.PopStyleColor();

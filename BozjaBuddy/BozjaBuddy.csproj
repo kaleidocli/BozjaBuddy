@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>0.2.2.2</Version>
+    <Version>0.2.2.3</Version>
     <Description>A sample plugin.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
@@ -91,9 +91,6 @@
     <None Update="db\LostAction.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="db\loadout.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="db\loadout_preset.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -102,9 +99,6 @@
 	</None>
     <None Update="db\audio\epicsaxguy.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="db\alarm.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 	

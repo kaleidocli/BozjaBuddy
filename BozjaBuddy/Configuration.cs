@@ -3,18 +3,23 @@ using Dalamud.Plugin;
 using System;
 using static BozjaBuddy.GUI.GUIAssist.GUIAssistManager;
 using System.Collections.Generic;
+using BozjaBuddy.Data;
+using BozjaBuddy.Data.Alarm;
 
 namespace BozjaBuddy
 {
     [Serializable]
     public class Configuration : IPluginConfiguration
     {
+        // User data
+        public LoadoutListJson? UserLoadouts = null;
+        public List<List<Alarm>>? UserAlarms = null;
+
         public int Version { get; set; } = 0;
         public const int kDefaultAlarmDuration = 30;
         public const int kDefaultAlarmOffset = 30;
         public const float kDefaultVolume = 1.0f;
 
-        public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
         public float STYLE_ICON_SIZE { get; set; } = 20f;
         public float mAudioVolume = Configuration.kDefaultVolume;
         public string? mAudioPath = null;

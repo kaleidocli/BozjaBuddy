@@ -178,19 +178,26 @@ namespace BozjaBuddy.Data.Alarm
         {
             List<List<Alarm>> tAlarmLists = new List<List<Alarm>> { this.mAlarmList, this.mExpiredAlarmList };
             string tJson = JsonConvert.SerializeObject(tAlarmLists);
-            //PluginLog.LogDebug($">>> SAVING TO DISK: {tJson}");
             File.WriteAllText(this.mPlugin.DATA_PATHS["alarm.json"], tJson);
         }
         private void LoadAlarmListsFromDisk()
         {
             JsonConverter[] tConverters = { new AlarmConverter() };
-            List<List<Alarm>>? tAlarmLists = JsonConvert.DeserializeObject<List<List<Alarm>>>(
-                        File.ReadAllText(this.mPlugin.DATA_PATHS["alarm.json"]),
-                        tConverters
-                    );
+            List<List<Alarm>>? tAlarmLists;
+            try
+            {
+                tAlarmLists = JsonConvert.DeserializeObject<List<List<Alarm>>>(
+                                        File.ReadAllText(this.mPlugin.DATA_PATHS["alarm.json"]),
+                                        tConverters
+                                    );
+            }
+            catch (FileNotFoundException)
+            {
+                tAlarmLists = null;
+            }
+            //List<List<Alarm>>? tAlarmLists = this.mPlugin.Configuration.UserAlarms;
             if (tAlarmLists == null)
             {
-                //PluginLog.LogDebug(">>> A_MNG: Unable to load alarm from disk.");
                 return;
             }
             this.mAlarmList = tAlarmLists![0];

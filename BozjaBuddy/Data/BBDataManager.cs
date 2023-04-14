@@ -59,9 +59,7 @@ namespace BozjaBuddy.Data
             }
 
             // json
-            LoadoutListJson? tRawLoadouts = JsonSerializer.Deserialize<LoadoutListJson>(
-                        File.ReadAllText(this.mPlugin.DATA_PATHS["loadout.json"])
-                    );
+            LoadoutListJson? tRawLoadouts = this.mPlugin.Configuration.UserLoadouts;
             if (tRawLoadouts != null)
             {
                 foreach (LoadoutJson iLoadout in tRawLoadouts.mLoadouts)
@@ -321,8 +319,10 @@ namespace BozjaBuddy.Data
         }
         public void SaveLoadouts()
         {
-            string tJson = JsonSerializer.Serialize(SerializePseudo_Loadouts(), new JsonSerializerOptions { WriteIndented = true});
-            File.WriteAllText(this.mPlugin.DATA_PATHS["loadout.json"], tJson);
+            //string tJson = JsonSerializer.Serialize(SerializePseudo_Loadouts(), new JsonSerializerOptions { WriteIndented = true});
+            //File.WriteAllText(this.mPlugin.DATA_PATHS["loadout.json"], tJson);
+            this.mPlugin.Configuration.UserLoadouts = this.SerializePseudo_Loadouts();
+            this.mPlugin.Configuration.Save();
         }
         public void ReloadLoadoutsPreset()
         {

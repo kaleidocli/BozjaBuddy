@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BozjaBuddy.Filter.FateCeTableSection
@@ -34,8 +35,12 @@ namespace BozjaBuddy.Filter.FateCeTableSection
                         ? (int)(this.mPlugin.mBBDataManager.mFates[id].mDynamicEvent!.Value.State - 4)
                         : (int)(
                                 this.mPlugin.mBBDataManager.mFates[id].mCSFate is not null 
-                                ? this.mPlugin.mBBDataManager.mFates[id].mCSFate!.State + this.mPlugin.mBBDataManager.mFates[id].mCSFate!.Progress
-                                : 0
+                                ? (int)this.mPlugin.mBBDataManager.mFates[id].mCSFate!.State + this.mPlugin.mBBDataManager.mFates[id].mCSFate!.Progress
+                                : (
+                                    this.mPlugin.mBBDataManager.mFates[id].mLastActive != null
+                                    ? (int)(DateTime.Now - this.mPlugin.mBBDataManager.mFates[id].mLastActive!.Value).TotalMinutes - 1200
+                                    : -6000
+                                  )
                           )
                     )
                     .ToList();
@@ -47,8 +52,12 @@ namespace BozjaBuddy.Filter.FateCeTableSection
                         ? (int)(this.mPlugin.mBBDataManager.mFates[id].mDynamicEvent!.Value.State - 4)
                         : (int)(
                                 this.mPlugin.mBBDataManager.mFates[id].mCSFate is not null
-                                ? this.mPlugin.mBBDataManager.mFates[id].mCSFate!.State + this.mPlugin.mBBDataManager.mFates[id].mCSFate!.Progress
-                                : 0
+                                ? (int)this.mPlugin.mBBDataManager.mFates[id].mCSFate!.State + this.mPlugin.mBBDataManager.mFates[id].mCSFate!.Progress
+                                : (
+                                    this.mPlugin.mBBDataManager.mFates[id].mLastActive != null
+                                    ? (int)(DateTime.Now - this.mPlugin.mBBDataManager.mFates[id].mLastActive!.Value).TotalMinutes - 1200
+                                    : -6000
+                                  )
                           )
                     )
                     .ToList();
