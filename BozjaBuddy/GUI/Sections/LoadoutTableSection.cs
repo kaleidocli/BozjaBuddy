@@ -397,7 +397,7 @@ namespace BozjaBuddy.GUI.Sections
                 }
                 else
                 {
-                    UtilsGUI.SetTooltipForLastItem(tLoadouts[pSelectedLoadoutId!.Value].mName);
+                    UtilsGUI.SetTooltipForLastItem(pSelectedLoadoutId == null ? "-----------" : tLoadouts[pSelectedLoadoutId!.Value].mName);
                 }
             }
             return tRes;
