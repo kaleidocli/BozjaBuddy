@@ -177,11 +177,11 @@ namespace BozjaBuddy
                 public bool isDisabled_FilterText = false;
                 public bool isDisabled_FilterLoadout = false;
 
-                public float refreshRate = 0.6f;
+                public float refreshRate = 0.3f;
                 public int filterTextLevel = 1;
                 public int filterLoadoutLevel = 0;
 
-                public float refreshRateDefault = 0.6f;
+                public float refreshRateDefault = 0.3f;
 
                 public Dictionary<int, int> userCacheData = new();
                 public Dictionary<int, int> userHolsterData = new();
