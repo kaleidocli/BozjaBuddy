@@ -19,11 +19,7 @@ public class MainWindow : Window, IDisposable
     public MainWindow(Plugin plugin) : base(
         "Bozja Buddy", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
-        this.SizeConstraints = new WindowSizeConstraints
-        {
-            MinimumSize = new Vector2(675, 485),
-            MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
-        };
+        this.SizeConstraints = plugin.Configuration.SizeConstraints;
         this.Plugin = plugin;
 
         this.mLostActionTab = new LostActionTab(this.Plugin);

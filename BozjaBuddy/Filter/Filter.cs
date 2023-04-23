@@ -25,6 +25,7 @@ namespace BozjaBuddy.Filter
 
         public bool IsEdited() => mIsEdited;
         public virtual bool HasChanged() => mCurrValue.Equals(mCurrValue);
+        public virtual void ClearInputValue() => this.mCurrValue = string.Empty;
         public virtual bool CanPassFilter(LostAction pLostAction) => true;
         public virtual bool CanPassFilter(Fragment pFragment) => true;
         public virtual bool CanPassFilter(Fate tFate) => true;

@@ -9,6 +9,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+using ImGuiScene;
 using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections;
@@ -297,6 +298,33 @@ namespace BozjaBuddy.Utils
             if (pGuiId != null) ImGui.PopID();
             return tRes;
         }
+        public static void DrawRoleFlagAsIconString(Plugin pPlugin, RoleFlag pRoleFlag)
+        {
+            List<TextureWrap?> tRoleIcons = RoleFlag.FlagToIcon(pRoleFlag.mRoleFlagBit);
+            int tDrawCounter = 0;
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, new Vector2(0, 0));
+            foreach (TextureWrap? iIcon in tRoleIcons)
+            {
+                if (iIcon == null) continue;
+                if (tDrawCounter != 0) ImGui.SameLine();
+                ImGui.Image(iIcon.ImGuiHandle, Utils.ResizeToIcon(pPlugin, ImGui.GetTextLineHeight() / 2, ImGui.GetTextLineHeight() / 2));
+                UtilsGUI.SetTooltipForLastItem(tDrawCounter switch
+                {
+                    0 => "Tank",
+                    1 => "Healer",
+                    2 => "Melee",
+                    3 => "Range",
+                    4 => "Caster",
+                    _ => "None"
+                });
+                tDrawCounter++;
+            }
+            ImGui.PopStyleVar();
+            ImGui.PopStyleVar();
+        }
+        public static void DrawRoleFlagAsString(RoleFlag pRole) => ImGui.Text(RoleFlag.FlagToString(pRole.mRoleFlagBit));
+        public static Vector4 AdjustTransparency(Vector4 pColor, float pTransparency) => new(pColor.X, pColor.Y, pColor.Z, pTransparency);
 
         public unsafe static AtkResNode* GetNodeByIdPath(AtkUnitBase* pAddonBase, int[] pNoteIdPath)
         {
@@ -349,14 +377,33 @@ namespace BozjaBuddy.Utils
         internal class Colors
         {
             public readonly static Vector4 NormalText_White = ImGuiColors.DalamudWhite2;
+            public readonly static Vector4 NormalText_Latte = Utils.RGBAtoVec4(192, 180, 158, 255);
+            public readonly static Vector4 NormalText_OrangeDark = Utils.RGBAtoVec4(232, 159, 91, 255);
+            public readonly static Vector4 NormalText_Orange = Utils.RGBAtoVec4(251, 225, 202, 255);
             public readonly static Vector4 BackgroundText_Grey = ImGuiColors.ParsedGrey;
             public readonly static Vector4 ActivatedText_Green = ImGuiColors.ParsedGreen;
             public readonly static Vector4 NormalBar_Grey = Utils.RGBAtoVec4(165, 165, 165, 80);
             public readonly static Vector4 ActivatedBar_Green = Utils.RGBAtoVec4(176, 240, 6, 80);
             public readonly static Vector4 NormalText_Red = ImGuiColors.DalamudRed;
-            public readonly static Vector4 TableCell_Green = new System.Numerics.Vector4(0.67f, 1, 0.59f, 0.2f);
-            public readonly static Vector4 TableCell_Yellow = new System.Numerics.Vector4(0.93f, 0.93f, 0.35f, 0.2f);
-            public readonly static Vector4 MycItemBoxOverlay_Black = new System.Numerics.Vector4(0, 0, 0, 0.5f);
+            public readonly static Vector4 TableCell_Green = new Vector4(0.67f, 1, 0.59f, 0.2f);
+            public readonly static Vector4 TableCell_Yellow = new Vector4(0.93f, 0.93f, 0.35f, 0.2f);
+            public readonly static Vector4 MycItemBoxOverlay_Black = Utils.RGBAtoVec4(0, 0, 0, 150);
+            public readonly static Vector4 MycItemBoxOverlay_Green = Utils.RGBAtoVec4(106, 240, 44, 122);
+            public readonly static Vector4 MycItemBoxOverlay_White = Utils.RGBAtoVec4(255, 255, 255, 122);
+            public readonly static Vector4 MycItemBoxOverlay_Red = Utils.RGBAtoVec4(255, 0, 0, 122);
+            public readonly static Vector4 MycItemBoxOverlay_RedDark = Utils.RGBAtoVec4(30, 5, 4, 255);
+            public readonly static Vector4 MycItemBoxOverlay_RedDarkBright = Utils.RGBAtoVec4(92, 63, 70, 255);
+            public readonly static Vector4 MycItemBoxOverlay_Latte = Utils.RGBAtoVec4(109, 99, 102, 255);
+            public readonly static Vector4 MycItemBoxOverlay_Gold = Utils.RGBAtoVec4(254, 247, 202, 255);
+            public readonly static Vector4 MycItemBoxOverlay_GoldDark = Utils.RGBAtoVec4(255, 124, 170, 255);
+            public readonly static Vector4 MycItemBoxOverlay_NeonRedWhite = Utils.RGBAtoVec4(172, 125, 136, 255);
+            public readonly static Vector4 MycItemBoxOverlay_ItemBorderGold = Utils.RGBAtoVec4(210, 172, 113, 255);
+
+            public readonly static Vector4 GenObj_YellowFragment = new(0.89f, 0.92f, 0.61f, 0.4f);
+            public readonly static Vector4 GenObj_BlueAction = new(0.61f, 0.79f, 0.92f, 0.4f);
+            public readonly static Vector4 GenObj_PinkFate = new(0.9f, 0.61f, 0.9f, 0.4f);
+            public readonly static Vector4 GenObj_GreenMob = new(0.61f, 0.92f, 0.77f, 0.4f);
+            public readonly static Vector4 GenObj_RedLoadout = Utils.RGBAtoVec4(158, 41, 16, 122);
         }
     }
 }

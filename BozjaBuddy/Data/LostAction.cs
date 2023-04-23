@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BozjaBuddy.GUI.GUIAssist;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.Data
 {
@@ -38,7 +39,7 @@ namespace BozjaBuddy.Data
             mRecast = Convert.ToDouble(pPackage["cooldown"] is System.DBNull ? -1 : pPackage["cooldown"]);
             mCharges = Convert.ToInt32(pPackage["charges"] is System.DBNull ? -1 : pPackage["charges"]);
 
-            this.mTabColor = new System.Numerics.Vector4(0.61f, 0.79f, 0.92f, 0.4f);
+            this.mTabColor = UtilsGUI.Colors.GenObj_BlueAction;
 
             this.SetUpAuxiliary();
         }

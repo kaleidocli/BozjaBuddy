@@ -68,7 +68,7 @@ namespace BozjaBuddy.Data
             this.mLinkFragments = new List<int>();
             this.mLocation = new Location(this.mPlugin, this.mTerritoryType, this.mMapCoordX, this.mMapCoordY);
             this.mCSFate = null;
-            this.mTabColor = new System.Numerics.Vector4(0.9f, 0.61f, 0.9f, 0.4f);
+            this.mTabColor = UtilsGUI.Colors.GenObj_PinkFate;
 
             this.SetUpAuxiliary();
         }

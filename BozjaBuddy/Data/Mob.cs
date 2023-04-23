@@ -2,6 +2,7 @@ using System.Data.SQLite;
 using System;
 using System.Collections.Generic;
 using BozjaBuddy.GUI.Sections;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.Data
 {
@@ -33,7 +34,7 @@ namespace BozjaBuddy.Data
             this.mLinkFragments = new List<int>();
             this.mLocation = new Location(this.mPlugin, this.mTerritoryType, this.mMapCoordX, this.mMapCoordY);
 
-            this.mTabColor = new System.Numerics.Vector4(0.61f, 0.92f, 0.77f, 0.4f);
+            this.mTabColor = UtilsGUI.Colors.GenObj_GreenMob;
 
             this.SetUpAuxiliary();
         }

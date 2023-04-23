@@ -307,7 +307,7 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.InputText("##group", ref AuxiliaryViewerSection.mTenpLoadout!._mGroup, 120);
                 ImGui.PopItemWidth();
                 ImGui.SameLine(); ImGui.Text(" • ");
-                ImGui.SameLine(); AuxiliaryViewerSection.mGUIFilter.HeaderRoleSelectables(AuxiliaryViewerSection.mTenpLoadout!._mRole);
+                ImGui.SameLine(); AuxiliaryViewerSection.mGUIFilter.HeaderRoleIconButtons(AuxiliaryViewerSection.mTenpLoadout!._mRole);
 
 
                 ImGui.Spacing();

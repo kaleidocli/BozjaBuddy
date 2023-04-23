@@ -8,6 +8,7 @@ namespace BozjaBuddy.Filter.LostActionTableSection
     {
         public override string mFilterName { get; set; } = "role";
         private new RoleFlag mCurrValue = default!;
+        public bool mIsCompact = true;
 
         public FilterRole()
         {
@@ -22,6 +23,10 @@ namespace BozjaBuddy.Filter.LostActionTableSection
         {
             mCurrValue = new RoleFlag();
         }
+        public override void ClearInputValue()
+        {
+            this.mCurrValue.SetRoleFlagBit(Role.None);
+        }
 
         public override bool CanPassFilter(LostAction pLostAction)
             => !mIsFilteringActive | pLostAction.mRole.mRoleFlagBit.HasFlag(mCurrValue.mRoleFlagBit);
@@ -29,6 +34,12 @@ namespace BozjaBuddy.Filter.LostActionTableSection
 
         public override void DrawFilterGUI()
         {
+            if (!this.mIsCompact)
+            {
+                this.mGUI.HeaderRoleIconButtons(this.mCurrValue);
+                return;
+            }
+
             if (ImGui.Selectable(mFilterName.ToUpper(),
                     true,
                     ImGuiSelectableFlags.None,
@@ -38,7 +49,7 @@ namespace BozjaBuddy.Filter.LostActionTableSection
             }
             if (ImGui.BeginPopup("popup"))
             {
-                this.mGUI.HeaderRoleSelectables(this.mCurrValue);
+                this.mGUI.HeaderRoleIconButtons(this.mCurrValue);
                 ImGui.EndPopup();
             }
         }

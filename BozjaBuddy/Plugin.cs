@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using BozjaBuddy.GUI.GUIAssist;
 using System;
 using Dalamud.Game.ClientState;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy
 {
@@ -66,13 +67,16 @@ namespace BozjaBuddy
             this.DATA_PATHS["alarm_audio"] = Path.Combine(tDir, @"db\audio\epicsaxguy.mp3");
             this.DATA_PATHS["alarm.json"] = Path.Combine(PluginInterface.GetPluginConfigDirectory(), @"alarm.json");
             this.DATA_PATHS["UIMap_LostAction.json"] = Path.Combine(tDir, @"db\UIMap_LostAction.json");
+            this.DATA_PATHS["YurukaStd-UB-AlphaNum.ttf"] = Path.Combine(tDir, @"db\YurukaStd-UB-AlphaNum.otf");
 
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            PluginLog.LogDebug($"> configPath: {this.PluginInterface.ConfigDirectory}");
             this.Configuration.Initialize(this.PluginInterface);
             if (this.Configuration.mAudioPath == null) this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
             this.Configuration.Save();
 
             mBBDataManager = new BBDataManager(this);
+            UtilsGameData.Init(this);
             WindowSystem.AddWindow(new ConfigWindow(this));
             WindowSystem.AddWindow(new MainWindow(this));
             WindowSystem.AddWindow(new AlarmWindow(this));
@@ -91,6 +95,23 @@ namespace BozjaBuddy
             this.AlarmManager.Start();
 
             this.GUIAssistManager = new(this);
+
+            if (this.Configuration.UserLoadouts == null) { this.mBBDataManager.ReloadLoadoutsPreset(); }    // for first install
+
+            this.PluginInterface.UiBuilder.BuildFonts += this.BuildFont;
+            this.PluginInterface.UiBuilder.RebuildFonts();
+        }
+        
+        private void BuildFont()
+        {
+            unsafe
+            {
+                UtilsGameData.kFont_Yuruka = ImGui.GetIO().Fonts.AddFontFromFileTTF(this.DATA_PATHS["YurukaStd-UB-AlphaNum.ttf"], 30);
+                ImFontGlyphRangesBuilderPtr builder = new(ImGuiNative.ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder());
+                //builder.AddText("\"abcdefghijklmnopqrstuvwxyz!@#$%^&*()_+~`[]\\//{}|;':,./<>?1234567890");
+                //builder.BuildRanges(out var ranges);
+                //builder.Destroy();
+            }
         }
 
         public void Dispose()
@@ -98,6 +119,8 @@ namespace BozjaBuddy
             this.WindowSystem.RemoveAllWindows();
             this.CommandManager.RemoveHandler(CommandName);
             this.AlarmManager.Dispose();
+            this.PluginInterface.UiBuilder.BuildFonts -= this.BuildFont;
+            UtilsGameData.Dispose();
         }
 
         private void OnCommand(string command, string args)
@@ -110,8 +133,8 @@ namespace BozjaBuddy
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
             this.WindowSystem.Draw();
-            ImGui.PopStyleVar();
             this.GUIAssistManager.Draw();
+            ImGui.PopStyleVar();
 
             if ((DateTime.Now - this._mCycle1).TotalSeconds > 2)
             {

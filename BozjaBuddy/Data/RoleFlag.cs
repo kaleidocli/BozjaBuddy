@@ -1,4 +1,8 @@
+using BozjaBuddy.Utils;
+using ImGuiScene;
 using System;
+using System.Collections.Generic;
+using System.Net.NetworkInformation;
 
 namespace BozjaBuddy.Data
 {
@@ -78,6 +82,19 @@ namespace BozjaBuddy.Data
             tRes += pRole.HasFlag(Role.Range) ? "R" : "_";
             tRes += pRole.HasFlag(Role.Caster) ? "C" : "_";
 
+            return tRes;
+        }
+        public static List<TextureWrap?> FlagToIcon(Role pRole)
+        {
+            List<TextureWrap?> tRes = new()
+            {
+                // THMRC
+                UtilsGameData.GetRoleIcon(pRole.HasFlag(Role.Tank) ? Role.Tank : Role.None),
+                UtilsGameData.GetRoleIcon(pRole.HasFlag(Role.Healer) ? Role.Healer : Role.None),
+                UtilsGameData.GetRoleIcon(pRole.HasFlag(Role.Melee) ? Role.Melee : Role.None),
+                UtilsGameData.GetRoleIcon(pRole.HasFlag(Role.Range) ? Role.Range : Role.None),
+                UtilsGameData.GetRoleIcon(pRole.HasFlag(Role.Caster) ? Role.Caster : Role.None)
+            };
             return tRes;
         }
         public static int FlagToInt(Role pRole)

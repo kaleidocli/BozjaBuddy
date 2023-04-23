@@ -37,14 +37,9 @@ namespace BozjaBuddy.Filter.LoadoutTableSection
             {
                 ImGui.OpenPopup("popup");
             }
-            mCurrValue.UpdateRoleFlagBit();
             if (ImGui.BeginPopup("popup"))
             {
-                mGUI.HeaderSelectable("T##0", ref mCurrValue.mRoleFlagArray[0]);
-                mGUI.HeaderSelectable("H##1", ref mCurrValue.mRoleFlagArray[1]);
-                mGUI.HeaderSelectable("M##2", ref mCurrValue.mRoleFlagArray[2]);
-                mGUI.HeaderSelectable("R##3", ref mCurrValue.mRoleFlagArray[3]);
-                mGUI.HeaderSelectable("C##4", ref mCurrValue.mRoleFlagArray[4]);
+                this.mGUI.HeaderRoleIconButtons(this.mCurrValue);
                 ImGui.EndPopup();
             }
         }

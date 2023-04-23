@@ -1,4 +1,5 @@
 using BozjaBuddy.Data;
+using Dalamud.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace BozjaBuddy.Filter.LostActionTableSection
             foreach (int iID in pLostAction.mLinkFragments)
             {
                 Fragment tFragment = this.mPlugin!.mBBDataManager.mFragments[iID];
-                return tFragment.mName.Contains(this.mCurrValue, StringComparison.CurrentCultureIgnoreCase);
+                if (tFragment.mName.Contains(this.mCurrValue, StringComparison.CurrentCultureIgnoreCase)) return true;
             }
             return false;
         }

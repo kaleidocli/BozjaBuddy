@@ -5,6 +5,7 @@ using Lumina.Data.Files;
 using Lumina.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BozjaBuddy.Data
 {
@@ -12,31 +13,17 @@ namespace BozjaBuddy.Data
     /// <para>Represents a collection of Texturewrapp icon. Call Dispose() when no longer needed.</para>
     /// <para>Enforcing dimension on texture if given, otherwise use texture's own dimension.</para>
     /// </summary>
-    internal class TextureCollection : IDisposable
+    public class TextureCollection : IDisposable
     {
         private Plugin mPlugin;
         public Dictionary<Sheet, Dictionary<uint, TextureWrap?>> mIcons;
         private Dictionary<uint, TextureWrap?> mStandardIcons = new Dictionary<uint, TextureWrap?>();
-        private ushort[]? mTextureDimension = null;
 
         public TextureCollection(Plugin pPlugin)
         {
             this.mPlugin = pPlugin;
-            this.mIcons = new Dictionary<Sheet, Dictionary<uint, TextureWrap?>>() {
-                { Sheet.Action, new Dictionary<uint, TextureWrap?>() },
-                { Sheet.Item, new Dictionary<uint, TextureWrap?>() }
-            };
-            this.LoadStandardIcons();
-        }
-
-        public TextureCollection(Plugin pPlugin, ushort[] pTextureDimension)
-        {
-            this.mPlugin = pPlugin;
-            this.mIcons = new Dictionary<Sheet, Dictionary<uint, TextureWrap?>>() {
-                { Sheet.Action, new Dictionary<uint, TextureWrap?>() },
-                { Sheet.Item, new Dictionary<uint, TextureWrap?>() }
-            };
-            this.mTextureDimension = pTextureDimension;
+            this.mIcons = (new List<Sheet>((Sheet[])Enum.GetValues(typeof(Sheet))))
+                                    .ToDictionary(o => o, o => new Dictionary<uint, TextureWrap?>());
             this.LoadStandardIcons();
         }
 
@@ -208,7 +195,9 @@ namespace BozjaBuddy.Data
         {
             None = 0,
             Action = 1,
-            Item = 2
+            Item = 2,
+            Job = 3,
+            Role = 4
         }
     }
 }

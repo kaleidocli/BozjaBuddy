@@ -2,6 +2,7 @@ using System.Data.SQLite;
 using System;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Logging;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.Data
 {
@@ -19,7 +20,7 @@ namespace BozjaBuddy.Data
             mName = (string)pPackage["name"];
             mIsClusterBuyable = (int)(long)pPackage["isClusterBuyable"] == 1 ? true : false;
 
-            this.mTabColor = new System.Numerics.Vector4(0.89f, 0.92f, 0.61f, 0.4f);
+            this.mTabColor = UtilsGUI.Colors.GenObj_YellowFragment;
 
             this.SetUpAuxiliary();
         }

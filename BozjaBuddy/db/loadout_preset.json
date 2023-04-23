@@ -705,7 +705,7 @@
     },
     {
       "mId": 10050,
-      "mName": "Bozja/Zadnor general use - CEM - Tank",
+      "mName": "General use - CEM - Tank",
       "mDescription": "Dev\u0027s note: (due to the limitation of the design)\n\n- The quantity digit of an action signifies the group of it belongs to.\n- For each group, you only choose one type of action, and bring one of that type.\n- This excludes [Resistance Reraiser] and kits. Essences are self-explanatory.\n\nAuthor: Luna_Midori5#6518, Kalenal#2674, Rer#6660, Redball#4567, Denabolus#3345, Kroor#9563, jay#1827\n, cinnabun#1500, Mythos#5314, and others.",
       "mGroup": "general",
       "mRoleInt": 10000,
@@ -724,7 +724,7 @@
     },
     {
       "mId": 10051,
-      "mName": "Bozja/Zadnor general use - CEM - Healer DPS",
+      "mName": "General use - CEM - Healer DPS",
       "mDescription": "Dev\u0027s note: (due to the limitation of the design)\n\n- The quantity digit of an action signifies the group of it belongs to.\n- For each group, you only choose one type of action, and bring one of that type.\n- This excludes [Resistance Reraiser] and kits. Essences are self-explanatory.\n\nAuthor: Luna_Midori5#6518, Kalenal#2674, Rer#6660, Redball#4567, Denabolus#3345, Kroor#9563, jay#1827\n, cinnabun#1500, Mythos#5314, and others.",
       "mGroup": "general",
       "mRoleInt": 1000,
@@ -743,7 +743,7 @@
     },
     {
       "mId": 10052,
-      "mName": "Bozja/Zadnor general use - CEM - Healer Support/Others",
+      "mName": "General use - CEM - Healer Support/Others",
       "mDescription": "- Supports can also bring [Spellforge] \u002B [Burst] / [Steelsting] \u002B [Rampage] on request of the host or party.\n\n--------------------\n\nDev\u0027s note: (due to the limitation of the design)\n\n- The quantity digit of an action signifies the group of it belongs to.\n- For each group, you only choose one type of action, and bring one of that type.\n- This excludes [Resistance Reraiser] and kits. Essences are self-explanatory.\n\nAuthor: Luna_Midori5#6518, Kalenal#2674, Rer#6660, Redball#4567, Denabolus#3345, Kroor#9563, jay#1827\n, cinnabun#1500, Mythos#5314, and others.",
       "mGroup": "general",
       "mRoleInt": 1000,
@@ -762,7 +762,7 @@
     },
     {
       "mId": 10053,
-      "mName": "Bozja/Zadnor general use - CEM - Caster",
+      "mName": "General use - CEM - Caster",
       "mDescription": "- [Lost Flare Star] \u002B [Essence of the Skirmisher] (recommended for BLM)\n- [Lost Chainspell] \u002B [Essence of the Ordained]\n\n--------------------\n\nDev\u0027s note: (due to the limitation of the design)\n\n- The quantity digit of an action signifies the group of it belongs to.\n- For each group, you only choose one type of action, and bring one of that type.\n- This excludes [Resistance Reraiser] and kits. Essences are self-explanatory.\n\nAuthor: Luna_Midori5#6518, Kalenal#2674, Rer#6660, Redball#4567, Denabolus#3345, Kroor#9563, jay#1827\n, cinnabun#1500, Mythos#5314, and others.",
       "mGroup": "general",
       "mRoleInt": 1,
@@ -782,7 +782,7 @@
     },
     {
       "mId": 10054,
-      "mName": "Bozja/Zadnor general use - CEM - Melee",
+      "mName": "General use - CEM - Melee",
       "mDescription": "- [Essence of the Beast] \u002B [Font of Power]\n- [Rend armor] when requested.\n\n--------------------\n\nDev\u0027s note: (due to the limitation of the design)\n\n- The quantity digit of an action signifies the group of it belongs to.\n- For each group, you only choose one type of action, and bring one of that type.\n- This excludes [Resistance Reraiser] and kits. Essences are self-explanatory.\n\nAuthor: Luna_Midori5#6518, Kalenal#2674, Rer#6660, Redball#4567, Denabolus#3345, Kroor#9563, jay#1827\n, cinnabun#1500, Mythos#5314, and others.",
       "mGroup": "general",
       "mRoleInt": 100,
@@ -801,7 +801,7 @@
     },
     {
       "mId": 10055,
-      "mName": "Bozja/Zadnor general use - CEM - Phys Range",
+      "mName": "General use - CEM - Phys Range",
       "mDescription": "- [Essence of the Beast] \u002B [Lost Assassination]\n\n--------------------\n\nDev\u0027s note: (due to the limitation of the design)\n\n- The quantity digit of an action signifies the group of it belongs to.\n- For each group, you only choose one type of action, and bring one of that type.\n- This excludes [Resistance Reraiser] and kits. Essences are self-explanatory.\n\nAuthor: Luna_Midori5#6518, Kalenal#2674, Rer#6660, Redball#4567, Denabolus#3345, Kroor#9563, jay#1827\n, cinnabun#1500, Mythos#5314, and others.",
       "mGroup": "general",
       "mRoleInt": 10,

@@ -9,8 +9,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Lumina.Excel.GeneratedSheets;
 using BozjaBuddy.Data.Alarm;
-using System.Security.Cryptography;
-using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.Data
 {
@@ -341,6 +340,7 @@ namespace BozjaBuddy.Data
             }
             this.SaveLoadouts();
         }
+
         /// <summary>
         /// Does not take care of Section's idList. 
         /// Said section needs to implement RefreshIdList() if they have dynamic idList.
@@ -400,6 +400,13 @@ namespace BozjaBuddy.Data
                                                             ->GetUiModule()
                                                             ->GetAgentModule()
                                                             ->GetAgentByInternalId(AgentId.MycInfo);
+        }
+        public unsafe static AgentMycItemBox* GetAgentMycItemBox()
+        {
+            return (AgentMycItemBox*)Framework.Instance()
+                                                            ->GetUiModule()
+                                                            ->GetAgentModule()
+                                                            ->GetAgentByInternalId(AgentId.MycItemBox);
         }
         /// <summary>
         /// Update the status of all FateCE in FateTable. 

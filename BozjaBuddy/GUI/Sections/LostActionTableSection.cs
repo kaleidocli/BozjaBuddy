@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Interface.Components;
 using BozjaBuddy.Utils;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -58,8 +59,15 @@ namespace BozjaBuddy.GUI.Sections
 
             this.mActionIDs = this.mPlugin.mBBDataManager.mLostActions.Keys.ToList();
 
-            this.mTextureCollection = new TextureCollection(this.mPlugin);
-            this.mTextureCollection.AddTextureFromItemId(this.mActionIDs);
+            if (UtilsGameData.kTexCol_LostAction != null)
+            {
+                this.mTextureCollection = UtilsGameData.kTexCol_LostAction;
+            }
+            else
+            {
+                this.mTextureCollection = new TextureCollection(this.mPlugin);
+                this.mTextureCollection.AddTextureFromItemId(this.mActionIDs);
+            }
         }
 
         private bool CheckFilter(LostAction pEntity)
@@ -148,7 +156,7 @@ namespace BozjaBuddy.GUI.Sections
                             ImGui.PushTextWrapPos(0); UtilsGUI.SelectableLink_WithPopup(mPlugin, tLostAction.mName, tLostAction.GetGenId()); ImGui.PopTextWrapPos();
                             break; 
                         case 2:
-                            ImGui.Text(RoleFlag.FlagToString(tLostAction.mRole.mRoleFlagBit));
+                            UtilsGUI.DrawRoleFlagAsIconString(this.mPlugin, tLostAction.mRole);
                             break;
                         case 3:
                             foreach (int iiID in tLostAction.mLinkFragments)

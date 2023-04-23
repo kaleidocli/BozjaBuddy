@@ -1,6 +1,8 @@
 using ImGuiNET;
 using System;
 using BozjaBuddy.Data;
+using BozjaBuddy.Utils;
+using System.Collections.Generic;
 
 namespace BozjaBuddy.GUI
 {
@@ -74,14 +76,30 @@ namespace BozjaBuddy.GUI
             }
         }
     
-        public void HeaderRoleSelectables(RoleFlag pRoleFlag)
+        public void HeaderRoleIconButtons(RoleFlag pRoleFlag)
         {
             pRoleFlag.UpdateRoleFlagBit();
-            this.HeaderSelectable("T##0", ref pRoleFlag.mRoleFlagArray[0]);
-            this.HeaderSelectable("H##1", ref pRoleFlag.mRoleFlagArray[1]);
-            this.HeaderSelectable("M##2", ref pRoleFlag.mRoleFlagArray[2]);
-            this.HeaderSelectable("R##3", ref pRoleFlag.mRoleFlagArray[3]);
-            this.HeaderSelectable("C##4", ref pRoleFlag.mRoleFlagArray[4]);
+            List<Role> tRoles = new List<Role>() { Role.Tank, Role.Healer, Role.Melee, Role.Range, Role.Caster };
+            for (int i = 0; i < tRoles.Count; i++)
+            {
+                if (i != 0) ImGui.SameLine();
+                ImGui.PushID(i);
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(0, 0));
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, new System.Numerics.Vector2(0, 0));
+                if (ImGui.ImageButton(
+                    UtilsGameData.GetRoleIcon(pRoleFlag.mRoleFlagArray[i] ? tRoles[i] : Role.None)!.ImGuiHandle,
+                    new System.Numerics.Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
+                {
+                    pRoleFlag.mRoleFlagArray[i] = !pRoleFlag.mRoleFlagArray[i];
+                }
+                else
+                {
+                    UtilsGUI.SetTooltipForLastItem((tRoles[i].ToString()));
+                }
+                ImGui.PopStyleVar();
+                ImGui.PopStyleVar();
+                ImGui.PopID();
+            }
         }
     }
 }
