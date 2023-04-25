@@ -58,7 +58,7 @@ namespace BozjaBuddy.Data
             else if (this.mTerritoryType == "n4b6")
             {
                 if (this.CheckIsInsideBox(Location.ZADNOR_Z3_BOX)) this.mAreaFlag = Area.Zadnor_Zone3;
-                else if (this.CheckIsInsideBox(Location.BOZJA_Z2_BOX)) this.mAreaFlag = Area.Zadnor_Zone2;
+                else if (this.CheckIsInsideBox(Location.ZADNOR_Z2_BOX)) this.mAreaFlag = Area.Zadnor_Zone2;
                 else this.mAreaFlag = Area.Zadnor_Zone1;
             }
         }
