@@ -100,6 +100,20 @@ namespace BozjaBuddy.Utils
             { 936, "n4b5" },
             { 937, "n4b5_2" }
         };
+        public static Dictionary<string, Location.Area> kAreaAndCode = new()
+        {
+            { "none", Location.Area.None },
+            { "n4b4_z1", Location.Area.Bozja_Zone1 },
+            { "n4b4_z2", Location.Area.Bozja_Zone2 },
+            { "n4b4_z3", Location.Area.Bozja_Zone3 },
+            { "n4b6_z1", Location.Area.Zadnor_Zone1 },
+            { "n4b6_z2", Location.Area.Zadnor_Zone2 },
+            { "n4b6_z3", Location.Area.Zadnor_Zone3 },
+            { "n4b5", Location.Area.Delubrum },
+            { "n4b5_2", Location.Area.DelubrumSavage },
+            { "cll", Location.Area.Castrum },
+            { "castrum", Location.Area.Dalriada }
+        };
 
         public static void Init(Plugin pPlugin)
         {

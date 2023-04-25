@@ -1,7 +1,9 @@
-﻿using Dalamud.Logging;
+﻿using BozjaBuddy.Utils;
+using Dalamud.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace BozjaBuddy.Data.Alarm
 {
@@ -10,7 +12,8 @@ namespace BozjaBuddy.Data.Alarm
         public new const string _kJsonid = "af";
         public new static string kReprString = "FateCe";
         public new static string kToolTip = "Alarm for a specific Fate or CE. Can go off once, or every time the FATE or CE comes around.";
-        public const int kTriggerInt_AcceptAllCe = -100;
+        private static HashSet<int> _currFateIds = new();
+        private static DateTime _cycleOne = DateTime.MinValue;
         public override string _mJsonId { get; set; } = AlarmFateCe._kJsonid;
         public AlarmFateCe() : base(null, null, kReprString) { }
         public AlarmFateCe(DateTime? pTriggerTime, int? pTriggerInt, string? pName = null, string? pTriggerString = null)
@@ -73,38 +76,95 @@ namespace BozjaBuddy.Data.Alarm
                 return false;
             }
 
-            if (this.mTriggerInt.HasValue && this.mTriggerInt.Value == AlarmFateCe.kTriggerInt_AcceptAllCe)
-            {
-                MsgAlarmCe tReceiverMsg = new(this.mTriggerInt!.Value.ToString());
-                if (AlarmManager.CheckMsg("fatece", tReceiverMsg)) return true;
-            }
-            else
-            {
-                MsgAlarmFateCe tReceiverMsg = new(this.mTriggerInt.HasValue ? this.mTriggerInt!.Value.ToString() : "0");
-                if (AlarmManager.CheckMsg("fatece", tReceiverMsg)) return true;
-            }
+            // Check msg for CEs
+            MsgAlarmFateCe tReceiverMsg = new(
+                pPlugin, 
+                this.mTriggerInt.HasValue ? this.mTriggerInt!.Value.ToString() : "0",
+                this._getExtraOptions(), 
+                pTriggerString: this.mTriggerString);
 
+            if (AlarmManager.CheckMsg("fatece", tReceiverMsg)) return true;
+
+            // Checking for Fate in vanilla way
             foreach (Dalamud.Game.ClientState.Fates.Fate iFate in pPlugin!.FateTable)
             {
-                if (this.mTriggerInt == iFate.FateId)
+                // Check: By Zone
+                if (this._getExtraOptions().HasFlag(ExtraCheckOption.ByZone))
                 {
-                    //PluginLog.LogDebug(String.Format("CHECK SUCCEEDED: Alarm's msgAlarm check is true! (trgInt={0} FateId={1})",
-                    //                this.mTriggerInt,
-                    //                iFate.FateId
-                    //            ));
+                    if (this.mTriggerString == null) continue;
+                    if (!(pPlugin.mBBDataManager.mFates.ContainsKey(iFate.FateId)
+                        && pPlugin.mBBDataManager.mFates[iFate.FateId].mLocation != null
+                        && UtilsGameData.kAreaAndCode[this.mTriggerString] != Location.Area.None
+                        && UtilsGameData.kAreaAndCode[this.mTriggerString] == pPlugin.mBBDataManager.mFates[iFate.FateId].mLocation!.mAreaFlag))
+                    {
+                        continue;
+                    }
+                }
+                // Check: Only Fate
+                if (this._getExtraOptions().HasFlag(AlarmFateCe.ExtraCheckOption.AllFateCe))
+                {
+                    return true;
+                }
+                // Check: Only Fate
+                else if (this._getExtraOptions().HasFlag(AlarmFateCe.ExtraCheckOption.OnlyFate)
+                    && !AlarmFateCe._currFateIds.Contains(iFate.FateId))
+                {
+                    if ((DateTime.Now - AlarmFateCe._cycleOne).TotalSeconds > 5)
+                    {
+                        AlarmFateCe.UpdateCurrFateIds(pPlugin);
+                        AlarmFateCe._cycleOne = DateTime.Now;
+                    }
+                    return true;
+                }
+
+                // Vanilla check
+                if (this._getExtraOptions() == ExtraCheckOption.None
+                    && this.mTriggerInt == iFate.FateId)
+                {
                     return true;
                 }
             }
-            //PluginLog.LogDebug(String.Format("CHECK FAILED: No msg is true. (trgInt={0}) ({1})",
-            //                                this.mTriggerInt,
-            //                                String.Join(", ", pPlugin!.FateTable.Select(o => o.FateId))
-            //                                ));
             return false;
         }
+        public override void AddExtraOption(int pOption)
+        {
+            this._addExtraOptions((ExtraCheckOption)pOption);
+        }
+        public override void RemoveExtraOption(int pOption)
+        {
+            this._extraOptions = (int)((ExtraCheckOption)this._extraOptions & ~(ExtraCheckOption)pOption);
+        }
+        public override int GetExtraOptions()
+        {
+            return base.GetExtraOptions();
+        }
+        public override bool CheckExtraOption(int pOption)
+        {
+            return ((ExtraCheckOption)this._extraOptions).HasFlag((ExtraCheckOption)pOption);
+        }
+        protected ExtraCheckOption _getExtraOptions() => (ExtraCheckOption)this.GetExtraOptions();
+        protected bool _checkExtraOption(ExtraCheckOption pOption) => ((ExtraCheckOption)this._extraOptions).HasFlag(pOption);
+        protected void _addExtraOptions(ExtraCheckOption pOption) => this._extraOptions = (int)((ExtraCheckOption)this._extraOptions | pOption);
+        protected void _removeExtraOptions(ExtraCheckOption pOption) => this._extraOptions = (int)((ExtraCheckOption)this._extraOptions & ~(ExtraCheckOption)pOption);
 
         public override string Serialize()
         {
             return "";
+        }
+
+        private static void UpdateCurrFateIds(Plugin pPlugin)
+        {
+            AlarmFateCe._currFateIds = new HashSet<int>(pPlugin!.FateTable.Select(o => (int)o.FateId).ToList());
+        }
+
+        [Flags]
+        public enum ExtraCheckOption
+        {
+            None = 0,
+            OnlyCe = 1,
+            OnlyFate = 2,
+            AllFateCe = 4,
+            ByZone = 8
         }
     }
 }

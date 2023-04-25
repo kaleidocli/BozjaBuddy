@@ -10,6 +10,7 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Lumina.Excel.GeneratedSheets;
 using BozjaBuddy.Data.Alarm;
 using BozjaBuddy.Utils;
+using System.Runtime.CompilerServices;
 
 namespace BozjaBuddy.Data
 {
@@ -449,10 +450,10 @@ namespace BozjaBuddy.Data
                     if (iID == iDe.Id)
                     {
                         pPlugin.mBBDataManager.mFates[iID].mDynamicEvent = iDe;
-                        AlarmManager.NotifyListener("fatece", new MsgAlarmFateCe(iID.ToString()));
+                        AlarmManager.NotifyListener("fatece", new MsgAlarmFateCe(pPlugin, iID.ToString(), AlarmFateCe.ExtraCheckOption.None));
                         break;
                     }
-                    AlarmManager.RemoveMsg("fatece", new MsgAlarmFateCe(iID.ToString()));
+                    AlarmManager.RemoveMsg("fatece", new MsgAlarmFateCe(pPlugin, iID.ToString(), AlarmFateCe.ExtraCheckOption.None));
                     pPlugin.mBBDataManager.mFates[iID].mDynamicEvent = null;
                     pPlugin.mBBDataManager.mFates[iDe.Id].mLastActive = DateTime.Now;
                 }

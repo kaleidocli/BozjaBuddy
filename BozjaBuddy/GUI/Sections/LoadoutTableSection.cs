@@ -156,7 +156,7 @@ namespace BozjaBuddy.GUI.Sections
             // Overlay
             LoadoutTableSection.DrawOverlayBar(this.mPlugin, this.mTextFilters, this.mTextFiltersCurrVal, pIsCompactMode: tIsCompact);
             ImGui.SameLine();
-            AuxiliaryViewerSection.GUIAlignRight((float)((tIsCompact ? 14 : 23)*12.7));
+            AuxiliaryViewerSection.GUIAlignRight((float)((tIsCompact ? 22 : 36) * ImGui.CalcTextSize("A").X));
             // Toggle rec visibility
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, tIsCompact ? "Rec." : "Recommended loadouts");
             ImGui.SameLine();
@@ -169,7 +169,7 @@ namespace BozjaBuddy.GUI.Sections
             {
                 this.mPlugin.mBBDataManager.ReloadLoadoutsPreset();
             }
-            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to return recommended loadouts to default. (user's loadouts are intact)"); }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to return recommended loadouts to default. (user's loadouts are intact)"); }
             ImGui.SameLine();
             ImGui.Text(" | ");
             ImGui.SameLine();
@@ -186,7 +186,7 @@ namespace BozjaBuddy.GUI.Sections
                     AuxiliaryViewerSection.AddTab(this.mPlugin, tLoadoutNew.GetGenId());
                 }
             }
-            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to add a new entry"); }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to add a new entry"); }
             // Import
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.FileImport) && io.KeyShift)
@@ -205,7 +205,7 @@ namespace BozjaBuddy.GUI.Sections
                     }
                 }
             }
-            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to import an entry from clipboard"); }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to import an entry from clipboard"); }
         }
 
         /// <summary>
@@ -349,7 +349,7 @@ namespace BozjaBuddy.GUI.Sections
             }
             else
             {
-                UtilsGUI.SetTooltipForLastItem("[Shift + RMB] to auto pair with a best suited Custom Loadout from the recommended loadouts (if those are available).\n\nIf you are in Bozja or Zadnor, it'll based on your current job and Bozja/Zadnor. Otherwise, it will based on your current job and Delubrum Reginae + Savage ver.");
+                UtilsGUI.SetTooltipForLastItem("[Shift + LMB] to auto pair with a best suited Custom Loadout from the recommended loadouts (if those are available).\n\nIf you are in Bozja or Zadnor, it'll based on your current job and Bozja/Zadnor. Otherwise, it will based on your current job and Delubrum Reginae + Savage ver.");
             }
 
             ImGui.SameLine();
@@ -374,7 +374,7 @@ namespace BozjaBuddy.GUI.Sections
                 var tLoadouts = pPlugin.mBBDataManager.mLoadouts;
                 if (!pGuiVar_TextFilters.ContainsKey(pGuiKey))
                 {
-                    pGuiVar_TextFilters[pGuiKey] = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+                    pGuiVar_TextFilters.Add(pGuiKey, new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null)));
                 }
                 if (ImGui.BeginCombo($"##{pGuiKey}", pSelectedLoadoutId == null ? "-----------" : tLoadouts[pSelectedLoadoutId!.Value].mName))
                 {

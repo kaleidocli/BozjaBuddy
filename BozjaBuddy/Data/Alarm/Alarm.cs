@@ -1,6 +1,7 @@
 ﻿using Dalamud.Logging;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 
 namespace BozjaBuddy.Data.Alarm
 {
@@ -39,6 +40,7 @@ namespace BozjaBuddy.Data.Alarm
         public bool mIsRevivable { get; set; }      // if the Alarm can be brought back to TBC list 
         public bool mIsAwake { get; set; } = true;          // if the Alarm can be checked while on TBC list 
         public bool mHasBeenRevived { get; set; } = true;
+        public int _extraOptions = 0;               // public due to serializer
 
         protected Alarm() : this(null, null, Alarm.kReprString, Alarm.kDefaultDuration)
         {
@@ -50,7 +52,8 @@ namespace BozjaBuddy.Data.Alarm
                         bool pIsAlive = true, 
                         bool pIsRevivable = false,
                         string pTriggerString = "",
-                        int pOffset = 0)
+                        int pOffset = 0,
+                        int pExtraOption = 0)
         {
             this.mId = Alarm._ID_COUNTER; Alarm._ID_COUNTER += 1;
             this.mTriggerTime = pTriggerTime;
@@ -61,6 +64,7 @@ namespace BozjaBuddy.Data.Alarm
             this.mIsRevivable = pIsRevivable;
             this.mTriggerString = pTriggerString;
             this.mOffset = pOffset;
+            this._extraOptions = pExtraOption;
         }
         /// <summary>
         /// Specifically workaround for Generic type init.
@@ -74,7 +78,8 @@ namespace BozjaBuddy.Data.Alarm
                                 bool pIsAlive = true,
                                 bool pIsRevivable = false,
                                 string pTriggerString = "",
-                                int pOffset = 0)
+                                int pOffset = 0,
+                                int pExtraOption = 0)
         {
             this.mTriggerTime = pTriggerTime;
             this.mTriggerInt = pTriggerInt;
@@ -84,6 +89,7 @@ namespace BozjaBuddy.Data.Alarm
             this.mIsRevivable = pIsRevivable;
             this.mTriggerString = pTriggerString;
             this.mOffset = pOffset;
+            this._extraOptions = pExtraOption;
         }
 
         /// <summary>
@@ -106,6 +112,11 @@ namespace BozjaBuddy.Data.Alarm
                 this.mHasBeenRevived = true;
             }
         }
+        public virtual int GetExtraOptions() => this._extraOptions;
+        public virtual void SetExtraOptions(int pOption) => this._extraOptions = pOption;
+        public virtual void AddExtraOption(int pOption) { }
+        public virtual void RemoveExtraOption(int pOption) { }
+        public virtual bool CheckExtraOption(int pOption) => true;
 
         public abstract string Serialize();
 

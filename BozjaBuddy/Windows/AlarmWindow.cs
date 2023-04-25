@@ -132,7 +132,6 @@ namespace BozjaBuddy.Windows
                     // location
                     if (iAlarm.GetType() == typeof(AlarmFateCe)
                         && iAlarm.mTriggerInt.HasValue
-                        && iAlarm.mTriggerInt.Value != AlarmFateCe.kTriggerInt_AcceptAllCe
                         && this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation != null)
                     {
                         UtilsGUI.LocationLinkButton(
@@ -203,7 +202,6 @@ namespace BozjaBuddy.Windows
                     // location
                     if (iAlarm.GetType() == typeof(AlarmFateCe) 
                         && iAlarm.mTriggerInt.HasValue
-                        && iAlarm.mTriggerInt.Value != AlarmFateCe.kTriggerInt_AcceptAllCe
                         && this.Plugin.mBBDataManager.mFates[iAlarm.mTriggerInt!.Value].mLocation != null)
                     {
                         UtilsGUI.LocationLinkButton(
@@ -260,18 +258,34 @@ namespace BozjaBuddy.Windows
             // Desc
             try
             {
+                string tFateCeDesc = "Fate/Ce | ";
+                var tFlags = (AlarmFateCe.ExtraCheckOption)pAlarm.GetExtraOptions();
+                if (tFlags == AlarmFateCe.ExtraCheckOption.None)
+                {
+                    tFateCeDesc += this.Plugin.mBBDataManager.mFates[pAlarm.mTriggerInt!.Value].mName;
+                }
+                else
+                {
+                    if (tFlags.HasFlag(AlarmFateCe.ExtraCheckOption.OnlyCe)) tFateCeDesc += " All CEs.";
+                    if (tFlags.HasFlag(AlarmFateCe.ExtraCheckOption.OnlyFate)) tFateCeDesc += " All FATEs.";
+                    if (tFlags.HasFlag(AlarmFateCe.ExtraCheckOption.AllFateCe)) tFateCeDesc += " All Fate/CE.";
+                    if (tFlags.HasFlag(AlarmFateCe.ExtraCheckOption.ByZone)
+                        && pAlarm.mTriggerString != null
+                        && UtilsGameData.kAreaAndCode.ContainsKey(pAlarm.mTriggerString)) tFateCeDesc += " Only in: " + UtilsGameData.kAreaAndCode[pAlarm.mTriggerString];
+                }
+
                 ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, String.Format("{0}",
                                                             pAlarm._mJsonId switch
                                                             {
                                                                 AlarmTime._kJsonid => $"Time",
                                                                 AlarmWeather._kJsonid => $"Weather | {WeatherBarSection._mTerritories[pAlarm.mTriggerString!]} | {WeatherBarSection._mWeatherNames[pAlarm.mTriggerInt!.Value]}",
-                                                                AlarmFateCe._kJsonid => $"Fate/Ce | {(pAlarm.mTriggerInt!.Value == AlarmFateCe.kTriggerInt_AcceptAllCe ? "Any CE" : this.Plugin.mBBDataManager.mFates[pAlarm.mTriggerInt!.Value].mName)}",
+                                                                AlarmFateCe._kJsonid => tFateCeDesc,
                                                                 _ => "unknown"
                                                             }));
                 ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, String.Format("{0}{1}{2}",
                                                             pAlarm.mIsRevivable ? "Repeat" : "Once",
                                                             $" | ±{pAlarm.mOffset}s",
-                                                            !pAlarm.mIsRevivable && pAlarm.mTriggerTime.HasValue
+                                                            !pAlarm.mIsRevivable && pAlarm.mTriggerTime.HasValue && pAlarm._mJsonId != AlarmFateCe._kJsonid
                                                                 ? $" | {pAlarm.mTriggerTime}"
                                                                 : ""
                                                             ));

@@ -1,7 +1,9 @@
-﻿using BozjaBuddy.Data.Alarm;
+﻿using BozjaBuddy.Data;
+using BozjaBuddy.Data.Alarm;
 using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Components;
+using Dalamud.Logging;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -27,7 +29,11 @@ namespace BozjaBuddy.GUI
         private static bool kFieldIsRevivable = false;
         private static string? kFieldTriggerString = "";
         private static int? kFieldTriggerInt = 0;
-        private static bool kFieldAcceptAll = false;
+        private static int kFieldExOptFlag = 0;
+        private static bool kFieldExOptFCE_AllFateCe = false;
+        private static bool kFieldExOptFCE_OnlyCe = false;
+        private static bool kFieldExOptFCE_OnlyFate = false;
+        private static bool kFieldExOptFCE_ByZone = false;
 
         private static string[] kAlarmLabels = { "Time", "Weather", "FateCE" };
         private static List<string> kAlarmTerritories = WeatherBarSection._mTerritories.Keys.ToList();
@@ -214,6 +220,7 @@ namespace BozjaBuddy.GUI
                 {
                     GUIAlarm._kErrors.Add(0, "Incorrect date value.");
                 }
+
                 T tTempAlarm = new T();
                 tTempAlarm.Init(pTriggerTime ?? GUIAlarm.kDateTime,
                                 GUIAlarm.kFieldTriggerInt,
@@ -221,8 +228,9 @@ namespace BozjaBuddy.GUI
                                 GUIAlarm.kFieldDuration,
                                 true,
                                 GUIAlarm.kFieldIsRevivable,
-                                GUIAlarm.kFieldTriggerString,
-                                GUIAlarm.kFieldOffset);
+                                GUIAlarm.kFieldTriggerString ?? "",
+                                GUIAlarm.kFieldOffset,
+                                GUIAlarm.kFieldExOptFlag);
                 pPlugin.AlarmManager.AddAlarm(tTempAlarm);
 
                 ImGui.CloseCurrentPopup();
@@ -252,6 +260,7 @@ namespace BozjaBuddy.GUI
                 pAlarm.mDuration = GUIAlarm.kFieldDuration;
                 pAlarm.mIsRevivable = GUIAlarm.kFieldIsRevivable;
                 pAlarm.mOffset = GUIAlarm.kFieldOffset;
+                pAlarm.SetExtraOptions(GUIAlarm.kFieldExOptFlag);
                 pPlugin.AlarmManager.SaveAlarmListsToDisk();
 
                 ImGui.CloseCurrentPopup();
@@ -364,28 +373,30 @@ namespace BozjaBuddy.GUI
             {
                 if (pAlarmToEdit == null)
                 {
-                    GUIAlarm.kFieldTriggerInt =
-                        GUIAlarm.kFieldAcceptAll 
-                        ? AlarmFateCe.kTriggerInt_AcceptAllCe
-                        : pTriggerInt ?? GUIAlarm.kFieldTriggerInt ?? pPlugin.mBBDataManager.mFates.Keys.ToList()[0];
+                    GUIAlarm.kFieldTriggerInt = pTriggerInt ?? GUIAlarm.kFieldTriggerInt ?? pPlugin.mBBDataManager.mFates.Keys.ToList()[0];
                 }
                 else
                 {
                     GUIAlarm.kComboCurrFateId = GUIAlarm.kComboCurrFateId == 0 && pAlarmToEdit.mTriggerInt.HasValue ? pAlarmToEdit.mTriggerInt.Value : GUIAlarm.kComboCurrFateId;
-                    GUIAlarm.kFieldTriggerString = GUIAlarm.kComboCurrTerritoryId;
-                    GUIAlarm.kFieldTriggerInt = GUIAlarm.kFieldAcceptAll ? AlarmFateCe.kTriggerInt_AcceptAllCe : GUIAlarm.kComboCurrFateId;
+                    GUIAlarm.kFieldTriggerString = pAlarmToEdit.mTriggerString != null && pAlarmToEdit.mTriggerString != ""
+                                                    ? pAlarmToEdit.mTriggerString
+                                                    : GUIAlarm.kComboCurrTerritoryId;
+                    GUIAlarm.kFieldTriggerInt = GUIAlarm.kComboCurrFateId;
                 }
 
                 // Text input
                 ImGui.BeginGroup();
                 GUIAlarm.DrawACPUTextInput_Default();
 
-                ImGui.Checkbox("##aa", ref GUIAlarm.kFieldAcceptAll);
-                ImGui.SameLine(); UtilsGUI.TextDescriptionForWidget("Any CE (FATEs excluded)");
-
+                // Fate/CE combo
+                UtilsGUI.TextDescriptionForWidget("For specific Fate/CE: ");
+                ImGui.SameLine();
                 if (pIsLabelEditable || pAlarmToEdit != null)
                 {
-                    if (GUIAlarm.kFieldAcceptAll)
+                    if (GUIAlarm.kFieldExOptFCE_AllFateCe
+                        || GUIAlarm.kFieldExOptFCE_OnlyFate
+                        || GUIAlarm.kFieldExOptFCE_OnlyCe
+                        || GUIAlarm.kFieldExOptFCE_ByZone)
                     {
                         ImGui.BeginDisabled();
                         GUIAlarm.DrawComboFateCe(pPlugin, pAlarmToEdit: pAlarmToEdit);
@@ -393,8 +404,84 @@ namespace BozjaBuddy.GUI
                     }
                     else { GUIAlarm.DrawComboFateCe(pPlugin, pAlarmToEdit: pAlarmToEdit); }
 
-                    GUIAlarm.kFieldTriggerInt = GUIAlarm.kFieldAcceptAll ? AlarmFateCe.kTriggerInt_AcceptAllCe : pPlugin.mBBDataManager.mFates[GUIAlarm.kComboCurrFateId].mId;
+                    GUIAlarm.kFieldTriggerInt = pPlugin.mBBDataManager.mFates[GUIAlarm.kComboCurrFateId].mId;
                 }
+
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5);
+
+                // Radio buttons
+                int tTemp_exo1 = GUIAlarm.kFieldExOptFCE_AllFateCe
+                                    ? 1
+                                    : GUIAlarm.kFieldExOptFCE_OnlyFate
+                                        ? 2
+                                        : GUIAlarm.kFieldExOptFCE_OnlyCe
+                                            ? 3
+                                            : 0;
+                ImGui.RadioButton("None", ref tTemp_exo1, 0);
+                ImGui.SameLine(); ImGui.RadioButton("For all Fate/CE", ref tTemp_exo1, 1);
+                ImGui.SameLine(); ImGui.RadioButton("For all Fates", ref tTemp_exo1, 2);
+                ImGui.SameLine(); ImGui.RadioButton("For all CEs", ref tTemp_exo1, 3);
+                ImGui.SameLine(); UtilsGUI.ShowHelpMarker("Settings NOT including CLL, Dal, DR, DRS. These need a specific alarm for them.");
+                GUIAlarm.kFieldExOptFCE_AllFateCe = tTemp_exo1 == 1;
+                GUIAlarm.kFieldExOptFCE_OnlyFate = tTemp_exo1 == 2;
+                GUIAlarm.kFieldExOptFCE_OnlyCe = tTemp_exo1 == 3;
+
+                // Location combos
+                if (GUIAlarm.kFieldExOptFCE_AllFateCe
+                    || GUIAlarm.kFieldExOptFCE_OnlyFate
+                    || GUIAlarm.kFieldExOptFCE_OnlyCe)
+                {
+                    UtilsGUI.TextDescriptionForWidget("For specific location: ");
+                    if (GUIAlarm.kFieldTriggerString == null
+                        || !UtilsGameData.kAreaAndCode.ContainsKey(GUIAlarm.kFieldTriggerString))
+                        GUIAlarm.kFieldTriggerString = "none";
+                    ImGui.SameLine();
+                    if (ImGui.BeginCombo("##exoCombo", UtilsGameData.kAreaAndCode[GUIAlarm.kFieldTriggerString!].ToString()))
+                    {
+                        foreach (string iAreaCode in UtilsGameData.kAreaAndCode.Keys)
+                        {
+                            if ((int)UtilsGameData.kAreaAndCode[iAreaCode] > 6) continue;
+                            if (ImGui.Selectable(UtilsGameData.kAreaAndCode[iAreaCode].ToString()))
+                            {
+                                GUIAlarm.kFieldTriggerString = iAreaCode;
+                            }
+                        }
+                        ImGui.EndCombo();
+                    }
+                }
+                else
+                {
+                    ImGui.BeginDisabled();
+                    int tDummyInt = 0;
+                    GUIAlarm.kFieldTriggerString = null;
+                    UtilsGUI.TextDescriptionForWidget("For specific location: ");
+                    ImGui.SameLine(); ImGui.Combo("##exoCombo", ref tDummyInt, "---------------");
+                    ImGui.EndDisabled();
+                }
+                if (GUIAlarm.kFieldTriggerString != null
+                    && UtilsGameData.kAreaAndCode.ContainsKey(GUIAlarm.kFieldTriggerString)
+                    && UtilsGameData.kAreaAndCode[GUIAlarm.kFieldTriggerString!] != Location.Area.None)
+                {
+                    GUIAlarm.kFieldExOptFCE_ByZone = true;
+                }
+                else
+                {
+                    GUIAlarm.kFieldExOptFCE_ByZone = false;
+                }
+
+                // Calc ExOpt flag
+                GUIAlarm.kFieldExOptFlag = GUIAlarm.kFieldExOptFCE_AllFateCe
+                            ? (int)((AlarmFateCe.ExtraCheckOption)GUIAlarm.kFieldExOptFlag | AlarmFateCe.ExtraCheckOption.AllFateCe)
+                            : (int)((AlarmFateCe.ExtraCheckOption)GUIAlarm.kFieldExOptFlag & ~AlarmFateCe.ExtraCheckOption.AllFateCe);
+                GUIAlarm.kFieldExOptFlag = GUIAlarm.kFieldExOptFCE_OnlyCe
+                            ? (int)((AlarmFateCe.ExtraCheckOption)GUIAlarm.kFieldExOptFlag | AlarmFateCe.ExtraCheckOption.OnlyCe)
+                            : (int)((AlarmFateCe.ExtraCheckOption)GUIAlarm.kFieldExOptFlag & ~AlarmFateCe.ExtraCheckOption.OnlyCe);
+                GUIAlarm.kFieldExOptFlag = GUIAlarm.kFieldExOptFCE_OnlyFate
+                            ? (int)((AlarmFateCe.ExtraCheckOption)GUIAlarm.kFieldExOptFlag | AlarmFateCe.ExtraCheckOption.OnlyFate)
+                            : (int)((AlarmFateCe.ExtraCheckOption)GUIAlarm.kFieldExOptFlag & ~AlarmFateCe.ExtraCheckOption.OnlyFate);
+                GUIAlarm.kFieldExOptFlag = GUIAlarm.kFieldExOptFCE_ByZone
+                            ? (int)((AlarmFateCe.ExtraCheckOption)GUIAlarm.kFieldExOptFlag | AlarmFateCe.ExtraCheckOption.ByZone)
+                            : (int)((AlarmFateCe.ExtraCheckOption)GUIAlarm.kFieldExOptFlag & ~AlarmFateCe.ExtraCheckOption.ByZone);
 
                 ImGui.EndGroup();
 
@@ -488,7 +575,11 @@ namespace BozjaBuddy.GUI
             GUIAlarm.kFieldIsRevivable = false;
             GUIAlarm.kFieldTriggerInt = null;
             GUIAlarm.kFieldTriggerString = null;
-            GUIAlarm.kFieldAcceptAll = false;
+            GUIAlarm.kFieldExOptFlag = 0;
+            GUIAlarm.kFieldExOptFCE_AllFateCe = false;
+            GUIAlarm.kFieldExOptFCE_OnlyFate = false;
+            GUIAlarm.kFieldExOptFCE_OnlyCe = false;
+            GUIAlarm.kFieldExOptFCE_ByZone = false;
 
             GUIAlarm.kComboCurrTerritoryId = "";
             GUIAlarm.kComboCurrWeatherId = 0;
@@ -504,7 +595,12 @@ namespace BozjaBuddy.GUI
             GUIAlarm.kFieldIsRevivable = pAlarm.mIsRevivable;
             GUIAlarm.kFieldTriggerInt = pAlarm.mTriggerInt ?? null;
             GUIAlarm.kFieldTriggerString = pAlarm.mTriggerString ?? null;
-            GUIAlarm.kFieldAcceptAll = false;
+            GUIAlarm.kFieldExOptFlag = 0;
+            var tFlag = (AlarmFateCe.ExtraCheckOption)(pAlarm.GetExtraOptions());
+            GUIAlarm.kFieldExOptFCE_AllFateCe = tFlag.HasFlag(AlarmFateCe.ExtraCheckOption.AllFateCe);
+            GUIAlarm.kFieldExOptFCE_OnlyFate = tFlag.HasFlag(AlarmFateCe.ExtraCheckOption.OnlyFate);
+            GUIAlarm.kFieldExOptFCE_OnlyCe = tFlag.HasFlag(AlarmFateCe.ExtraCheckOption.OnlyCe);
+            GUIAlarm.kFieldExOptFCE_ByZone = tFlag.HasFlag(AlarmFateCe.ExtraCheckOption.ByZone);
 
             GUIAlarm.kFieldDateDD = pAlarm.mTriggerTime!.Value.Day.ToString();
             GUIAlarm.kFieldDateMM = pAlarm.mTriggerTime!.Value.Month.ToString();

@@ -355,7 +355,7 @@ public class ConfigWindow : Window, IDisposable
         }
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
-        UtilsGUI.ShowHelpMarker("Refresh rate is the rate at which the UI is updated.\nLower value yields better user experience at the cost of potential game stuttering. And vice versa.\n The default value (0.6) is recommended.");
+        UtilsGUI.ShowHelpMarker($"Refresh rate is the rate at which the UI is updated.\nLower value yields better user experience at the cost of potential game stuttering. And vice versa.\n The default value ({pPlugin.Configuration.mGuiAssistConfig.itemBox.refreshRateDefault}) is recommended.");
     }
     public static void Draw_LoadoutPairingButton(Plugin pPlugin, Dictionary<string, ImGuiTextFilterPtr> pGuiVar_TextFilters)
     {

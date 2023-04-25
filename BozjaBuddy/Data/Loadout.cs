@@ -23,7 +23,7 @@ namespace BozjaBuddy.Data
             this.mId = pPackageJson.mId < 0 || pIsNew
                         ? Loadout.IdAutoIncrement + 1 
                         : pPackageJson.mId;
-            if (this.mId > Loadout.IdAutoIncrement)
+            if (this.mId > Loadout.IdAutoIncrement && this.mId < 10000)
                 Loadout.IdAutoIncrement = this.mId;
             this.mName = pPackageJson.mName;
             this.mDescription = pPackageJson.mDescription;

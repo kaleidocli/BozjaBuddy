@@ -165,7 +165,7 @@ namespace BozjaBuddy.GUI.Sections
                 BBDataManager.DynamicRemoveGeneralObject<Loadout>(this.mPlugin, tLoadout, this.mPlugin.mBBDataManager.mLoadouts);
                 AuxiliaryViewerSection.mIsRefreshRequired = true;
             }
-            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + RMB] to delete the current entry"); }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to delete the current entry"); }
             ImGui.SameLine(); ImGui.Spacing(); ImGui.SameLine(); ImGui.Spacing(); ImGui.SameLine();
             // COPY button
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ClipboardList))
@@ -502,7 +502,7 @@ namespace BozjaBuddy.GUI.Sections
         {
             ImGuiStylePtr tStyle = ImGui.GetStyle();
             float tPadding = tStyle.WindowPadding.X + tStyle.FramePadding.X * 2 + tStyle.ScrollbarSize;
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ImGui.GetCursorPosX() + ImGui.GetWindowWidth() - pTargetItemWidth - tPadding);
+            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - pTargetItemWidth - tPadding);
         }
         public static void GUILoadoutEditAdjuster(Plugin pPlugin, int pActionId)
         {

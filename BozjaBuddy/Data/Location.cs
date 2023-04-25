@@ -9,6 +9,7 @@ namespace BozjaBuddy.Data
     {
         protected Plugin mPlugin { get; set; }
         public static double[] BOZJA_Z3_BOX = { 0, 0, 26.4, 18.8 };             // TODO: Use actual Area and Subarea for this
+        public static double[] BOZJA_Z3_BOX2 = { 0, 0, 13.3, 24.1 };            // TODO TODO: lmao gl remembering to do that
         public static double[] BOZJA_Z2_BOX = { 13.0, 14.6, 33.2, 25.3 };
         public static double[] BOZJA_Z1_BOX = { 13.1, 23.1, 37.3, 32.2 };
         public static double[] ZADNOR_Z3_BOX = { 0, 0, 27.7, 18.1 };
@@ -50,7 +51,7 @@ namespace BozjaBuddy.Data
         {
             if (this.mTerritoryType == "n4b4")
             {
-                if (this.CheckIsInsideBox(Location.BOZJA_Z3_BOX)) this.mAreaFlag = Area.Bozja_Zone3;
+                if (this.CheckIsInsideBox(Location.BOZJA_Z3_BOX) || this.CheckIsInsideBox(Location.BOZJA_Z3_BOX2)) this.mAreaFlag = Area.Bozja_Zone3;
                 else if (this.CheckIsInsideBox(Location.BOZJA_Z2_BOX)) this.mAreaFlag = Area.Bozja_Zone2;
                 else this.mAreaFlag = Area.Bozja_Zone1;
             }

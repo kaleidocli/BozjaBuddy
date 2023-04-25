@@ -16,9 +16,9 @@ namespace BozjaBuddy.Data.Alarm
         {
             this.mIsRevivable = false;
         }
-        public override void Init(DateTime? pTriggerTime, int? pTriggerInt, string pName = "", int pDuration = -1, bool pIsAlive = true, bool pIsRevivable = false, string pTriggerString = "", int pOffset = 0)
+        public override void Init(DateTime? pTriggerTime, int? pTriggerInt, string pName = "", int pDuration = -1, bool pIsAlive = true, bool pIsRevivable = false, string pTriggerString = "", int pOffset = 0, int pExtraOption = 0)
         {
-            base.Init(pTriggerTime, pTriggerInt, pName, pDuration, pIsAlive, false, pTriggerString, pOffset);
+            base.Init(pTriggerTime, pTriggerInt, pName, pDuration, pIsAlive, false, pTriggerString, pOffset, pExtraOption);
         }
 
         public override bool CheckAlarm(DateTime pCurrTime, Dictionary<string, List<MsgAlarm>> pListeners, int pThresholdSeconds = 60, bool pIsReviving = false, Plugin? pPlugin = null)
