@@ -28,8 +28,9 @@ namespace BozjaBuddy.GUI.GUIAssist
         private HashSet<GUIAssistOption> mRestoreRequests = new();
         private Dictionary<GUIAssistOption, bool> mOptionStateDefault = new()
         {
-            { GUIAssistOption.MycInfoBox , true },
-            { GUIAssistOption.MycItemBoxRoleFilter , true }
+            { GUIAssistOption.MycInfoBoxAlarm , true },
+            { GUIAssistOption.MycItemBoxRoleFilter , true },
+            { GUIAssistOption.MycInfoBox , true }
         };
         private DateTime _cycleOneSecond = DateTime.Now;
         private DateTime _cycle2 = DateTime.Now;
@@ -37,6 +38,7 @@ namespace BozjaBuddy.GUI.GUIAssist
         private GUIAssistManager.GUIAssistStatusFlag mStatus = GUIAssistStatusFlag.None;
 
         private ExtGui_MycItemBox mExtGui_MycItemBox;
+        private ExtGui_MycInfo mExtGui_MycInfo;
         private HashSet<int> _MycItemBagTrade_ValidNodeIds = new HashSet<int>(new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
 
         private GUIAssistManager() { }
@@ -44,8 +46,9 @@ namespace BozjaBuddy.GUI.GUIAssist
         {
             this.mPlugin = pPlugin;
 
-            this.mOptionFunctions[GUIAssistOption.MycInfoBox] = this.Draw_MycInfo;
+            this.mOptionFunctions[GUIAssistOption.MycInfoBoxAlarm] = this.Draw_MycInfoAlarm;
             this.mOptionFunctions[GUIAssistOption.MycItemBoxRoleFilter] = this.Draw_MycItemBox;
+            this.mOptionFunctions[GUIAssistOption.MycInfoBox] = this.Draw_MycInfo;
 
             this.mRestoreFunctions[GUIAssistOption.MycItemBoxRoleFilter] = this.Restore_MycItemBox;
 
@@ -60,9 +63,11 @@ namespace BozjaBuddy.GUI.GUIAssist
 
             // Init always-on GUIAssist
             this.RequestOption(this.GetHashCode(), GUIAssistOption.MycItemBoxRoleFilter);
+            this.RequestOption(this.GetHashCode(), GUIAssistOption.MycInfoBox);
 
             // ExtGui
             this.mExtGui_MycItemBox = new(this.mPlugin);
+            this.mExtGui_MycInfo = new(this.mPlugin);
         }
 
         /// <summary> Set if the GUI option should be enabled, regardless of visibility. Return false if option is not found </summary>
@@ -126,10 +131,25 @@ namespace BozjaBuddy.GUI.GUIAssist
         }
         private void Draw_MycInfo()
         {
+            if (this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_All) return;
+            // Extension GUI
+            try
+            {
+                HelperUtil.DrawHelper(
+                    this.mPlugin,
+                    this.mExtGui_MycInfo,
+                    new Vector2(0, ImGui.CalcTextSize("A").Y),
+                    padding: new Vector2(0, -ImGui.CalcTextSize("A").Y));
+            }
+            catch (Exception e) { PluginLog.LogDebug(e.Message); }
+        }
+        private void Draw_MycInfoAlarm()
+        {
+            if (this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_All) return;
             //PluginLog.LogDebug($"> GUIAssistMng: isMainFocus={this.mPlugin.WindowSystem.HasAnyFocus} hasInfoKey={this.mOptionRequests.ContainsKey(GUIAssistOption.MycInfoBox)} keys={(this.mOptionRequests.ContainsKey(GUIAssistOption.MycInfoBox) ? String.Join(", ", this.mOptionRequests[GUIAssistOption.MycInfoBox].ToList()) : 0)} keyAlmMng={this.mPlugin.AlarmManager.mHash}");
             if (!this.mPlugin.mIsMainWindowActive
-                && this.mOptionRequests.ContainsKey(GUIAssistOption.MycInfoBox)
-                && !this.mOptionRequests[GUIAssistOption.MycInfoBox].Contains(this.mPlugin.AlarmManager.mHash)
+                && this.mOptionRequests.ContainsKey(GUIAssistOption.MycInfoBoxAlarm)
+                && !this.mOptionRequests[GUIAssistOption.MycInfoBoxAlarm].Contains(this.mPlugin.AlarmManager.mHash)
                     )
             {
                 return;         // Abort when Main window is not active + AlarmManager is not requesting GUIAssist
@@ -182,7 +202,7 @@ namespace BozjaBuddy.GUI.GUIAssist
                     ImGui.GetBackgroundDrawList().AddText(
                         new Vector2(tCoordX, tCoordY + (float)(tSizeY * 1.2)),
                         ImGui.ColorConvertFloat4ToU32(Utils.UtilsGUI.Colors.ActivatedText_Green),
-                        "BozjaBuddy: Keep this open for CE-related features.\n(To turn off: Config > UI hints > [A] > [1])"
+                        "BozjaBuddy: Keep this open for CE-related features.\n(To turn off: Config > UI hints > [A] > [2])"
                         );
                 }
                 catch (Exception e)
@@ -610,8 +630,9 @@ break;
         public enum GUIAssistOption
         {
             None = 0,
-            MycInfoBox = 1,
-            MycItemBoxRoleFilter = 2
+            MycInfoBoxAlarm = 1,
+            MycItemBoxRoleFilter = 2,
+            MycInfoBox = 3
         }
         [Flags]
         private enum GUIAssistStatusFlag

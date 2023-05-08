@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BozjaBuddy.GUI.GUIAssist;
 using BozjaBuddy.Utils;
+using System.Security.Cryptography;
 
 namespace BozjaBuddy.Data
 {
@@ -44,9 +45,54 @@ namespace BozjaBuddy.Data
             this.SetUpAuxiliary();
         }
 
-        public override string GetReprSynopsis()
+        public override string GetReprClipboardTooltip()
             => $"[{this.mName}] • [Role: {this.mRole}] • [Charges: {this.mCharges}] • [Weight: {this.mWeight}] • [Cast/Recast: {this.mCast}s/{this.mRecast}s] • [{this.mDescription_semi.Replace("\n", ". ")}] • [Frags: {String.Join(", ", this.mLinkFragments.Select(id => this.mPlugin.mBBDataManager.mFragments[id].mName))}]";
-        
+        protected override string GenReprUiTooltip()
+        {
+            string tFateText = "";
+            foreach (int iId in this.mLinkFragments)
+            {
+                if (!this.mPlugin.mBBDataManager.mFragments.ContainsKey(iId)) continue;
+                tFateText += string.Join(
+                    "\n\t\t\t\t\t\t\t",
+                    this.mPlugin.mBBDataManager.mFragments[iId].mLinkFates
+                                       .Select(o => this.mPlugin.mBBDataManager.mFates.ContainsKey(o)
+                                                ? this.mPlugin.mBBDataManager.mFates[o].mName
+                                                : "unknown")
+                                       .ToList()
+                    );
+            }
+
+            string tMobDrops = "";
+            foreach (int iFragId in this.mLinkFragments)
+            {
+                if (!this.mPlugin.mBBDataManager.mFragments.ContainsKey(iFragId)) continue;
+                tMobDrops += string.Join(
+                    "\n\t\t\t\t\t\t\t",
+                    this.mPlugin.mBBDataManager.mFragments[iFragId].mLinkMobs
+                                       .Select(o => this.mPlugin.mBBDataManager.mMobs.ContainsKey(o)
+                                                ? this.mPlugin.mBBDataManager.mMobs[o].mName
+                                                : "unknown")
+                                       .ToList()
+                    );
+            }
+            string tFragDrops = string.Join(
+                ", ",
+                this.mLinkFragments.Select(o => this.mPlugin.mBBDataManager.mFragments.ContainsKey(o)
+                                            ? this.mPlugin.mBBDataManager.mFragments[o].mName
+                                            : "unknown")
+                                   .ToList()
+                                    );
+
+            this.mUiTooltip = $"Name:\t\t\t\t{this.mName}"
+                            + $"\nRole:   \t\t\t\t{this.mRole}"
+                            + $"\n\n{this.mDescription_semi}"
+                            + $"\n\nFragments:   \t{tFragDrops}"
+                            + $"\nFATE drops:  \t{tFateText}"
+                            + $"\nMob drops:   \t{tMobDrops}";
+            return this.mUiTooltip;
+        }
+
         protected override void SetUpAuxiliary()
         {
             this.mDetail = $"[{this.mCharges}/{this.mCharges}]\t•\t[Weight: {this.mWeight}]\t•\t[Cast: {this.mCast}s]\t•\t[Recast: {this.mRecast}]";

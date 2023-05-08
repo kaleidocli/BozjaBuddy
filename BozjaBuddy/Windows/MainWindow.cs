@@ -19,6 +19,7 @@ public class MainWindow : Window, IDisposable
     public MainWindow(Plugin plugin) : base(
         "Bozja Buddy", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
+        this.RespectCloseHotkey = false;
         this.SizeConstraints = plugin.Configuration.SizeConstraints;
         this.Plugin = plugin;
 

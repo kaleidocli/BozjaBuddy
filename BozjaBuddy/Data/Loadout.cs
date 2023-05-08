@@ -1,6 +1,7 @@
 ﻿using System.Data.SQLite;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BozjaBuddy.Data
 {
@@ -39,7 +40,7 @@ namespace BozjaBuddy.Data
         {
             return new Loadout(this.mPlugin, this.mPackageJson);
         }
-        public override string GetReprSynopsis()
+        public override string GetReprClipboardTooltip()
         {
             string tLoadoutText = "";
             foreach (int iActionid in this.mActionIds.Keys)
@@ -47,6 +48,24 @@ namespace BozjaBuddy.Data
                 tLoadoutText += $"[{this.mPlugin.mBBDataManager.mLostActions[iActionid].mName} x{this.mActionIds[iActionid]}]";
             }
             return $"[{this.mName}] • [Group: {this.mGroup}] • [Role: {this.mRole}] • {tLoadoutText}";
+        }
+        protected override string GenReprUiTooltip()
+        {
+            List<string> tActionTexts = new();
+            foreach (int iActionid in this.mActionIds.Keys)
+            {
+                tActionTexts.Add($"x{this.mActionIds[iActionid]}\t{this.mPlugin.mBBDataManager.mLostActions[iActionid].mName}");
+            }
+            string tActionText = string.Join(
+                "\n",
+                tActionTexts
+                );
+
+            this.mUiTooltip = $"Name:\t{this.mName}\n"
+                            + $"Role:   \t{this.mRole}\n"
+                            + $"Group:    {this.mGroup}\n"
+                            + $"\n{tActionText}";
+            return this.mUiTooltip;
         }
 
         protected override void SetUpAuxiliary()

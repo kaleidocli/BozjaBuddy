@@ -237,7 +237,7 @@ namespace BozjaBuddy.Data.Alarm
                 {
                     if (tNeedToUnrequest)
                     {
-                        this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBox);
+                        this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBoxAlarm);
                         tNeedToUnrequest = false;
                     }
                     Thread.Sleep(INTERVAL);
@@ -302,12 +302,12 @@ namespace BozjaBuddy.Data.Alarm
                 // GUIAssist stuff
                 if (tFateCeAlarmCount > 0)
                 {
-                    this.mPlugin.GUIAssistManager.RequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBox);
+                    this.mPlugin.GUIAssistManager.RequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBoxAlarm);
                     tNeedToUnrequest = true;
                 }
                 else if (tNeedToUnrequest)
                 {
-                    this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBox);
+                    this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUI.GUIAssist.GUIAssistManager.GUIAssistOption.MycInfoBoxAlarm);
                     tNeedToUnrequest = false;
                 }   
 

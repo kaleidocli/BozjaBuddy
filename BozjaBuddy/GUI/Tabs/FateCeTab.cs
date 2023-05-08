@@ -25,11 +25,11 @@ namespace BozjaBuddy.GUI.Tabs
             bool tRes = base.DrawGUI();
             if (tRes)
             {
-                this.mPlugin.GUIAssistManager.RequestOption(this.GetHashCode(), GUIAssistManager.GUIAssistOption.MycInfoBox);
+                this.mPlugin.GUIAssistManager.RequestOption(this.GetHashCode(), GUIAssistManager.GUIAssistOption.MycInfoBoxAlarm);
             }
             else
             {
-                this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUIAssistManager.GUIAssistOption.MycInfoBox);
+                this.mPlugin.GUIAssistManager.UnrequestOption(this.GetHashCode(), GUIAssistManager.GUIAssistOption.MycInfoBoxAlarm);
             }
             return tRes;
         }

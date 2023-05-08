@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
+using System.Linq;
 
 namespace BozjaBuddy.Data
 {
@@ -38,7 +39,7 @@ namespace BozjaBuddy.Data
 
             this.SetUpAuxiliary();
         }
-        public override string GetReprSynopsis()
+        public override string GetReprClipboardTooltip()
         {
             return $"[{this.mName}] • [Type: {this.mType}] • [Lcoation: {WeatherBarSection._mTerritories[this.mTerritoryType]} x:{this.mMapCoordX} y:{this.mMapCoordY}] • [{this.mNote}]";
         }
@@ -47,6 +48,20 @@ namespace BozjaBuddy.Data
             this.mDetail = $"[{this.mType.ToString()}] • [Rank: {this.mLevel}]";
             this.mDescription = this.mNote;
             this.mIGMarkup = new GUI.IGMarkup.IGMarkup(this.mNote);
+        }
+        protected override string GenReprUiTooltip()
+        {
+            string tMobText = string.Join(
+                "\n\t\t\t\t\t",
+                this.mLinkMobs.Select(o => this.mPlugin.mBBDataManager.mMobs.ContainsKey(o)
+                                            ? this.mPlugin.mBBDataManager.mMobs[o].mName + $" --- ({this.mPlugin.mBBDataManager.mMobs[o].mLocation?.ToString()} x:{this.mPlugin.mBBDataManager.mMobs[o].mLocation?.mMapCoordX} y:{this.mPlugin.mBBDataManager.mMobs[o].mLocation?.mMapCoordY})"
+                                            : "unknown")
+                                   .ToList()
+                );
+
+            this.mUiTooltip = $"Name:\t{this.mName}"
+                            + $"\nLoc.:\t\t{this.mLocation?.ToString()} x:{this.mLocation?.mMapCoordX} y:{this.mLocation?.mMapCoordY}";
+            return this.mUiTooltip;
         }
 
         public enum MobType

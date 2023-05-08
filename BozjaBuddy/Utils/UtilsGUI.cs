@@ -14,6 +14,7 @@ using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
@@ -59,18 +60,20 @@ namespace BozjaBuddy.Utils
         {
             ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, pText);
         }
-        public static void SelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true)
+        public static bool SelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true)
         {
+            bool tRes = false;
             ImGui.PushID(pTargetGenId);
             var tTextSize = ImGui.CalcTextSize(pContent);
             if (pIsWrappedToText)
             {
                 if (ImGui.Selectable(pContent,
                                         false,
-                                        ImGuiSelectableFlags.None, 
+                                        pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups, 
                                         new System.Numerics.Vector2(tTextSize.X + 0.5f, tTextSize.Y + 0.25f) 
                                         ))
                 {
+                    tRes = true;
                     if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
                     {
                         AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
@@ -81,8 +84,9 @@ namespace BozjaBuddy.Utils
                     }
                 }
             }
-            else if (ImGui.Selectable(pContent))
+            else if (ImGui.Selectable(pContent, false, pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups))
             {
+                tRes = true;
                 if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
                 {
                     AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
@@ -93,33 +97,51 @@ namespace BozjaBuddy.Utils
                 }
             }
             ImGui.PopID();
+            return tRes;
         }
-        public static void SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true)
+        /// <summary> Return true if link is clicked with LMB or RMB </summary>
+        public static bool SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true)
         {
-            UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText);
-            UtilsGUI.SetTooltipForLastItem("Right-click for options");
+            bool tRes = UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText, pIsClosingPUOnClick: pIsClosingPUOnClick);
+            if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
+            {
+                ImGui.Text("<unrecognizable obj>");
+                return tRes;
+            }
+            GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
+            UtilsGUI.SetTooltipForLastItem($"[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
 
             if (ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
             {
-                if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
-                {
-                    ImGui.Text("<unrecognizable obj>");
-                    return;
-                }
+                tRes = true;
                 ImGui.BeginGroup();
-                GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
                 // Item link to Clipboard + Chat
                 UtilsGUI.ItemLinkButton(pPlugin, pReprName: tObj.GetReprName(), pReprItemLink: tObj.GetReprItemLink());
                 ImGui.Separator();
                 // Clipboard sypnosis
-                UtilsGUI.SypnosisClipboardButton(tObj.GetReprSynopsis());
+                UtilsGUI.SypnosisClipboardButton(tObj.GetReprClipboardTooltip());
                 ImGui.Separator();
                 // Map_link to Clipboard + Chat
                 var tLocation = tObj.GetReprLocation();
                 UtilsGUI.LocationLinkButton(pPlugin, tLocation!, pDesc: "Link position", pIsDisabled: tLocation == null ? true : false);
                 ImGui.Separator();
                 // Invoke: Marketboard
-                UtilsGUI.MarketboardButton(pPlugin, tObj.mId, pIsDisabled: tObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fragment ? false : true);
+                int tFragId = tObj.mId;
+                if (tObj.GetSalt() == GeneralObject.GeneralObjectSalt.LostAction
+                    && tObj.mLinkFragments.Count != 0)
+                {
+                    if (pPlugin.mBBDataManager.mFragments.ContainsKey(tObj.mLinkFragments[0]))
+                    {
+                        tFragId = pPlugin.mBBDataManager.mFragments[tObj.mLinkFragments[0]].mId;
+                    }
+                }
+                UtilsGUI.MarketboardButton(
+                    pPlugin, 
+                    tFragId,
+                    pIsDisabled: tObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fragment
+                                 || tObj.GetSalt() == GeneralObject.GeneralObjectSalt.LostAction
+                                    ? false 
+                                    : true);
                 ImGui.EndGroup();
 
                 ImGui.SameLine();
@@ -128,6 +150,11 @@ namespace BozjaBuddy.Utils
 
                 ImGui.EndPopup();
             }
+            else if (tRes)
+            {
+                pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
+            }
+            return tRes;
         }
         public static void SypnosisClipboardButton(string pSypnosis)
         {
@@ -373,7 +400,7 @@ namespace BozjaBuddy.Utils
                 return WalkNodeByIDs(pNoteIdPath, tNextNode);
             }
         }
-        
+
         internal class Colors
         {
             public readonly static Vector4 NormalText_White = ImGuiColors.DalamudWhite2;
