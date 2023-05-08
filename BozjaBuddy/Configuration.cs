@@ -166,8 +166,15 @@ namespace BozjaBuddy
         {
             public ItemBox itemBox = new();
             public Overlay overlay = new();
+            public ItemInfo itemInfo = new();
 
             public GuiAssistConfig() { }
+            public struct ItemInfo
+            {
+                public bool isDisabled_All = false;
+
+                public ItemInfo() { }
+            }
 
             public struct ItemBox
             {

@@ -213,18 +213,30 @@ public class ConfigWindow : Window, IDisposable
         {
             if (ImGui.CollapsingHeader("[A] Mettle & Resistance Rank window"))
             {
+                // All
+                bool tField2 = !this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_All;
+                ImGuiComponents.ToggleButton("allwin", ref tField2);
+                this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_All = !tField2;
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
+                ImGui.PushTextWrapPos();
+                UtilsGUI.TextDescriptionForWidget("1. All UI features for this section.");
+                ImGui.SameLine();
+                UtilsGUI.ShowHelpMarker("Enable/Disable all UI features for this section such as Search all bar, Alarm reminder, etc.");
+                ImGui.PopTextWrapPos();
+
                 // Reminder: Recruitment window
                 {
-                    bool tField1 = this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBox];
+                    bool tField1 = this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBoxAlarm];
                     ImGuiComponents.ToggleButton("rewin", ref tField1);
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
                     ImGui.PushTextWrapPos();
-                    UtilsGUI.TextDescriptionForWidget("1. Draw a rectangle as a reminder to keep Recruting window open.");
+                    UtilsGUI.TextDescriptionForWidget("2. Draw a rectangle as a reminder to keep Recruting window open.");
                     ImGui.SameLine();
                     UtilsGUI.ShowHelpMarker("Only visible when Fate/CE features are active, or when user is not in any CE or raids.\nFeatures like CE status report in Fate/CE table and CE alarm needs the Resistance Recruitment in-game window open to work, due to lack of better means.\nThis is understandably cumbersome for users, and will be worked on later. Any suggestion appreciated!");
                     ImGui.PopTextWrapPos();
-                    this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBox] = tField1;
+                    this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBoxAlarm] = tField1;
                     this.mPlugin.Configuration.Save();
                 }
             }

@@ -14,6 +14,7 @@ using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
@@ -59,18 +60,20 @@ namespace BozjaBuddy.Utils
         {
             ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, pText);
         }
-        public static void SelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true)
+        public static bool SelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true)
         {
+            bool tRes = false;
             ImGui.PushID(pTargetGenId);
             var tTextSize = ImGui.CalcTextSize(pContent);
             if (pIsWrappedToText)
             {
                 if (ImGui.Selectable(pContent,
                                         false,
-                                        ImGuiSelectableFlags.None, 
+                                        pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups, 
                                         new System.Numerics.Vector2(tTextSize.X + 0.5f, tTextSize.Y + 0.25f) 
                                         ))
                 {
+                    tRes = true;
                     if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
                     {
                         AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
@@ -81,8 +84,9 @@ namespace BozjaBuddy.Utils
                     }
                 }
             }
-            else if (ImGui.Selectable(pContent))
+            else if (ImGui.Selectable(pContent, false, pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups))
             {
+                tRes = true;
                 if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
                 {
                     AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
@@ -93,18 +97,21 @@ namespace BozjaBuddy.Utils
                 }
             }
             ImGui.PopID();
+            return tRes;
         }
-        public static void SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true)
+        /// <summary> Return true if link is clicked with LMB or RMB </summary>
+        public static bool SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true)
         {
-            UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText);
+            bool tRes = UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText, pIsClosingPUOnClick: pIsClosingPUOnClick);
             UtilsGUI.SetTooltipForLastItem("Right-click for options");
 
             if (ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
             {
+                tRes = true;
                 if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
                 {
                     ImGui.Text("<unrecognizable obj>");
-                    return;
+                    return tRes;
                 }
                 ImGui.BeginGroup();
                 GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
@@ -128,6 +135,11 @@ namespace BozjaBuddy.Utils
 
                 ImGui.EndPopup();
             }
+            else if (tRes)
+            {
+                pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
+            }
+            return tRes;
         }
         public static void SypnosisClipboardButton(string pSypnosis)
         {
