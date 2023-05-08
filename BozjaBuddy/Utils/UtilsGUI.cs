@@ -103,30 +103,45 @@ namespace BozjaBuddy.Utils
         public static bool SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true)
         {
             bool tRes = UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText, pIsClosingPUOnClick: pIsClosingPUOnClick);
-            UtilsGUI.SetTooltipForLastItem("Right-click for options");
+            if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
+            {
+                ImGui.Text("<unrecognizable obj>");
+                return tRes;
+            }
+            GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
+            UtilsGUI.SetTooltipForLastItem($"[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
 
             if (ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
             {
                 tRes = true;
-                if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
-                {
-                    ImGui.Text("<unrecognizable obj>");
-                    return tRes;
-                }
                 ImGui.BeginGroup();
-                GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
                 // Item link to Clipboard + Chat
                 UtilsGUI.ItemLinkButton(pPlugin, pReprName: tObj.GetReprName(), pReprItemLink: tObj.GetReprItemLink());
                 ImGui.Separator();
                 // Clipboard sypnosis
-                UtilsGUI.SypnosisClipboardButton(tObj.GetReprSynopsis());
+                UtilsGUI.SypnosisClipboardButton(tObj.GetReprClipboardTooltip());
                 ImGui.Separator();
                 // Map_link to Clipboard + Chat
                 var tLocation = tObj.GetReprLocation();
                 UtilsGUI.LocationLinkButton(pPlugin, tLocation!, pDesc: "Link position", pIsDisabled: tLocation == null ? true : false);
                 ImGui.Separator();
                 // Invoke: Marketboard
-                UtilsGUI.MarketboardButton(pPlugin, tObj.mId, pIsDisabled: tObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fragment ? false : true);
+                int tFragId = tObj.mId;
+                if (tObj.GetSalt() == GeneralObject.GeneralObjectSalt.LostAction
+                    && tObj.mLinkFragments.Count != 0)
+                {
+                    if (pPlugin.mBBDataManager.mFragments.ContainsKey(tObj.mLinkFragments[0]))
+                    {
+                        tFragId = pPlugin.mBBDataManager.mFragments[tObj.mLinkFragments[0]].mId;
+                    }
+                }
+                UtilsGUI.MarketboardButton(
+                    pPlugin, 
+                    tFragId,
+                    pIsDisabled: tObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fragment
+                                 || tObj.GetSalt() == GeneralObject.GeneralObjectSalt.LostAction
+                                    ? false 
+                                    : true);
                 ImGui.EndGroup();
 
                 ImGui.SameLine();
@@ -385,7 +400,7 @@ namespace BozjaBuddy.Utils
                 return WalkNodeByIDs(pNoteIdPath, tNextNode);
             }
         }
-        
+
         internal class Colors
         {
             public readonly static Vector4 NormalText_White = ImGuiColors.DalamudWhite2;

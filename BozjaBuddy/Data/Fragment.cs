@@ -3,6 +3,8 @@ using System;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Logging;
 using BozjaBuddy.Utils;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BozjaBuddy.Data
 {
@@ -25,8 +27,30 @@ namespace BozjaBuddy.Data
             this.SetUpAuxiliary();
         }
         public override SeString? GetReprItemLink() => SeString.CreateItemLink((uint)mId, false);
-        public override string GetReprSynopsis() 
+        public override string GetReprClipboardTooltip() 
             => $"[{this.mName}] • [Tradable: {(this.mIsClusterBuyable ? "yes" : "no")}]";
+        protected override string GenReprUiTooltip()
+        {
+            string tFateText = string.Join(
+                "\n\t\t\t\t\t",
+                this.mLinkFates.Select(o => this.mPlugin.mBBDataManager.mFates.ContainsKey(o)
+                                            ? this.mPlugin.mBBDataManager.mFates[o].mName
+                                            : "unknown")
+                                   .ToList()
+                );
+            string tMobText = string.Join(
+                "\n\t\t\t\t\t",
+                this.mLinkMobs.Select(o => this.mPlugin.mBBDataManager.mMobs.ContainsKey(o)
+                                            ? this.mPlugin.mBBDataManager.mMobs[o].mName + $" --- ({this.mPlugin.mBBDataManager.mMobs[o].mLocation?.ToString()} x:{this.mPlugin.mBBDataManager.mMobs[o].mLocation?.mMapCoordX} y:{this.mPlugin.mBBDataManager.mMobs[o].mLocation?.mMapCoordY})"
+                                            : "unknown")
+                                   .ToList()
+                );
+
+            this.mUiTooltip = $"Name:\t\t{this.mName}"
+                            + $"\nFATE:  \t\t{tFateText}"
+                            + $"\nMobs: \t\t{tMobText}";
+            return this.mUiTooltip;
+        }
 
         protected override void SetUpAuxiliary()
         {

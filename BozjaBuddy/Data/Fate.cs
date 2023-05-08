@@ -8,6 +8,7 @@ using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using System.Linq;
 
 namespace BozjaBuddy.Data
 {
@@ -72,9 +73,10 @@ namespace BozjaBuddy.Data
 
             this.SetUpAuxiliary();
         }
-        public override string GetReprSynopsis()
+        public override string GetReprClipboardTooltip()
         {
-            string tFateChainText = "";
+            string tFateChainText;
+            List<string> tFateChainTexts = new();
             if (this.mPlugin.mBBDataManager.mFates[this.mId].mChainFatePrev != -1
                 || this.mPlugin.mBBDataManager.mFates[this.mId].mChainFateNext != -1)
             {
@@ -85,15 +87,53 @@ namespace BozjaBuddy.Data
                     iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev;
                 do
                 {
-                    tFateChainText += $"{this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName} > ";
+                    tFateChainTexts.Add($"{this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName}");
                     iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFateNext;
                 }
                 while (iCurrFateId != -1);
             }
+            tFateChainText = string.Join(" > ", tFateChainTexts);
 
             return $"[{this.mName}] • [Mettle: {this.mRewardMettleMin}-{this.mRewardMettleMax}] • [Exp: {this.mRewardExpMin}-{this.mRewardExpMax}] • [Tome: {this.mRewardTome}]"
                     + (this.mLocation != null ? $" • [Loc: {WeatherBarSection._mTerritories[this.mLocation!.mTerritoryType]} x:{this.mLocation!.mMapCoordX} y:{this.mLocation!.mMapCoordY}]" : "")
                     + $" • [FATE chain: {tFateChainText}]";
+        }
+        protected override string GenReprUiTooltip()
+        {
+            string tFateChainText = "";
+            List<string> tFateChainTexts = new();
+            if (this.mPlugin.mBBDataManager.mFates[this.mId].mChainFatePrev != -1
+                || this.mPlugin.mBBDataManager.mFates[this.mId].mChainFateNext != -1)
+            {
+                int iCurrFateId = this.mPlugin.mBBDataManager.mFates[this.mId].mChainFatePrev != -1
+                                ? this.mPlugin.mBBDataManager.mFates[this.mId].mChainFatePrev
+                                : this.mPlugin.mBBDataManager.mFates[this.mId].mChainFateNext;
+                while (this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev != -1)        // Find the starting point of FATE chain
+                    iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev;
+                do
+                {
+                    tFateChainTexts.Add($"{this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName}");
+                    iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFateNext;
+                }
+                while (iCurrFateId != -1);
+            }
+            tFateChainText = string.Join(" > ", tFateChainTexts);
+
+            string tFragDrops = string.Join(
+                ", ",
+                this.mLinkFragments.Select(o => this.mPlugin.mBBDataManager.mFragments.ContainsKey(o)
+                                            ? this.mPlugin.mBBDataManager.mFragments[o].mName
+                                            : "unknown")
+                                   .ToList()
+                );
+
+            this.mUiTooltip = $"Name: \t\t\t{this.mName}"
+                            + $"\nFATE chain:\t{tFateChainText}"
+                            + $"\nFrag drops:\t{tFragDrops}"
+                            + $"\nMettle:\t\t\t{Utils.Utils.FormatThousand(this.mRewardMettleMin)} - {Utils.Utils.FormatThousand(this.mRewardMettleMax)}"
+                            + $"\nExp:  \t\t\t\t{Utils.Utils.FormatThousand(this.mRewardExpMin)} - {Utils.Utils.FormatThousand(this.mRewardExpMax)}"
+                            + $"\nTome:  \t\t\t{Utils.Utils.FormatThousand(this.mRewardTome)}";
+            return this.mUiTooltip;
         }
 
         protected override void SetUpAuxiliary()

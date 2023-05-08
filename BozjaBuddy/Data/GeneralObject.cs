@@ -15,6 +15,7 @@ namespace BozjaBuddy.Data
         public virtual string mName { get; set; } = string.Empty;
         public virtual string mDetail { get; set; } = string.Empty;
         public virtual string mDescription { get; set; } = string.Empty;
+        protected virtual string mUiTooltip { get; set; } = string.Empty;
         public virtual IGMarkup? mIGMarkup { get; set; } = null;
         public virtual List<int> mLinkActions { get; set; } = new List<int>();
         public virtual List<int> mLinkMobs { get; set; } = new List<int>();
@@ -27,7 +28,11 @@ namespace BozjaBuddy.Data
 
         public virtual int GetGenId() => GeneralObject.IdToGenId(this.mId, (int)this.mIdSalt);
         public virtual string GetReprName() => this.mName;
-        public virtual string GetReprSynopsis() => this.mDescription;
+        public virtual string GetReprClipboardTooltip() => this.mDescription;
+        protected virtual string GenReprUiTooltip() => " ";
+        public virtual string GetReprUiTooltip() 
+            => this.mUiTooltip == string.Empty ? this.GenReprUiTooltip() : this.mUiTooltip;
+        public virtual string ResetReprUiTooltip() => this.mUiTooltip = string.Empty;
         public virtual Location? GetReprLocation() => this.mLocation;
         public virtual SeString? GetReprItemLink() => null;
 
