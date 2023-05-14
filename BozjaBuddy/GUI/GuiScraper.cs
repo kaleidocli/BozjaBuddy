@@ -70,7 +70,9 @@ namespace BozjaBuddy.GUI
                     // Rays
                     if (this.mPlugin.ClientState.LocalPlayer != null)
                     {
-                        var tStatusList = this.mPlugin.ClientState.LocalPlayer.StatusList.ToDictionary(s => (int)s.StatusId, o => (int)o.StackCount);
+                        var tStatusList = this.mPlugin.ClientState.LocalPlayer.StatusList
+                                            .Distinct()
+                                            .ToDictionary(s => (int)s.StatusId, o => (int)o.StackCount);
                         foreach (int iStatusId in new int[] { 2625, 2626, 2627 })
                         {
                             if (tStatusList.TryGetValue(iStatusId, out int tTemp))

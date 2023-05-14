@@ -88,7 +88,7 @@ namespace BozjaBuddy.Windows
             ImGui.PopStyleColor();
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Succor");
             ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.BackgroundText_Green);
-            ImGui.SameLine(); ImGui.TextUnformatted($" \t{tCharStats.raySuccor}\t\t\t\t+{10 * tCharStats.rayFortitude}% HEAL (ea. +10%)");
+            ImGui.SameLine(); ImGui.TextUnformatted($" \t{tCharStats.raySuccor}\t\t\t\t+{10 * tCharStats.raySuccor}% HEAL (ea. +10%)");
             ImGui.PopStyleColor();
         }
         private void Draw_CharStats()
