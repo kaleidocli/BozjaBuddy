@@ -16,6 +16,7 @@ using BozjaBuddy.GUI.GUIAssist;
 using System;
 using Dalamud.Game.ClientState;
 using BozjaBuddy.Utils;
+using BozjaBuddy.GUI;
 
 namespace BozjaBuddy
 {
@@ -41,6 +42,7 @@ namespace BozjaBuddy
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("Bozja Buddy");
         public AlarmManager AlarmManager { get; init; }
+        public GuiScraper GuiScraper { get; init; }
         public GUIAssistManager GUIAssistManager { get; init; }
 
         public Plugin(
@@ -80,6 +82,7 @@ namespace BozjaBuddy
             WindowSystem.AddWindow(new ConfigWindow(this));
             WindowSystem.AddWindow(new MainWindow(this));
             WindowSystem.AddWindow(new AlarmWindow(this));
+            WindowSystem.AddWindow(new CharStatsWindow(this));
 
             this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
 
@@ -94,6 +97,9 @@ namespace BozjaBuddy
             this.AlarmManager = new AlarmManager(this);
             this.AlarmManager.Start();
 
+            this.GuiScraper = new(this);
+            this.GuiScraper.Start();
+
             this.GUIAssistManager = new(this);
 
             if (this.Configuration.UserLoadouts == null) { this.mBBDataManager.ReloadLoadoutsPreset(); }    // for first install
@@ -107,10 +113,6 @@ namespace BozjaBuddy
             unsafe
             {
                 UtilsGameData.kFont_Yuruka = ImGui.GetIO().Fonts.AddFontFromFileTTF(this.DATA_PATHS["YurukaStd-UB-AlphaNum.ttf"], 30);
-                ImFontGlyphRangesBuilderPtr builder = new(ImGuiNative.ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder());
-                //builder.AddText("\"abcdefghijklmnopqrstuvwxyz!@#$%^&*()_+~`[]\\//{}|;':,./<>?1234567890");
-                //builder.BuildRanges(out var ranges);
-                //builder.Destroy();
             }
         }
 
@@ -121,6 +123,7 @@ namespace BozjaBuddy
             this.AlarmManager.Dispose();
             this.PluginInterface.UiBuilder.BuildFonts -= this.BuildFont;
             UtilsGameData.Dispose();
+            this.GuiScraper.Stop();
         }
 
         private void OnCommand(string command, string args)

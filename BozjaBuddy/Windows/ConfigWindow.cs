@@ -38,6 +38,9 @@ public class ConfigWindow : Window, IDisposable
     private int mLastActiveTab = 0;
     unsafe private Dictionary<string, ImGuiTextFilterPtr> mTextFilters = new();
 
+    unsafe ImGuiTextFilterPtr mFilter_CacheAlert1 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+    unsafe ImGuiTextFilterPtr mFilter_CacheAlert2 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+
     private float mGuiButtonsPadding = 32 * 3;
 
     public ConfigWindow(Plugin plugin) : base(
@@ -54,7 +57,14 @@ public class ConfigWindow : Window, IDisposable
         this.mPlugin = plugin;
     }
 
-    public void Dispose() { }
+    public void Dispose()
+    {
+        unsafe
+        {
+            ImGuiNative.ImGuiTextFilter_destroy(this.mFilter_CacheAlert1.NativePtr);
+            ImGuiNative.ImGuiTextFilter_destroy(this.mFilter_CacheAlert2.NativePtr);
+        }
+    }
 
     public override void Draw()
     {
@@ -62,6 +72,7 @@ public class ConfigWindow : Window, IDisposable
 
         if (this.DrawTabAlarm()) { this.mCurrActiveTab = 0; }
         if (this.DrawTabUiHint()) { this.mCurrActiveTab = 1; }
+        if (this.DrawTabMisc()) { this.mCurrActiveTab = 2; }
 
         // clear up kErrs when switching to another tab
         if (this.mCurrActiveTab != this.mLastActiveTab)
@@ -250,6 +261,144 @@ public class ConfigWindow : Window, IDisposable
             return true;
         }
         return false;
+    }
+    private bool DrawTabMisc()
+    {
+        if (ImGui.BeginTabItem("Misc"))
+        {
+            if (ImGui.CollapsingHeader("[A] Low-on-Action Alert (in Character Stats window)"))
+                ConfigWindow.Draw_CacheAlertConfig(this.mPlugin, this.mPlugin.Configuration, this.mFilter_CacheAlert1, this.mFilter_CacheAlert2);
+            ImGui.EndTabItem();
+            return true;
+        }
+        return false;
+    }
+    public static void Draw_CacheAlertConfig(Plugin pPlugin, Configuration pConfig, ImGuiTextFilterPtr pFilter_CacheAlert1, ImGuiTextFilterPtr pFilter_CacheAlert2)
+    {
+        // General alert
+        if (ImGuiComponents.ToggleButton("##ag", ref pConfig.mIsCacheAlertGeneralActive))
+        {
+            pConfig.Save();
+        }
+        ImGui.SameLine(); UtilsGUI.TextDescriptionForWidget("[A] Alert for all actions");
+        ImGui.SameLine(); UtilsGUI.ShowHelpMarker("This option [A] applies to all actions. Can be overwritten by [B] and [C].");
+        UtilsGUI.TextDescriptionForWidget("\t\t\t  Threshold: ");
+        ImGui.SameLine(); ImGui.SetNextItemWidth(150);
+        ImGui.InputInt("##agi", ref pPlugin.Configuration.mCacheAlertGeneralThreshold, 5);
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            pConfig.Save();
+        }
+
+        // Specific alert
+        ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
+        ImGui.Spacing();
+        ImGui.BeginChild("as",
+            new System.Numerics.Vector2(
+                ImGui.GetWindowWidth() / 10 * 6 - ImGui.GetStyle().FramePadding.X,
+                ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - (ImGui.GetStyle().FramePadding.Y * 4)),
+            true,
+            ImGuiWindowFlags.NoScrollbar);
+        if (ImGuiComponents.ToggleButton("##as", ref pConfig.mIsCacheAlertSpecificActive))
+        {
+            pConfig.Save();
+        }
+        ImGui.SameLine(); UtilsGUI.TextDescriptionForWidget("[B] Alert for specific actions");
+        ImGui.SameLine(); UtilsGUI.ShowHelpMarker("This option [B] applies to specific actions.\n- If set, the threshold of this option [B] will be used instead of [A]'s.\n- If set to zero (0), this option will be disabled for selected action.");
+        ImGui.Spacing();
+        pFilter_CacheAlert1.Draw("", ImGui.GetContentRegionAvail().X);
+        ImGui.BeginChild("asb");
+        foreach (var i in pConfig.mGuiAssistConfig.itemBox.userCacheData)
+        {
+            if (!pPlugin.mBBDataManager.mLostActions.TryGetValue(i.Key, out var iAction)) continue;
+            if (!pFilter_CacheAlert1.PassFilter(iAction.mName)) continue;
+            ImGui.Text(iAction.mName);
+            var tThreshold = pConfig.GetCacheSpecificThresholds(i.Key);
+            ImGui.SameLine(); ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+            ImGui.InputInt($"##{iAction.mId}", ref tThreshold, 5);
+            if (ImGui.IsItemDeactivatedAfterEdit())
+            {
+                pConfig.SetCacheSpecificThresholds(i.Key, tThreshold);
+                pConfig.Save();
+            }
+        }
+        ImGui.EndChild();
+        ImGui.EndChild();
+        ImGui.PopStyleVar();
+
+        // Ignoring alert
+        ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
+        ImGui.SameLine();
+        ImGui.BeginChild("ai",
+            new System.Numerics.Vector2(
+                ImGui.GetWindowWidth() / 10 * 4 - ImGui.GetStyle().FramePadding.X - ImGui.GetStyle().ItemSpacing.X * 2,
+                ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - (ImGui.GetStyle().FramePadding.Y * 4)),
+            true,
+            ImGuiWindowFlags.NoScrollbar);
+        if (ImGuiComponents.ToggleButton("##ai", ref pConfig.mIsCacheAlertIgnoringActive))
+        {
+            pConfig.Save();
+        }
+        ImGui.SameLine(); UtilsGUI.TextDescriptionForWidget("[C] Actions to ignore");
+        ImGui.SameLine(); UtilsGUI.ShowHelpMarker("This option [C] will disable option [A] & [B] for selected actions.");
+        ImGui.Spacing();
+        pFilter_CacheAlert2.Draw("", ImGui.GetContentRegionAvail().X);
+        ImGui.BeginChild("aib");
+        if (pFilter_CacheAlert2.IsActive())
+        {
+            foreach (LostAction iAction in pPlugin.mBBDataManager.mLostActions.Values)
+            {
+                if (!pFilter_CacheAlert2.PassFilter(iAction.mName)) continue;
+
+                if (pConfig.mCacheAlertIgnoreIds.Contains(iAction.mId))
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.MycItemBoxOverlay_RedDarkBright));
+                    if (ImGui.Button($" X ##{iAction.mId}"))
+                    {
+                        pConfig.mCacheAlertIgnoreIds.Remove(iAction.mId);
+                        pConfig.Save();
+                    }
+                }
+                else
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.GenObj_GreenMob));
+                    ImGui.PushID(iAction.mId);
+                    if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
+                    {
+                        pConfig.mCacheAlertIgnoreIds.Add(iAction.mId);
+                        pConfig.Save();
+                    }
+                    ImGui.PopID();
+                }
+                ImGui.PopStyleColor();
+                ImGui.SameLine(); ImGui.Text(iAction.mName);
+            }
+        }
+        else
+        {
+            List<int> tGarbo = new();
+            foreach (int iId in pConfig.mCacheAlertIgnoreIds)
+            {
+                pPlugin.mBBDataManager.mLostActions.TryGetValue(iId, out var iAction);
+                if (iAction == null)
+                {
+                    tGarbo.Add(iId);
+                    continue;
+                }
+                ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.MycItemBoxOverlay_RedDarkBright));
+                if (ImGui.Button($" X ##{iAction.mId}"))
+                {
+                    tGarbo.Add(iAction.mId);
+                }
+                ImGui.SameLine(); ImGui.Text(iAction.mName);
+                ImGui.PopStyleColor();
+            }
+            foreach (var id in tGarbo) pConfig.mCacheAlertIgnoreIds.Remove(id);
+            if (tGarbo.Count != 0) { pConfig.Save(); }
+        }
+        ImGui.EndChild();
+        ImGui.EndChild();
+        ImGui.PopStyleVar();
     }
     /// <summary>
     /// Use pFixedSize when encounter weird bugs with GetContentRegionAvail()

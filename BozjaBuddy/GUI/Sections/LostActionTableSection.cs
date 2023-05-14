@@ -153,7 +153,7 @@ namespace BozjaBuddy.GUI.Sections
                             AuxiliaryViewerSection.GUILoadoutEditAdjuster(this.mPlugin, iID);
                             break;
                         case 1:
-                            ImGui.PushTextWrapPos(0); UtilsGUI.SelectableLink_WithPopup(mPlugin, tLostAction.mName, tLostAction.GetGenId()); ImGui.PopTextWrapPos();
+                            UtilsGUI.SelectableLink_WithPopup(mPlugin, tLostAction.mName, tLostAction.GetGenId(), pIsShowingCacheAmount: true);
                             break; 
                         case 2:
                             UtilsGUI.DrawRoleFlagAsIconString(this.mPlugin, tLostAction.mRole);

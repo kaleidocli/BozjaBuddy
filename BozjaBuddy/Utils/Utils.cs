@@ -19,9 +19,9 @@ namespace BozjaBuddy.Utils
         {
             return Utils.ResizeToIcon(pPlugin, tTexture.Width, tTexture.Height);
         }
-        public static string FormatThousand(int pNum)
+        public static string FormatThousand(int pNum, int pDivisor = 1000, int pThreshold = 999)
         {
-            return pNum > 999 ? $"{pNum / 1000}k" : pNum.ToString();
+            return pNum > pThreshold ? $"{pNum / pDivisor}k" : pNum.ToString();
         }
         public static DateTime ProcessToLocalTime(DateTime pDateTime)
         {

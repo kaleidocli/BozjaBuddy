@@ -10,16 +10,12 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImGuiScene;
-using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BozjaBuddy.Utils
 {
@@ -60,17 +56,18 @@ namespace BozjaBuddy.Utils
         {
             ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, pText);
         }
-        public static bool SelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true)
+        public static bool SelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true, Vector4? pColor = null)
         {
             bool tRes = false;
             ImGui.PushID(pTargetGenId);
             var tTextSize = ImGui.CalcTextSize(pContent);
+            if (pColor.HasValue) ImGui.PushStyleColor(ImGuiCol.Text, pColor.Value);
             if (pIsWrappedToText)
             {
                 if (ImGui.Selectable(pContent,
                                         false,
                                         pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups, 
-                                        new System.Numerics.Vector2(tTextSize.X + 0.5f, tTextSize.Y + 0.25f) 
+                                        new System.Numerics.Vector2(tTextSize.X + 0.5f, tTextSize.Y + 0.25f)
                                         ))
                 {
                     tRes = true;
@@ -96,13 +93,14 @@ namespace BozjaBuddy.Utils
                     AuxiliaryViewerSection._mGenIdToTabFocus = pTargetGenId;
                 }
             }
+            if (pColor.HasValue) ImGui.PopStyleColor();
             ImGui.PopID();
             return tRes;
         }
         /// <summary> Return true if link is clicked with LMB or RMB </summary>
-        public static bool SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true)
+        public static bool SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true, Vector4? pColor = null, bool pIsShowingCacheAmount = false)
         {
-            bool tRes = UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText, pIsClosingPUOnClick: pIsClosingPUOnClick);
+            bool tRes = UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText, pIsClosingPUOnClick: pIsClosingPUOnClick, pColor);
             if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
             {
                 ImGui.Text("<unrecognizable obj>");
@@ -110,7 +108,7 @@ namespace BozjaBuddy.Utils
             }
             GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
             UtilsGUI.SetTooltipForLastItem($"[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
-
+            
             if (ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
             {
                 tRes = true;
@@ -153,6 +151,19 @@ namespace BozjaBuddy.Utils
             else if (tRes)
             {
                 pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
+            }
+            // Lost action's cache amount
+            if (pIsShowingCacheAmount)
+            {
+                int[] tTemp = GeneralObject.GenIdToIdAndSalt(pTargetGenId);
+                if (tTemp[1] == (int)GeneralObject.GeneralObjectSalt.LostAction)
+                {
+                    if (pPlugin.Configuration.mGuiAssistConfig.itemBox.userCacheData.TryGetValue(tTemp[0], out int tAmount))
+                    {
+                        ImGui.SameLine();
+                        ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, $"({tAmount})");
+                    }
+                }
             }
             return tRes;
         }
@@ -408,12 +419,17 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 NormalText_OrangeDark = Utils.RGBAtoVec4(232, 159, 91, 255);
             public readonly static Vector4 NormalText_Orange = Utils.RGBAtoVec4(251, 225, 202, 255);
             public readonly static Vector4 BackgroundText_Grey = ImGuiColors.ParsedGrey;
+            public readonly static Vector4 BackgroundText_Blue = Utils.RGBAtoVec4(148, 181, 216, 255);
+            public readonly static Vector4 BackgroundText_Red = Utils.RGBAtoVec4(216, 148, 148, 255);
+            public readonly static Vector4 BackgroundText_Green = Utils.RGBAtoVec4(163, 216, 148, 255);
             public readonly static Vector4 ActivatedText_Green = ImGuiColors.ParsedGreen;
             public readonly static Vector4 NormalBar_Grey = Utils.RGBAtoVec4(165, 165, 165, 80);
             public readonly static Vector4 ActivatedBar_Green = Utils.RGBAtoVec4(176, 240, 6, 80);
             public readonly static Vector4 NormalText_Red = ImGuiColors.DalamudRed;
             public readonly static Vector4 TableCell_Green = new Vector4(0.67f, 1, 0.59f, 0.2f);
             public readonly static Vector4 TableCell_Yellow = new Vector4(0.93f, 0.93f, 0.35f, 0.2f);
+            public readonly static Vector4 Button_Red = Utils.RGBAtoVec4(92, 63, 70, 255);
+            public readonly static Vector4 Button_Green = new(0.61f, 0.92f, 0.77f, 0.4f);
             public readonly static Vector4 MycItemBoxOverlay_Black = Utils.RGBAtoVec4(0, 0, 0, 150);
             public readonly static Vector4 MycItemBoxOverlay_Green = Utils.RGBAtoVec4(106, 240, 44, 122);
             public readonly static Vector4 MycItemBoxOverlay_White = Utils.RGBAtoVec4(255, 255, 255, 122);

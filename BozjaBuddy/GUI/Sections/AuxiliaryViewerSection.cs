@@ -9,6 +9,7 @@ using Dalamud.Interface.Components;
 using System.Text.Json;
 using Dalamud.Logging;
 using BozjaBuddy.Utils;
+using Dalamud.Interface.Style;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -160,7 +161,7 @@ namespace BozjaBuddy.GUI.Sections
             Loadout tLoadout = this.mPlugin.mBBDataManager.mLoadouts[pObj.mId];
             AuxiliaryViewerSection.GUIAlignRight((float)(22 * 5.1));
             // DELETE button
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Trash, ImGuiColors.DalamudRed) && io.KeyShift)
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Trash, UtilsGUI.AdjustTransparency(ImGuiColors.DalamudRed, 0.4f)) && io.KeyShift)
             {
                 BBDataManager.DynamicRemoveGeneralObject<Loadout>(this.mPlugin, tLoadout, this.mPlugin.mBBDataManager.mLoadouts);
                 AuxiliaryViewerSection.mIsRefreshRequired = true;
@@ -181,7 +182,7 @@ namespace BozjaBuddy.GUI.Sections
                 AuxiliaryViewerSection.mTenpLoadout.RecalculateWeight(this.mPlugin);
             }
             else if (AuxiliaryViewerSection.mTenpLoadout != null && ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PenSquare,
-                                                                                                new Vector4(0.98f, 0.33f, 0.33f, 1f)))
+                                                                                                UtilsGUI.AdjustTransparency(ImGuiColors.DalamudRed, 0.4f)))
             {
                 AuxiliaryViewerSection.mTenpLoadout = null;
             }
@@ -193,7 +194,7 @@ namespace BozjaBuddy.GUI.Sections
                 ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save);
                 if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Save changes"); }
             }
-            else if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save, new Vector4(0.58f, 0.86f, 0.6f, 1f)) && AuxiliaryViewerSection.mTenpLoadout != null)
+            else if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save, UtilsGUI.AdjustTransparency(ImGuiColors.ParsedGreen, 0.4f)) && AuxiliaryViewerSection.mTenpLoadout != null)
             {
                 // Save to cache
                 Loadout tLoadoutNew = new Loadout(this.mPlugin, AuxiliaryViewerSection.mTenpLoadout);

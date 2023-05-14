@@ -10,6 +10,7 @@ using System.Linq;
 using Dalamud.Logging;
 using System.Numerics;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using System.Security.Cryptography;
 
 namespace BozjaBuddy
 {
@@ -24,7 +25,7 @@ namespace BozjaBuddy
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
 
-    public const int kDefaultAlarmDuration = 30;
+        public const int kDefaultAlarmDuration = 30;
         public const int kDefaultAlarmOffset = 30;
         public const float kDefaultVolume = 1.0f;
 
@@ -39,6 +40,12 @@ namespace BozjaBuddy
         /// <summary> for when LostAction id is not available (e.g. crawling Add on). Not recommended. </summary>
         public Dictionary<string, int> _userHolsterDataByName = new();
         public bool mMuteAAudioOnGameFocused = true;
+        public bool mIsCacheAlertGeneralActive = true;
+        public int mCacheAlertGeneralThreshold = 10;
+        public bool mIsCacheAlertSpecificActive = true;
+        public Dictionary<int, int> _cacheAlertSpecificThresholds = new();
+        public bool mIsCacheAlertIgnoringActive = false;
+        public HashSet<int> mCacheAlertIgnoreIds = new();
 
         public GuiAssistConfig mGuiAssistConfig = new();
 
@@ -99,6 +106,18 @@ namespace BozjaBuddy
                             : Job.ALL;
             if (tUserJob == null) return null;
             return this.GetOverlay(pPlugin, tUserJob.Value, this.mGuiAssistConfig.overlay.currentSlotIndex);
+        }
+        public int GetCacheSpecificThresholds(int pActionId)
+        {
+            this._cacheAlertSpecificThresholds.TryGetValue(pActionId, out int tRes);
+            return tRes;
+        }
+        public void SetCacheSpecificThresholds(int pActionId, int pThreshold)
+        {
+            if (!this._cacheAlertSpecificThresholds.TryAdd(pActionId, pThreshold))
+            {
+                this._cacheAlertSpecificThresholds[pActionId] = pThreshold;
+            }
         }
         /// <summary> O(2n^2). Use sparingly. </summary>
         public void UpdateCacheHolsterInfo(Plugin pPlugin)
@@ -167,6 +186,7 @@ namespace BozjaBuddy
             public ItemBox itemBox = new();
             public Overlay overlay = new();
             public ItemInfo itemInfo = new();
+            public CharacterStats charStats = new();
 
             public GuiAssistConfig() { }
             public struct ItemInfo
@@ -203,6 +223,23 @@ namespace BozjaBuddy
                 public int currentSlotIndex = 0;
 
                 public Overlay() { }
+            }
+            public struct CharacterStats
+            {
+                public bool isInit = false;
+
+                public int rank = 0;
+                public int mettle = 0;
+                public int mettleMax = 0;
+                public int proof = 0;
+                public int cluster = 0;
+                public int noto = 0;
+
+                public int rayFortitude = 0;
+                public int rayValor = 0;
+                public int raySuccor = 0;
+
+                public CharacterStats() { }
             }
         }
     }

@@ -7,6 +7,9 @@ using ImGuiNET;
 using BozjaBuddy.Utils;
 using BozjaBuddy.Data;
 using System.Collections.Generic;
+using Dalamud.Interface.Components;
+using System.Runtime.CompilerServices;
+using System.Data;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -25,14 +28,24 @@ namespace BozjaBuddy.GUI.Sections
 
         public override bool DrawGUI()
         {
-            // Button Config
-            UtilsGUI.WindowLinkedButton(mPlugin, "Config - BozjaBuddy", Dalamud.Interface.FontAwesomeIcon.Cog, "Open config window.");
-            ImGui.SameLine();
+            // Char stats button
+            UtilsGUI.WindowLinkedButton(mPlugin, CharStatsWindow.kHandle, Dalamud.Interface.FontAwesomeIcon.Portrait);
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.Text("[LMB] Character Stats window\n========================================\n");
+                CharStatsWindow.Draw_CharStatsCompact(this.mPlugin);
+                ImGui.EndTooltip();
+            }
             // Button Alarm
-            UtilsGUI.WindowLinkedButton(mPlugin, "Alarm - BozjaBuddy", Dalamud.Interface.FontAwesomeIcon.Bell, "Open alarm window.");
             ImGui.SameLine();
+            UtilsGUI.WindowLinkedButton(mPlugin, "Alarm - BozjaBuddy", Dalamud.Interface.FontAwesomeIcon.Bell, "Open alarm window.");
             // Alarm notification bar
+            ImGui.SameLine();
             AlarmWindow.DrawAlarmNotificationBar(this.mPlugin, "generalSection", pIsStretching: false, ImGui.GetContentRegionAvail().X / 4 + (float)2.5);
+            // Button Config
+            ImGui.SameLine();
+            UtilsGUI.WindowLinkedButton(mPlugin, "Config - BozjaBuddy", Dalamud.Interface.FontAwesomeIcon.Cog, "Open config window.");
             // Search all box
             string tSearchVal = this.mGuiVars["searchAll"];
             ImGui.SameLine();
