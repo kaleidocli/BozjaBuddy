@@ -70,6 +70,7 @@ namespace BozjaBuddy
 
         public void Save()
         {
+            //PluginLog.LogDebug("> Save() is being called!");
             this.PluginInterface!.SavePluginConfig(this);
         }
         public void SetOverlay(Job pJob, int? pLoadoutId, int pSlotIndex = 0)

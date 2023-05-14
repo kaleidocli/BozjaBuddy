@@ -69,7 +69,7 @@ namespace BozjaBuddy.Windows
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 40);
             ImGui.BeginGroup();
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, $"Mettle ({tCharStats.proof} proof)");
-            ImGui.SameLine(); UtilsGUI.ShowHelpMarker("- 3 proofs of Honor cost ~20 mil mettles.\n- Amount of proof required for a Ray stack: 1/1/2/2/3/3/4/4/5/5 (increase by 1 for every 2 stacks)\n- Recommended priority of ray: Valor (red) > Fortitude (blue) > Succor (green)\n\n- In total, maxing out a ray (10 stacks) costs ~200 mil mettles / 10 trade-ins. Maxing all costs ~600 mil mettles.\n- Max Succor does not negate Profane's 90% healing reduction.");
+            ImGui.SameLine(); UtilsGUI.ShowHelpMarker("- 3 proofs of Honor exchanges for ~20 mil mettles.\n- Amount of proof required for a Ray stack: 1/1/2/2/3/3/4/4/5/5 (increase by 1 for every 2 stacks)\n- Recommended priority of ray: Valor (red) > Fortitude (blue) > Succor (green)\n\n- In total, maxing out a ray (10 stacks) costs ~200 mil mettles / 10 trade-ins. Maxing all costs ~600 mil mettles.\n- Max Succor does not negate Profane's 90% healing reduction.");
             ImGui.TextUnformatted($"{Utils.Utils.FormatThousand(tCharStats.mettle, pThreshold: 99999)} / {(tCharStats.mettleMax == 0 ? "25000k" : Utils.Utils.FormatThousand(tCharStats.mettleMax, pThreshold: 99999))} ({((float)tCharStats.mettle / (tCharStats.mettleMax == 0 ? 25000000 : tCharStats.mettleMax) * 100):0.00}%)");
             ImGui.EndGroup();
 
@@ -98,7 +98,7 @@ namespace BozjaBuddy.Windows
             ImGui.Separator();
 
             UtilsGUI.TextDescriptionForWidget("Player's Cache:");
-            ImGui.SameLine(); UtilsGUI.ShowHelpMarker("User's Lost Find Cache: list of your lost actions in the cache here.\n\n- The number next to the Lost action link is the amount you have in your cache.\n- Red lost action means the amount of that action is getting low under the threshold. This threshold alert can be configured in Config > Misc > [A]");
+            ImGui.SameLine(); UtilsGUI.ShowHelpMarker("Lost actions in your possession and their amount.\n\n- The number next to the Lost action is the amount.\n- Red text alerts you of an action's amount is running low under the threshold.\n- This threshold can be configured in Config > Misc > [A], or the button slider button on the right.");
             ImGui.SameLine(); AuxiliaryViewerSection.GUIAlignRight(32);
             UtilsGUI.WindowLinkedButton(mPlugin, "Config - BozjaBuddy", Dalamud.Interface.FontAwesomeIcon.Cog, "Open config window.");
             ImGui.SameLine();
@@ -106,7 +106,7 @@ namespace BozjaBuddy.Windows
             {
                 ImGui.OpenPopup("##alertConfig");
             }
-            else { UtilsGUI.SetTooltipForLastItem("Configs for Low-on-Action Alert (also found in Config > Misc > [A])"); }
+            else { UtilsGUI.SetTooltipForLastItem("Configs for Action-Running-out Alert (also found in Config > Misc > [A])"); }
             if (ImGui.IsPopupOpen("##alertConfig")) ImGui.SetNextWindowSize(new Vector2(550, 450));
             if (ImGui.BeginPopup("##alertConfig"))
             {

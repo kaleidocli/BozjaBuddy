@@ -33,7 +33,7 @@ namespace BozjaBuddy.GUI.Sections
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                ImGui.Text("[LMB] Character Stats window\n========================================\n");
+                ImGui.Text("[LMB] Character Stats window & Lost find Cache\n========================================\n");
                 CharStatsWindow.Draw_CharStatsCompact(this.mPlugin);
                 ImGui.EndTooltip();
             }

@@ -20,6 +20,7 @@ namespace BozjaBuddy.GUI.Sections
     {
         static int COLUMN_COUNT;
         static int HEADER_TEXT_FIELD_SIZE_OFFSET = GUIFilter.HEADER_TEXT_FIELD_SIZE_OFFSET;
+        private static int kField_CurrJob = -1;
         const ImGuiTableFlags TABLE_FLAG = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersV |
                                      ImGuiTableFlags.ContextMenuInBody | ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg |
                                      ImGuiTableFlags.ScrollY | ImGuiTableFlags.Reorderable | ImGuiTableFlags.Sortable |
@@ -160,7 +161,7 @@ namespace BozjaBuddy.GUI.Sections
             // Toggle rec visibility
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, tIsCompact ? "Rec." : "Recommended loadouts");
             ImGui.SameLine();
-            UtilsGUI.ShowHelpMarker("- Loadouts that are created by many Adv Forays communities. If you wish to restore these loadouts to their original states, please press the Spinning Arrow button on the right.\n\n- These loadouts may be outdated, and as such are not intended to replace the community guidelines. Rather, it is intended as a baseline or reminder, especially for DRS proggers and reclearers. As such, if you are running DRS, please abide by the rules of your host!\n- Any feedback regarding the loadouts is appreciated, but preferably under a discussion format on XIVLauncher's Discord > Plugins > #plugin-help-forum > Bozja Buddy. I'm not gonna read your essay about why Lost Impetus is good for DRS through feedback inbox.");
+            UtilsGUI.ShowHelpMarker("Recommended loadouts by many AdvForays communities.\n\n- To restore these loadouts, press the Spinning Arrow button.\n- Recommended loadouts only serve as a suggestion and may be outdated. As such, please abide by the rules of your community if you are attending their runs!\n- Any suggestions regarding this are preferred being posted in XIVLauncher's Discord > Plugins > #plugin-help-forum > Bozja Buddy.");
             ImGui.SameLine();
             ImGuiComponents.ToggleButton("recToggle", ref this.mIsShowingRec);
             // Restore preset
@@ -242,6 +243,7 @@ namespace BozjaBuddy.GUI.Sections
                 }
                 else
                     pGuiVar_TextFiltersCurrVal[tGuiKey] = (int)(tCurrJob ?? Job.PLD);
+                LoadoutTableSection.kField_CurrJob = pGuiVar_TextFiltersCurrVal[tGuiKey];
             }
             if (!pGuiVar_TextFiltersCurrVal.ContainsKey("slotIndex"))
             {
@@ -270,11 +272,13 @@ namespace BozjaBuddy.GUI.Sections
                     tFlag = false;
                     pPlugin.Configuration.Save();
                     pGuiVar_TextFiltersCurrVal[tGuiKey] = (int)Job.ALL;
+                    LoadoutTableSection.kField_CurrJob = pGuiVar_TextFiltersCurrVal[tGuiKey];
                 }
                 // Set to job-spec
                 else
                 {
                     pGuiVar_TextFiltersCurrVal[tGuiKey] = (int)(tCurrJob ?? Job.PLD);
+                    LoadoutTableSection.kField_CurrJob = pGuiVar_TextFiltersCurrVal[tGuiKey];
                     tFlag = true;
                 }
             }
@@ -283,6 +287,12 @@ namespace BozjaBuddy.GUI.Sections
                 UtilsGUI.SetTooltipForLastItem("The Lost Find Cache will be filtered by the loadout on the right. \n" + (tFlag
                                                                                                                         ? "(Mode: CURRENT --> The loadout changes when job changes)"
                                                                                                                         : "(Mode: ANY     --> The loadout applies to all jobs)"));
+            }
+            // Sync up the value (FIXME: do this in a more proper way)
+            if (LoadoutTableSection.kField_CurrJob != -1
+                && pGuiVar_TextFiltersCurrVal[tGuiKey] != LoadoutTableSection.kField_CurrJob)
+            {
+                pGuiVar_TextFiltersCurrVal[tGuiKey] = LoadoutTableSection.kField_CurrJob;
             }
             // Job icon, if applicable
             if (tFlag)
@@ -353,9 +363,9 @@ namespace BozjaBuddy.GUI.Sections
             }
 
             ImGui.SameLine();
-            UtilsGUI.ShowHelpMarker("- Custom loadout filter for Lost Find Cache, filtering the Cache by the current Custom Loadout's content.\n- Use [CURRENT JOB] to filter by the current job's Custom Loadout. Each job can be paired with 2 Customs Loadout - Loadout I and II.\n- Use [ANY] to filter by a universal Custom Loadout for all job. This mode can also be paired with 2 Custom Loadouts.\n\ne.g.\n1. You toggle [CURRENT] mode.\n2. You are PLD which pairs with Loadout A --> Your Cache will be filtered by A.\n3. You switch to DRK which pairs with Loadout B --> Now your Cache will be filtered by B.\n4. Then you toggle [ANY JOB] mode which pairs with Loadout C. Now your Cache will always be filtered by Loadout C regardless of your current job.");
+            UtilsGUI.ShowHelpMarker("Active Loadout - a Custom Loadout that is paired with a specific job.\n\n- [CURRENT JOB]: Use Active Loadout of player's current job.\n- [ANY]: Use Active Loadout that is applicable for all jobs. Think of [ANY] as a seperate job.\n- Each job has two slots to pair with - Loadout I & II\n\n- Active Loadouts are used to visually filter in-game Lost Finds Cache window.");
             ImGui.SameLine();
-            ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, pIsCompactMode ? "L. filter" : "Loadout filter");
+            ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, pIsCompactMode ? "A. Loadout" : "Active Loadout");
             ImGui.SameLine();
         }
         public static void DrawOverlayCombo(Plugin pPlugin, Dictionary<string, ImGuiTextFilterPtr> pGuiVar_TextFilters, Job pJob, string pGuiKey, int pOverlaySlot = 0)

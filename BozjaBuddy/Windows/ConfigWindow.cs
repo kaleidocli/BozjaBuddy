@@ -226,7 +226,7 @@ public class ConfigWindow : Window, IDisposable
             {
                 // All
                 bool tField2 = !this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_All;
-                ImGuiComponents.ToggleButton("allwin", ref tField2);
+                if (ImGuiComponents.ToggleButton("allwin", ref tField2)) this.mPlugin.Configuration.Save();
                 this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_All = !tField2;
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
@@ -239,7 +239,7 @@ public class ConfigWindow : Window, IDisposable
                 // Reminder: Recruitment window
                 {
                     bool tField1 = this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBoxAlarm];
-                    ImGuiComponents.ToggleButton("rewin", ref tField1);
+                    if (ImGuiComponents.ToggleButton("rewin", ref tField1)) this.mPlugin.Configuration.Save();
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
                     ImGui.PushTextWrapPos();
@@ -248,7 +248,6 @@ public class ConfigWindow : Window, IDisposable
                     UtilsGUI.ShowHelpMarker("Only visible when Fate/CE features are active, or when user is not in any CE or raids.\nFeatures like CE status report in Fate/CE table and CE alarm needs the Resistance Recruitment in-game window open to work, due to lack of better means.\nThis is understandably cumbersome for users, and will be worked on later. Any suggestion appreciated!");
                     ImGui.PopTextWrapPos();
                     this.mPlugin.Configuration.mOptionState[GUIAssistOption.MycInfoBoxAlarm] = tField1;
-                    this.mPlugin.Configuration.Save();
                 }
             }
             if (ImGui.CollapsingHeader("[B] Lost Find Cache window & Lost Find Hoslter window"))
@@ -266,7 +265,7 @@ public class ConfigWindow : Window, IDisposable
     {
         if (ImGui.BeginTabItem("Misc"))
         {
-            if (ImGui.CollapsingHeader("[A] Low-on-Action Alert (in Character Stats window)"))
+            if (ImGui.CollapsingHeader("[A] Action-Running-out Alert (in Character Stats window)"))
                 ConfigWindow.Draw_CacheAlertConfig(this.mPlugin, this.mPlugin.Configuration, this.mFilter_CacheAlert1, this.mFilter_CacheAlert2);
             ImGui.EndTabItem();
             return true;
@@ -304,7 +303,7 @@ public class ConfigWindow : Window, IDisposable
             pConfig.Save();
         }
         ImGui.SameLine(); UtilsGUI.TextDescriptionForWidget("[B] Alert for specific actions");
-        ImGui.SameLine(); UtilsGUI.ShowHelpMarker("This option [B] applies to specific actions.\n- If set, the threshold of this option [B] will be used instead of [A]'s.\n- If set to zero (0), this option will be disabled for selected action.");
+        ImGui.SameLine(); UtilsGUI.ShowHelpMarker("This option [B] applies to specific actions.\n\n- If set, the threshold of this option [B] will be used instead of [A]'s.\n- If set to zero (0), this option will be disabled for selected action.");
         ImGui.Spacing();
         pFilter_CacheAlert1.Draw("", ImGui.GetContentRegionAvail().X);
         ImGui.BeginChild("asb");
