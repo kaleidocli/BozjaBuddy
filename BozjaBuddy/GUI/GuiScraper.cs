@@ -1,4 +1,5 @@
 ﻿using BozjaBuddy.Utils;
+using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.GeneratedSheets;
@@ -70,9 +71,11 @@ namespace BozjaBuddy.GUI
                     // Rays
                     if (this.mPlugin.ClientState.LocalPlayer != null)
                     {
-                        var tStatusList = this.mPlugin.ClientState.LocalPlayer.StatusList
-                                            .Distinct()
-                                            .ToDictionary(s => (int)s.StatusId, o => (int)o.StackCount);
+                        Dictionary<int, int> tStatusList = new();
+                        foreach (Dalamud.Game.ClientState.Statuses.Status s in this.mPlugin.ClientState.LocalPlayer.StatusList)
+                        {
+                            tStatusList.TryAdd((int)s.StatusId, (int)s.StackCount);
+                        }
                         foreach (int iStatusId in new int[] { 2625, 2626, 2627 })
                         {
                             if (tStatusList.TryGetValue(iStatusId, out int tTemp))
