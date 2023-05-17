@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace BozjaBuddy.Utils
 {
@@ -24,7 +25,8 @@ namespace BozjaBuddy.Utils
         private const float FRAME_ROUNDING = 0;
         private static readonly Vector2 FRAME_PADDING = new(10f, 2f);
         private static DateTime kTimeSinceLastClipboardCopied = DateTime.Now;
-        
+        private unsafe static readonly AtkStage* stage = AtkStage.GetSingleton();
+
         // https://www.programcreek.com/cpp/?code=kswaldemar%2Frewind-viewer%2Frewind-viewer-master%2Fsrc%2Fimgui_impl%2Fimgui_widgets.cpp
         public static void ShowHelpMarker(string desc, string markerText = "(?)", bool disabled = true)
         {
@@ -409,6 +411,37 @@ namespace BozjaBuddy.Utils
             else
             {
                 return WalkNodeByIDs(pNoteIdPath, tNextNode);
+            }
+        }
+        /// <summary>
+        /// https://github.com/shdwp/xivFaderPlugin/blob/main/FaderPlugin/Addon.cs#L35
+        /// </summary>
+        public static bool IsAddonFocused(string name)
+        {
+            unsafe
+            {
+                try
+                {
+                    var focusedUnitsList = &stage->RaptureAtkUnitManager->AtkUnitManager.FocusedUnitsList;
+                    var focusedAddonList = &focusedUnitsList->AtkUnitEntries;
+
+                    for (var i = 0; i < focusedUnitsList->Count; i++)
+                    {
+                        var addon = focusedAddonList[i];
+                        var addonName = Marshal.PtrToStringAnsi(new IntPtr(addon->Name));
+
+                        if (addonName == name)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
             }
         }
 

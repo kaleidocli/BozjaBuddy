@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using BozjaBuddy.Utils;
 using Dalamud.Interface;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -69,7 +70,7 @@ namespace BozjaBuddy.GUI.GUIExtension
             }
         }
 
-        internal static unsafe void DrawHelper(AtkUnitBase* addon, string id, Action extDrawer, Vector2? extSize, Vector2? padding = null, bool right = false)
+        internal static unsafe void DrawHelper(AtkUnitBase* addon, string id, Action extDrawer, Vector2? extSize, Vector2? padding = null, bool right = false, bool isDisabled = false)
         {
             var drawPos = DrawPosForAddon(addon, extSize, right: right) + (right ? -1 : 1) * (padding ?? Vector2.Zero);
             if (drawPos == null)
@@ -80,8 +81,8 @@ namespace BozjaBuddy.GUI.GUIExtension
             using (new HelperStyles())
             {
                 // get first frame
-                ImGui.SetNextWindowPos(drawPos.Value, ImGuiCond.Appearing);
-                if (!ImGui.Begin($"##{id}", HelperWindowFlags))
+                ImGui.SetNextWindowPos(drawPos.Value, ImGuiCond.Appearing);   
+                if (!ImGui.Begin($"##{id}", HelperWindowFlags | (isDisabled ? ImGuiWindowFlags.NoInputs : ImGuiWindowFlags.None)))
                 {
                     if (extSize.HasValue) ImGui.SetWindowSize(extSize!.Value);
 
@@ -92,18 +93,21 @@ namespace BozjaBuddy.GUI.GUIExtension
 
             try
             {
+                if (isDisabled) { ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f); }
                 extDrawer();
+                if (isDisabled) { ImGui.PopStyleVar(); }
             }
             catch (Exception ex)
             {
                 PluginLog.LogError(ex, "Error drawing extension gui");
+                if (isDisabled) { ImGui.PopStyleVar(); }
             }
 
             ImGui.SetWindowPos(drawPos.Value);
 
             ImGui.End();
         }
-        internal static unsafe void DrawHelper(Plugin plugin, ExtGui extGui, Vector2? extSize, Vector2? padding = null, bool right = false)
+        internal static unsafe void DrawHelper(Plugin plugin, ExtGui extGui, Vector2? extSize, Vector2? padding = null, bool right = false, bool isDisabled = false)
         {
             var tAddon = (AtkUnitBase*)plugin.GameGui.GetAddonByName(extGui.mAddonName);
             if (tAddon == null) { return; }
@@ -113,7 +117,8 @@ namespace BozjaBuddy.GUI.GUIExtension
                 extGui.Draw, 
                 extSize, 
                 padding, 
-                right);
+                right,
+                isDisabled);
         }
     }
 }

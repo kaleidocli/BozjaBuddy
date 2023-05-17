@@ -31,24 +31,32 @@ namespace BozjaBuddy.Data
             => $"[{this.mName}] • [Tradable: {(this.mIsClusterBuyable ? "yes" : "no")}]";
         protected override string GenReprUiTooltip()
         {
+            string tActionText = string.Join(
+                "\n\t\t\t\t\t\t\t",
+                this.mLinkActions.Select(o => this.mPlugin.mBBDataManager.mLostActions.ContainsKey(o)
+                                            ? this.mPlugin.mBBDataManager.mLostActions[o].mName
+                                            : "unknown")
+                                    .ToList()
+                );
             string tFateText = string.Join(
-                "\n\t\t\t\t\t",
+                "\n\t\t\t\t\t\t\t",
                 this.mLinkFates.Select(o => this.mPlugin.mBBDataManager.mFates.ContainsKey(o)
                                             ? this.mPlugin.mBBDataManager.mFates[o].mName
                                             : "unknown")
                                    .ToList()
                 );
             string tMobText = string.Join(
-                "\n\t\t\t\t\t",
+                "\n\t\t\t\t\t\t\t",
                 this.mLinkMobs.Select(o => this.mPlugin.mBBDataManager.mMobs.ContainsKey(o)
                                             ? this.mPlugin.mBBDataManager.mMobs[o].mName + $" --- ({this.mPlugin.mBBDataManager.mMobs[o].mLocation?.ToString()} x:{this.mPlugin.mBBDataManager.mMobs[o].mLocation?.mMapCoordX} y:{this.mPlugin.mBBDataManager.mMobs[o].mLocation?.mMapCoordY})"
                                             : "unknown")
                                    .ToList()
                 );
 
-            this.mUiTooltip = $"Name:\t\t{this.mName}"
-                            + $"\nFATE:  \t\t{tFateText}"
-                            + $"\nMobs: \t\t{tMobText}";
+            this.mUiTooltip = $"Name:\t\t\t\t{this.mName}"
+                            + $"\nLost Actions:\t{tActionText}"
+                            + $"\nFATE:  \t\t\t\t{tFateText}"
+                            + $"\nMobs: \t\t\t\t{tMobText}";
             return this.mUiTooltip;
         }
 

@@ -181,10 +181,14 @@ namespace BozjaBuddy.GUI.Sections
                 AuxiliaryViewerSection.mTenpLoadout = new LoadoutJson(tLoadout);
                 AuxiliaryViewerSection.mTenpLoadout.RecalculateWeight(this.mPlugin);
             }
-            else if (AuxiliaryViewerSection.mTenpLoadout != null && ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PenSquare,
-                                                                                                UtilsGUI.AdjustTransparency(ImGuiColors.DalamudRed, 0.4f)))
+            else
             {
-                AuxiliaryViewerSection.mTenpLoadout = null;
+                ImGui.PushStyleColor(ImGuiCol.Button, UtilsGUI.Colors.Button_Red);
+                if (AuxiliaryViewerSection.mTenpLoadout != null && ImGui.Button("  X "))
+                {
+                    AuxiliaryViewerSection.mTenpLoadout = null;
+                }
+                ImGui.PopStyleColor();
             }
             if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Edit / Discard edit"); }
             ImGui.SameLine();
@@ -194,7 +198,7 @@ namespace BozjaBuddy.GUI.Sections
                 ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save);
                 if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Save changes"); }
             }
-            else if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save, UtilsGUI.AdjustTransparency(ImGuiColors.ParsedGreen, 0.4f)) && AuxiliaryViewerSection.mTenpLoadout != null)
+            else if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save, UtilsGUI.Colors.Button_Green) && AuxiliaryViewerSection.mTenpLoadout != null)
             {
                 // Save to cache
                 Loadout tLoadoutNew = new Loadout(this.mPlugin, AuxiliaryViewerSection.mTenpLoadout);

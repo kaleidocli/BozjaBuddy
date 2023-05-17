@@ -193,6 +193,7 @@ namespace BozjaBuddy
             public struct ItemInfo
             {
                 public bool isDisabled_All = false;
+                public bool isDisabled_WhenNotFocused = true;
 
                 public ItemInfo() { }
             }

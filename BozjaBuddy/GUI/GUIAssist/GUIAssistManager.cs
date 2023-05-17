@@ -139,7 +139,9 @@ namespace BozjaBuddy.GUI.GUIAssist
                     this.mPlugin,
                     this.mExtGui_MycInfo,
                     new Vector2(0, ImGui.CalcTextSize("A").Y),
-                    padding: new Vector2(0, -ImGui.CalcTextSize("A").Y));
+                    padding: new Vector2(0, -ImGui.CalcTextSize("A").Y),
+                    isDisabled: (this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_WhenNotFocused && !UtilsGUI.IsAddonFocused("MYCInfo"))
+                    );
             }
             catch (Exception e) { PluginLog.LogDebug(e.Message); }
         }

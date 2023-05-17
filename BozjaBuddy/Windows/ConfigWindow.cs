@@ -222,7 +222,7 @@ public class ConfigWindow : Window, IDisposable
         float tInnerSpacing = 12;
         if (ImGui.BeginTabItem("UI Assist"))
         {
-            if (ImGui.CollapsingHeader("[A] Mettle & Resistance Rank window"))
+            if (ImGui.CollapsingHeader("[A] Mettle & Resistance Rank (M&R) window"))
             {
                 // All
                 bool tField2 = !this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_All;
@@ -234,6 +234,18 @@ public class ConfigWindow : Window, IDisposable
                 UtilsGUI.TextDescriptionForWidget("1. All UI features for this section.");
                 ImGui.SameLine();
                 UtilsGUI.ShowHelpMarker("Enable/Disable all UI features for this section such as Search all bar, Alarm reminder, etc.");
+                ImGui.PopTextWrapPos();
+                // 1.1 - is disabled when focused
+                bool tField3 = this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_WhenNotFocused;
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 55f);
+                if (ImGuiComponents.ToggleButton("allwin", ref tField3)) this.mPlugin.Configuration.Save();
+                this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_WhenNotFocused = tField3;
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
+                ImGui.PushTextWrapPos();
+                UtilsGUI.TextDescriptionForWidget("1.1 Only click-able if the M&R window is focused.");
+                ImGui.SameLine();
+                UtilsGUI.ShowHelpMarker("Search all bar and buttons overlay on top of M&R window can be a nuisance when accidentally clicked. This option will make those widgets only click-able when the M&R window is focused, otherwise it'll be greyed out and untargetable.");
                 ImGui.PopTextWrapPos();
 
                 // Reminder: Recruitment window
