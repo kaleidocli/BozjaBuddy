@@ -23,6 +23,8 @@ namespace BozjaBuddy.Filter.LostActionTableSection
                 | mCurrValue == LostActionType.None
                 | mCurrValue == pLostAction.mType;
         public override bool CanPassFilter(Fragment pFragment) => true;
+        public override bool IsFiltering() => this.mCurrValue != LostActionType.None;
+        public override void ResetCurrValue() { this.mCurrValue = LostActionType.None; }
 
         public override void DrawFilterGUI()
         {

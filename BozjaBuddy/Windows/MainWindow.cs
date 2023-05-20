@@ -15,6 +15,7 @@ public class MainWindow : Window, IDisposable
     private MobTab mMobTab;
     private LoadoutTab mLoadoutTab;
     private GeneralSection mGeneralSection;
+    private FieldNoteTab mFieldNoteTab;
  
     public MainWindow(Plugin plugin) : base(
         "Bozja Buddy", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
@@ -28,6 +29,7 @@ public class MainWindow : Window, IDisposable
         this.mMobTab = new MobTab(this.Plugin);
         this.mLoadoutTab = new LoadoutTab(this.Plugin);
         this.mGeneralSection = new GeneralSection(this.Plugin);
+        this.mFieldNoteTab = new FieldNoteTab(this.Plugin);
     }
 
     public void Dispose()
@@ -36,6 +38,7 @@ public class MainWindow : Window, IDisposable
         this.mFateCeTab.Dispose();
         this.mMobTab.Dispose();
         this.mLoadoutTab.Dispose();
+        this.mFieldNoteTab.Dispose();
     }
 
     public override void Draw()
@@ -45,6 +48,7 @@ public class MainWindow : Window, IDisposable
             this.mLostActionTab.DrawGUI();
             this.mFateCeTab.DrawGUI();
             this.mMobTab.DrawGUI();
+            this.mFieldNoteTab.DrawGUI();
             this.mLoadoutTab.DrawGUI();
 
             ImGui.EndTabBar();

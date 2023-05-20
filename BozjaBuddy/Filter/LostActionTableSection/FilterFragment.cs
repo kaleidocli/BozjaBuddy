@@ -50,7 +50,7 @@ namespace BozjaBuddy.Filter.LostActionTableSection
 
         public override void DrawFilterGUI()
         {
-            mGUI.HeaderTextInput(this.mFilterName, ref this.mCurrValue, ref this.mIsEdited);
+            mGUI.HeaderTextInput(mFilterName, ref mCurrValue, ref mIsEdited, this);
         }
 
         public override string GetCurrValue() => mCurrValue;

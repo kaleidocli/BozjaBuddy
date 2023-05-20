@@ -151,6 +151,8 @@ namespace BozjaBuddy.Data
                     return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetAction?.GetRow(pItemId)?.Icon);
                 case Sheet.Item:
                     return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetItem?.GetRow(pItemId)?.Icon);
+                case Sheet.FieldNote:
+                    return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetMycWarResultNotebook?.GetRow(pItemId)?.Icon);
                 default:
                     //PluginLog.LogDebug($"GetIconId(): Unable to load iconId of {pItemId} from sheet {pSheet.ToString()}");
                     return null;
@@ -197,7 +199,8 @@ namespace BozjaBuddy.Data
             Action = 1,
             Item = 2,
             Job = 3,
-            Role = 4
+            Role = 4,
+            FieldNote = 5
         }
     }
 }

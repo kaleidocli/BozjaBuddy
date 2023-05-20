@@ -63,6 +63,7 @@ namespace BozjaBuddy.Utils
         };
         public static TextureCollection? kTextureCollection = null;
         public static TextureCollection? kTexCol_LostAction = null;
+        public static TextureCollection? kTexCol_FieldNote = null;
 
         public static ImFontPtr kFont_Yuruka = null;
 
@@ -129,6 +130,8 @@ namespace BozjaBuddy.Utils
 
             UtilsGameData.kTexCol_LostAction = new(pPlugin);
             UtilsGameData.kTexCol_LostAction.AddTextureFromItemId(pPlugin.mBBDataManager.mLostActions.Keys.ToList());
+            UtilsGameData.kTexCol_FieldNote = new(pPlugin);
+            UtilsGameData.kTexCol_FieldNote.AddTextureFromItemId(pPlugin.mBBDataManager.mFieldNotes.Keys.ToList(), pSheet: TextureCollection.Sheet.FieldNote);
         }
 
         public static Job? GetUserJob(Plugin pPlugin)

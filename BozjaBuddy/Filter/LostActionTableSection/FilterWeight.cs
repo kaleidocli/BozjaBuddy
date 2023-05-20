@@ -37,6 +37,8 @@ namespace BozjaBuddy.Filter.LostActionTableSection
         public override bool CanPassFilter(LostAction pLostAction)
             => !mIsFilteringActive | (pLostAction.mWeight >= mCurrValue[0] && pLostAction.mWeight <= mCurrValue[1]);
         public override bool CanPassFilter(Fragment pFragment) => true;
+        public override bool IsFiltering() => this.mCurrValue[0] > 0 || this.mCurrValue[1] < 9999;
+        public override void ResetCurrValue() { this.mCurrValue[0] = 0; this.mCurrValue[1] = 9999; }
 
         public override List<int> Sort(List<int> tIDs, bool pIsAscending = true)
         {
@@ -54,11 +56,16 @@ namespace BozjaBuddy.Filter.LostActionTableSection
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, new System.Numerics.Vector2(1, 0));
 
                 ImGui.InputInt2("", ref mCurrValue[0], ImGuiInputTextFlags.CharsDecimal);
+                if (this.IsFiltering())
+                {
+                    ImGui.SameLine();
+                    if (ImGui.Button($" X ##pcancel")) this.ResetCurrValue();
+                }
 
                 ImGui.PopStyleVar();
                 return;
             }
-            mGUI.HeaderNumberInputPair(mFilterName, ref mCurrValue);
+            mGUI.HeaderNumberInputPair(mFilterName, ref mCurrValue, this);
         }
         public override string GetCurrValue() => $"{this.mCurrValue[0]}-{this.mCurrValue[1]}";
     }

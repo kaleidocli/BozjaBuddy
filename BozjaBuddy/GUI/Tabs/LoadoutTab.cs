@@ -12,7 +12,7 @@ namespace BozjaBuddy.GUI.Tabs
 
         public LoadoutTab(Plugin pPlugin)
         {
-            this.mName = "Custom Loadouts";
+            this.mName = "Custom Loadout";
             this.mPlugin = pPlugin;
             mSortedSections = new Dictionary<int, Section>() {
 

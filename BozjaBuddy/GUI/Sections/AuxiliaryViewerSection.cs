@@ -90,6 +90,7 @@ namespace BozjaBuddy.GUI.Sections
         {
             // Icon
             TextureWrap? tIconWrap;
+            Vector2? tSize = null;
             switch (pObj.GetSalt())
             {
                 case GeneralObject.GeneralObjectSalt.Fragment:
@@ -103,6 +104,10 @@ namespace BozjaBuddy.GUI.Sections
                 case GeneralObject.GeneralObjectSalt.Mob:
                     tIconWrap = AuxiliaryViewerSection.mTextureCollection?.GetStandardTexture((uint)this.mPlugin.mBBDataManager.mMobs[pObj.mId].mType);
                     break;
+                case GeneralObject.GeneralObjectSalt.FieldNote:
+                    tIconWrap = UtilsGameData.kTexCol_FieldNote?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), TextureCollection.Sheet.FieldNote);
+                    if (tIconWrap != null) tSize = new Vector2(tIconWrap.Width * 0.5f, tIconWrap.Height * 0.5f);
+                    break;
                 default:
                     tIconWrap = AuxiliaryViewerSection.mTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId));
                     if (tIconWrap == null)      // try reloading the texture, which is sometimes lost due to LoadoutTab's disposing process
@@ -114,7 +119,7 @@ namespace BozjaBuddy.GUI.Sections
             }
             if (tIconWrap != null)
             {
-                ImGui.Image(tIconWrap.ImGuiHandle, new System.Numerics.Vector2(tIconWrap.Width, tIconWrap.Height));
+                ImGui.Image(tIconWrap.ImGuiHandle, tSize ?? new System.Numerics.Vector2(tIconWrap.Width, tIconWrap.Height));
                 ImGui.SameLine();           // Do not Sameline() if there's no image, since it'll Sameline() to the TabItem above
             }
             // Name and Details and Location
@@ -312,7 +317,7 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.InputText("##group", ref AuxiliaryViewerSection.mTenpLoadout!._mGroup, 120);
                 ImGui.PopItemWidth();
                 ImGui.SameLine(); ImGui.Text(" • ");
-                ImGui.SameLine(); AuxiliaryViewerSection.mGUIFilter.HeaderRoleIconButtons(AuxiliaryViewerSection.mTenpLoadout!._mRole);
+                ImGui.SameLine(); AuxiliaryViewerSection.mGUIFilter.HeaderRoleIconButtons(AuxiliaryViewerSection.mTenpLoadout!._mRole, null);
 
 
                 ImGui.Spacing();

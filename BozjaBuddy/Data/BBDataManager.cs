@@ -29,8 +29,10 @@ namespace BozjaBuddy.Data
         public Dictionary<int, Vendor> mVendors;
         public Dictionary<int, Loadout> mLoadouts;
         public Dictionary<int, Loadout> mLoadoutsPreset;
+        public Dictionary<int, FieldNote> mFieldNotes;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Action>? mSheetAction;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? mSheetItem;
+        public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>? mSheetMycWarResultNotebook;
 
         public BBDataManager(Plugin pPlugin) 
         {
@@ -41,6 +43,7 @@ namespace BozjaBuddy.Data
             this.mMobs = new Dictionary<int, Mob>();
             this.mVendors = new Dictionary<int, Vendor>();
             this.mLoadouts = new Dictionary<int, Loadout>();
+            this.mFieldNotes = new Dictionary<int, FieldNote>();
             this.mLoadoutsPreset = new Dictionary<int, Loadout>();
             this.mGeneralObjects = new Dictionary<int, GeneralObject>();
 
@@ -56,6 +59,7 @@ namespace BozjaBuddy.Data
                 this.DataSetUpFate(tCommand);
                 this.DataSetUpMob(tCommand);
                 this.DataSetUpVendor(tCommand);
+                this.DataSetUpFieldNote(tCommand);
             }
 
             // json
@@ -81,6 +85,7 @@ namespace BozjaBuddy.Data
             // lumina
             this.mSheetAction = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Action>();
             this.mSheetItem = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Item>();
+            this.mSheetMycWarResultNotebook = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>();
 
             this.SetUpGeneralObjects();
             this.SetUpAuxiliary();
@@ -255,6 +260,28 @@ namespace BozjaBuddy.Data
                 tReader.Close();
             }
         }
+        private void DataSetUpFieldNote(SQLiteCommand pCommand)
+        {
+            DbLoader<FieldNote>(out this.mFieldNotes, pCommand, "SELECT * FROM FieldNote;", (p, t) => new FieldNote(p, t));
+
+            foreach (int id in this.mFieldNotes.Keys)
+            {
+                string iLinkCol;
+
+                // Linking
+                iLinkCol = "idFate";
+                pCommand.CommandText = $@"SELECT FieldNoteToFate.{iLinkCol} 
+                                            FROM FieldNoteToFate
+                                            WHERE FieldNoteToFate.id = {id};";
+                SQLiteDataReader tReader = pCommand.ExecuteReader();
+                while (tReader.Read())
+                {
+                    this.mFieldNotes[id].mLinkFates.Add((int)(long)tReader[iLinkCol]);
+                }
+
+                tReader.Close();
+            }
+        }
 
         private void SetUpGeneralObjects()
         {
@@ -270,6 +297,8 @@ namespace BozjaBuddy.Data
                 this.mGeneralObjects[this.mVendors[id].GetGenId()] = this.mVendors[id];
             foreach (int id in this.mLoadouts.Keys)
                 this.mGeneralObjects[this.mLoadouts[id].GetGenId()] = this.mLoadouts[id];
+            foreach (int id in this.mFieldNotes.Keys)
+                this.mGeneralObjects[this.mFieldNotes[id].GetGenId()] = this.mFieldNotes[id];
         }
 
         public void SetUpAuxiliary()
@@ -286,6 +315,8 @@ namespace BozjaBuddy.Data
                 AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mVendors[id].GetGenId());
             foreach (int id in this.mLoadouts.Keys)
                 AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mLoadouts[id].GetGenId());
+            foreach (int id in this.mFieldNotes.Keys)
+                AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mFieldNotes[id].GetGenId());
         }
         public void SetUpUiMap(List<UIMap_MycItemBoxRow> tUIMap_MycInfo)
         {

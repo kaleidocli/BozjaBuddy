@@ -1,23 +1,20 @@
-using BozjaBuddy.Data;
+﻿using BozjaBuddy.Data;
 
-namespace BozjaBuddy.Filter.LostActionTableSection
+namespace BozjaBuddy.Filter.FieldNoteTableSection
 {
     internal class FilterDescription : Filter
     {
         public override string mFilterName { get; set; } = "description";
 
-        public FilterDescription()
-        {
-            Init();
-        }
+        public FilterDescription() { }
+
         public FilterDescription(bool pIsFilteringActive)
         {
             Init();
             EnableFiltering(pIsFilteringActive);
         }
 
-        public override bool CanPassFilter(LostAction pLostAction) => CanPassFilter(pLostAction.mDescription_semi);
-        public override bool CanPassFilter(Fragment pFragment) => true;
+        public override bool CanPassFilter(FieldNote tFieldNote) => this.CanPassFilter(tFieldNote.mDescription);
 
         public override void DrawFilterGUI()
         {

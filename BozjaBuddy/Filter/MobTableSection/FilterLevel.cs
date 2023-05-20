@@ -27,6 +27,8 @@ namespace BozjaBuddy.Filter.MobTableSection
 
         public override bool CanPassFilter(Mob tMob)
             => !mIsFilteringActive | (tMob.mLevel >= mCurrValue[0] && tMob.mLevel <= mCurrValue[1]);
+        public override bool IsFiltering() => this.mCurrValue[0] > 0 || this.mCurrValue[1] < 10;
+        public override void ResetCurrValue() { this.mCurrValue[0] = 0; this.mCurrValue[0] = 10; }
 
         public override List<int> Sort(List<int> tIDs, bool pIsAscending = true)
         {
@@ -39,7 +41,7 @@ namespace BozjaBuddy.Filter.MobTableSection
 
         public override void DrawFilterGUI()
         {
-            mGUI.HeaderNumberInputPair(mFilterName, ref mCurrValue);
+            mGUI.HeaderNumberInputPair(mFilterName, ref mCurrValue, this);
         }
     }
 }

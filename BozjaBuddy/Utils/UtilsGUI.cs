@@ -10,6 +10,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImGuiScene;
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -58,21 +59,51 @@ namespace BozjaBuddy.Utils
         {
             ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, pText);
         }
-        public static bool SelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true, Vector4? pColor = null)
+        /// <summary>
+        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
+        /// <para>If pSize is not given, the size will be calculated from the size of pContent.</para>
+        /// </summary>
+        public static bool SelectableLink(
+            Plugin pPlugin, 
+            string pContent, 
+            int pTargetGenId, 
+            bool pIsWrappedToText = true, 
+            bool pIsClosingPUOnClick = true,
+            bool pIsLink = true,
+            Vector4? pTextColor = null,
+            Vector2? pSize = null)
         {
             bool tRes = false;
             ImGui.PushID(pTargetGenId);
-            var tTextSize = ImGui.CalcTextSize(pContent);
-            if (pColor.HasValue) ImGui.PushStyleColor(ImGuiCol.Text, pColor.Value);
+            Vector2? tTextSize = pSize.HasValue ? null : ImGui.CalcTextSize(pContent);
+            if (pTextColor.HasValue) ImGui.PushStyleColor(ImGuiCol.Text, pTextColor.Value);
             if (pIsWrappedToText)
             {
                 if (ImGui.Selectable(pContent,
                                         false,
                                         pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups, 
-                                        new System.Numerics.Vector2(tTextSize.X + 0.5f, tTextSize.Y + 0.25f)
+                                        pSize ?? new System.Numerics.Vector2(tTextSize!.Value.X + 0.5f, tTextSize!.Value.Y + 0.25f)
                                         ))
                 {
                     tRes = true;
+                    if (pIsLink)
+                    {
+                        if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
+                        {
+                            AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
+                        }
+                        else
+                        {
+                            AuxiliaryViewerSection._mGenIdToTabFocus = pTargetGenId;
+                        }
+                    }
+                }
+            }
+            else if (ImGui.Selectable(pContent, false, pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups))
+            {
+                tRes = true;
+                if (pIsLink)
+                {
                     if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
                     {
                         AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
@@ -83,26 +114,33 @@ namespace BozjaBuddy.Utils
                     }
                 }
             }
-            else if (ImGui.Selectable(pContent, false, pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups))
-            {
-                tRes = true;
-                if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
-                {
-                    AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
-                }
-                else
-                {
-                    AuxiliaryViewerSection._mGenIdToTabFocus = pTargetGenId;
-                }
-            }
-            if (pColor.HasValue) ImGui.PopStyleColor();
+            if (pTextColor.HasValue) ImGui.PopStyleColor();
             ImGui.PopID();
             return tRes;
         }
-        /// <summary> Return true if link is clicked with LMB or RMB </summary>
-        public static bool SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true, Vector4? pColor = null, bool pIsShowingCacheAmount = false)
+        /// <summary>
+        /// <para>If pSize is not given, the size will be calculated from the size of pContent.</para>
+        /// <para>Return true if link is clicked with LMB or RMB</para>
+        /// </summary>
+        public static bool SelectableLink_WithPopup(
+            Plugin pPlugin, 
+            string pContent, 
+            int pTargetGenId, 
+            bool pIsWrappedToText = true, 
+            bool pIsClosingPUOnClick = true, 
+            Vector4? pTextColor = null, 
+            Vector2? pSize = null,
+            bool pIsShowingCacheAmount = false,
+            bool pIsShowingLinkIcon = true)
         {
-            bool tRes = UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText, pIsClosingPUOnClick: pIsClosingPUOnClick, pColor);
+            bool tRes = UtilsGUI.SelectableLink(
+                pPlugin, 
+                pContent + (pIsShowingLinkIcon ? "  »" : ""), 
+                pTargetGenId, 
+                pIsWrappedToText, 
+                pIsClosingPUOnClick: pIsClosingPUOnClick, 
+                pTextColor: pTextColor,
+                pSize: pSize);
             if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
             {
                 ImGui.Text("<unrecognizable obj>");
@@ -338,6 +376,71 @@ namespace BozjaBuddy.Utils
             if (pGuiId != null) ImGui.PopID();
             return tRes;
         }
+        /// <summary>
+        /// <para>A SelectableLink_WithPopup but in form of an image. Can be configured to be a normal Selectable.</para>
+        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
+        /// <para>pContent:             Not advised to use.</para>
+        /// <para>pLinkPadding:         Link padding from four sides of the image.</para>
+        /// <para>pCustomLinkSize:      If set, use the custom size and ignoring padding. Otherwise, use image's size + padding.</para>
+        /// <para>pImageOverlayRGBA:    If set, a color tint will overlay the image. Can be used to ajust image's transparency.</para>
+        /// <para>pIamgeBorderColor:    If set, a border with given color will be rendered around the image (not the link).</para>
+        /// </summary>
+        public static bool SelectableLink_Image(
+            Plugin pPlugin,
+            int pTargetGenId,
+            TextureWrap pImage,
+            string pContent = "",
+            bool pIsLink = true,
+            bool pIsClosingPUOnClick = true,
+            bool pIsShowingCacheAmount = false,
+            Vector2? pLinkPadding = null,
+            float pImageScaling = 1, 
+            Vector2? pCustomLinkSize = null,
+            Vector4? pTextColor = null,
+            Vector4? pImageOverlayRGBA = null,
+            Vector4? pImageBorderColor = null)
+        {
+            bool tRes = false;
+            var tAnchor = ImGui.GetCursorPos();
+            // Draw link
+            Vector2 tLinkSize = (pCustomLinkSize ?? new Vector2(pImage.Width, pImage.Height) * pImageScaling);
+            if (pLinkPadding.HasValue && !pCustomLinkSize.HasValue) tLinkSize += pLinkPadding.Value * 2;     // padding
+            if (pIsLink)
+            {
+                tRes = UtilsGUI.SelectableLink_WithPopup(
+                    pPlugin,
+                    pContent,
+                    pTargetGenId,
+                    pIsClosingPUOnClick: pIsClosingPUOnClick,
+                    pTextColor: pTextColor,
+                    pSize: tLinkSize,
+                    pIsShowingCacheAmount: pIsShowingCacheAmount,
+                    pIsShowingLinkIcon: false);
+            }
+            else
+            {
+                tRes = UtilsGUI.SelectableLink(
+                    pPlugin,
+                    pContent,
+                    pTargetGenId,
+                    pIsLink: false,
+                    pIsClosingPUOnClick: pIsClosingPUOnClick,
+                    pTextColor: pTextColor,
+                    pSize: tLinkSize);
+            }
+            // Set link pos
+            ImGui.SetCursorPos(pLinkPadding == null ? tAnchor : tAnchor - pLinkPadding.Value);
+            // Draw image
+            ImGui.Image(
+                pImage.ImGuiHandle, 
+                new Vector2(pImage.Width * pImageScaling, pImage.Height * pImageScaling),
+                new Vector2(0f, 0f),
+                new Vector2(1f, 1f),
+                pImageOverlayRGBA ?? new Vector4(1, 1, 1, 1),
+                pImageBorderColor ?? Vector4.Zero
+                );
+            return tRes;
+        }
         public static void DrawRoleFlagAsIconString(Plugin pPlugin, RoleFlag pRoleFlag)
         {
             List<TextureWrap?> tRoleIcons = RoleFlag.FlagToIcon(pRoleFlag.mRoleFlagBit);
@@ -461,6 +564,7 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 NormalText_Red = ImGuiColors.DalamudRed;
             public readonly static Vector4 TableCell_Green = new Vector4(0.67f, 1, 0.59f, 0.2f);
             public readonly static Vector4 TableCell_Yellow = new Vector4(0.93f, 0.93f, 0.35f, 0.2f);
+            public readonly static Vector4 TableCell_Red = Utils.RGBAtoVec4(249, 77, 77, 51);
             public readonly static Vector4 Button_Red = Utils.RGBAtoVec4(92, 63, 70, 255);
             public readonly static Vector4 Button_Green = new(0.61f, 0.92f, 0.77f, 0.4f);
             public readonly static Vector4 MycItemBoxOverlay_Black = Utils.RGBAtoVec4(0, 0, 0, 150);

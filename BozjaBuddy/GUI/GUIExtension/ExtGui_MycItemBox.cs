@@ -32,6 +32,11 @@ namespace BozjaBuddy.GUI.GUIExtension
             this.mFilterFragment = new(true, this.mPlugin);
             this.mFilterRole.mIsCompact = false;
             this.mFilterWeight.mIsCompact = false;
+
+            this.mFilterName.mIsContainedInCell = false;
+            this.mFilterRole.mIsContainedInCell = false;
+            this.mFilterFragment.mIsContainedInCell = false;
+            this.mFilterWeight.mIsContainedInCell = false;
         }
 
         public bool CanPassAllFilters(LostAction pLostAction)

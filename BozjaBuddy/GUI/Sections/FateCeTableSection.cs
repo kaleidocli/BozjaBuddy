@@ -96,6 +96,8 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PushID(ImGui.TableGetColumnName(iCol));
                 ImGui.PushItemWidth(ImGui.GetColumnWidth(iCol) - FateCeTableSection.HEADER_TEXT_FIELD_SIZE_OFFSET);
                 ImGui.PushTextWrapPos(0);
+                if (this.mFilters[iCol].IsFiltering())
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.TableCell_Red));
 
                 this.mFilters[iCol].DrawFilterGUI(); ImGui.SameLine();
 

@@ -84,7 +84,7 @@ namespace BozjaBuddy.Windows
             ImGui.PopStyleColor();
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Valor");
             ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.BackgroundText_Red);
-            ImGui.SameLine(); ImGui.TextUnformatted($"\t\t{tCharStats.rayValor}\t\t\t\t+{3 * tCharStats.rayFortitude}% DMG (ea. +3%)");
+            ImGui.SameLine(); ImGui.TextUnformatted($"\t\t{tCharStats.rayValor}\t\t\t\t+{3 * tCharStats.rayValor}% DMG (ea. +3%)");
             ImGui.PopStyleColor();
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Succor");
             ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.BackgroundText_Green);
@@ -154,7 +154,7 @@ namespace BozjaBuddy.Windows
                             this.mPlugin, 
                             iAction!.mName, 
                             iAction!.GetGenId(),
-                            pColor: tIsMarked ? UtilsGUI.Colors.NormalText_Red : null,
+                            pTextColor: tIsMarked ? UtilsGUI.Colors.NormalText_Red : null,
                             pIsShowingCacheAmount: true
                         );
                 }
@@ -190,7 +190,7 @@ namespace BozjaBuddy.Windows
                 foreach (var iId in tMarkeds)
                 {
                     if (!this.mPlugin.mBBDataManager.mLostActions.TryGetValue(iId, out LostAction? iAction)) continue;
-                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, iAction!.mName, iAction!.GetGenId(), pColor: UtilsGUI.Colors.NormalText_Red, pIsShowingCacheAmount: true);
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, iAction!.mName, iAction!.GetGenId(), pTextColor: UtilsGUI.Colors.NormalText_Red, pIsShowingCacheAmount: true);
                 }
                 foreach (var iAction in this.mPlugin.mBBDataManager.mLostActions.Values)
                 {

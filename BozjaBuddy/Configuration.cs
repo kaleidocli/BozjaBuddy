@@ -46,6 +46,7 @@ namespace BozjaBuddy
         public Dictionary<int, int> _cacheAlertSpecificThresholds = new();
         public bool mIsCacheAlertIgnoringActive = false;
         public HashSet<int> mCacheAlertIgnoreIds = new();
+        public HashSet<int> mUserFieldNotes = new();
 
         public GuiAssistConfig mGuiAssistConfig = new();
 
@@ -197,7 +198,6 @@ namespace BozjaBuddy
 
                 public ItemInfo() { }
             }
-
             public struct ItemBox
             {
                 public bool isDisabled_All = false;

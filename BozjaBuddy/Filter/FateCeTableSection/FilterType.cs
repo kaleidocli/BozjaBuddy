@@ -35,6 +35,8 @@ namespace BozjaBuddy.Filter.FateCeTableSection
                                         Fate.FateType.Raid};
             mGUI.HeaderComboEnum(" ", ref mCurrValue, tValues, tValues[0]);
         }
+        public override bool IsFiltering() => this.mCurrValue != Fate.FateType.None;
+        public override void ResetCurrValue() { this.mCurrValue = Fate.FateType.None; }
 
         public override List<int> Sort(List<int> tIDs, bool pIsAscending = true)
         {

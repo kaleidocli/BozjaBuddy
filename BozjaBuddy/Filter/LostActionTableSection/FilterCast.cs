@@ -23,6 +23,9 @@ namespace BozjaBuddy.Filter.LostActionTableSection
 
         public override bool CanPassFilter(LostAction pLostAction)
             => !mIsFilteringActive | (pLostAction.mCast >= mCurrValue[0] && pLostAction.mCast <= mCurrValue[1]);
+        public override bool IsFiltering() => this.mCurrValue[0] > 0 || this.mCurrValue[1] < 9999;
+        public override void ResetCurrValue() { this.mCurrValue[0] = 0; this.mCurrValue[1] = 9999; }
+
         public override bool CanPassFilter(Fragment pFragment) => true;
 
         public override void DrawFilterGUI()

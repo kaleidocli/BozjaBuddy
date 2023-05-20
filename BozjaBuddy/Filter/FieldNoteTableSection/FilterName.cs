@@ -1,6 +1,8 @@
-using BozjaBuddy.Data;
+﻿using BozjaBuddy.Data;
+using ImGuiNET;
+using ImGuiScene;
 
-namespace BozjaBuddy.Filter.MobTableSection
+namespace BozjaBuddy.Filter.FieldNoteTableSection
 {
     internal class FilterName : Filter
     {
@@ -14,7 +16,7 @@ namespace BozjaBuddy.Filter.MobTableSection
             EnableFiltering(pIsFilteringActive);
         }
 
-        public override bool CanPassFilter(Mob tMob) => this.CanPassFilter(tMob.mName);
+        public override bool CanPassFilter(FieldNote tFieldNote) => this.CanPassFilter(tFieldNote.mName);
 
         public override void DrawFilterGUI()
         {
