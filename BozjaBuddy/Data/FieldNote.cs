@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using Dalamud.Game.Text.SeStringHandling;
+using System.Linq;
 
 namespace BozjaBuddy.Data
 {
@@ -22,13 +23,37 @@ namespace BozjaBuddy.Data
             mRarity = (int)(long)pPackage["rarity"];
             mDescription = pPackage["description"] is System.DBNull ? string.Empty : (string)pPackage["description"];
 
-            this.mTabColor = UtilsGUI.Colors.GenObj_YellowFragment;
+            this.mTabColor = UtilsGUI.Colors.GenObj_BrownFieldNote;
 
             this.SetUpAuxiliary();
         }
         public override SeString? GetReprItemLink() => null;// SeString.CreateItemLink((uint)mId, false);
         public override string GetReprClipboardTooltip()
-            => $"[{this.mName}] • [Rarity: {this.mRarity}] • [{this.mDescription}]";
+        {
+            string tFateText = string.Join(
+                ", ",
+                this.mLinkFates.Select(o => this.mPlugin.mBBDataManager.mFates.ContainsKey(o)
+                                            ? this.mPlugin.mBBDataManager.mFates[o].mName + $" --- ({this.mPlugin.mBBDataManager.mFates[o].mLocation?.ToStringFull()})"
+                                            : "unknown")
+                                   .ToList()
+                );
+            return $"[{this.mName}] • [Rarity: {this.mRarity}] • [{this.mDescription}] • [FATE: {tFateText}]";
+        }
+        protected override string GenReprUiTooltip()
+        {
+            string tFateText = string.Join(
+                "\n\t\t\t    ",
+                this.mLinkFates.Select(o => this.mPlugin.mBBDataManager.mFates.ContainsKey(o)
+                                            ? this.mPlugin.mBBDataManager.mFates[o].mName + $" --- ({this.mPlugin.mBBDataManager.mFates[o].mLocation?.ToStringFull()})"
+                                            : "unknown")
+                                   .ToList()
+                );
+
+            this.mUiTooltip = $"Name:\t{this.mName}"
+                            + $"\nDesc:  \t{this.mDescription}"
+                            + $"\nFATE:  \t{tFateText}";
+            return this.mUiTooltip;
+        }
 
         protected override void SetUpAuxiliary()
         {

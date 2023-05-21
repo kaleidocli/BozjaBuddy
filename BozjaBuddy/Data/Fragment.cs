@@ -41,7 +41,7 @@ namespace BozjaBuddy.Data
             string tFateText = string.Join(
                 "\n\t\t\t\t\t\t\t",
                 this.mLinkFates.Select(o => this.mPlugin.mBBDataManager.mFates.ContainsKey(o)
-                                            ? this.mPlugin.mBBDataManager.mFates[o].mName
+                                            ? this.mPlugin.mBBDataManager.mFates[o].mName + $" --- ({this.mPlugin.mBBDataManager.mFates[o].mLocation?.ToStringFull()})"
                                             : "unknown")
                                    .ToList()
                 );

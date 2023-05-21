@@ -463,6 +463,22 @@ namespace BozjaBuddy.GUI.Sections
                     ImGui.Separator();
                 }
             }
+            if (pObj.mLinkFieldNotes.Count != 0 && ImGui.CollapsingHeader($"Field Notes ({pObj.mLinkFieldNotes.Count})"))
+            {
+                foreach (int iId in pObj.mLinkFieldNotes)
+                {
+                    FieldNote tFieldNote = this.mPlugin.mBBDataManager.mFieldNotes[iId];
+                    // LOCATION
+                    if (tFieldNote.mLocation != null)
+                    {
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tFieldNote.mLocation);
+                        ImGui.SameLine();
+                    }
+                    // NAME
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tFieldNote.mName}", tFieldNote.GetGenId());
+                    ImGui.Separator();
+                }
+            }
             ImGui.EndChild();
         }
 

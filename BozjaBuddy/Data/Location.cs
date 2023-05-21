@@ -46,6 +46,7 @@ namespace BozjaBuddy.Data
         }
 
         public override string ToString() => this.mReprString;
+        public string ToStringFull() => $"{this} x:{this.mMapCoordX} y:{this.mMapCoordY}";
 
         private void UpdateAreaFlag()
         {

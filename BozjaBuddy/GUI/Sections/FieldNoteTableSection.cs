@@ -148,13 +148,17 @@ namespace BozjaBuddy.GUI.Sections
                                                             : new Vector4(1, 1, 1, 0.25f)
                                         ))
                             {
-                                if (!this.mPlugin.Configuration.mUserFieldNotes.Add(tFieldNote.mId))
+                                if (this.mPlugin.Configuration.mUserFieldNotes.Add(tFieldNote.mId))
+                                {
+                                    this.mPlugin.Configuration.Save();
+                                }
+                                else
                                 {
                                     this.mPlugin.Configuration.mUserFieldNotes.Remove(tFieldNote.mId);
                                     this.mPlugin.Configuration.Save();
                                 }
                             }
-                                
+                            else UtilsGUI.SetTooltipForLastItem("Click to mark this field note as already owned.");
                             break;
                         case 1:
                             UtilsGUI.SelectableLink_WithPopup(mPlugin, tFieldNote.mName, tFieldNote.GetGenId());

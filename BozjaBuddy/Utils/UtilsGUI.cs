@@ -584,6 +584,7 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 GenObj_PinkFate = new(0.9f, 0.61f, 0.9f, 0.4f);
             public readonly static Vector4 GenObj_GreenMob = new(0.61f, 0.92f, 0.77f, 0.4f);
             public readonly static Vector4 GenObj_RedLoadout = Utils.RGBAtoVec4(158, 41, 16, 122);
+            public readonly static Vector4 GenObj_BrownFieldNote = Utils.RGBAtoVec4(224, 197, 160, 122);
         }
     }
 }

@@ -212,6 +212,17 @@ namespace BozjaBuddy.Data
                 {
                     this.mFates[id].mLinkFragments.Add((int)(long)tReader[iLinkCol]);
                 }
+                tReader.Close();
+                // Linking idFieldNote
+                iLinkCol = "id";
+                pCommand.CommandText = $@"SELECT FieldNoteToFate.{iLinkCol} 
+                                            FROM FieldNoteToFate 
+                                            WHERE FieldNoteToFate.idFate = {id};";
+                tReader = pCommand.ExecuteReader();
+                while (tReader.Read())
+                {
+                    this.mFates[id].mLinkFieldNotes.Add((int)(long)tReader[iLinkCol]);
+                }
 
                 tReader.Close();
             }

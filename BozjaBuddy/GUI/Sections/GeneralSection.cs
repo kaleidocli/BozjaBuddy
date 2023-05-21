@@ -82,6 +82,10 @@ namespace BozjaBuddy.GUI.Sections
                     // Loadout
                     foreach (GeneralObject o in pPlugin.mBBDataManager.mGeneralObjects.Values)
                     {
+                        if (o.GetSalt() == GeneralObject.GeneralObjectSalt.Loadout)
+                        {
+                            if (!pPlugin.Configuration.mIsShowingRecLoadout && o.mId > 9999) continue;
+                        }
                         string tCheck = o.mName + o.GetSalt() switch
                         {
                             GeneralObject.GeneralObjectSalt.LostAction => "action",

@@ -11,6 +11,9 @@ using Dalamud.Logging;
 using System.Numerics;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using System.Security.Cryptography;
+using FFXIVClientStructs.FFXIV.Component.GUI;
+using Lumina.Excel.GeneratedSheets;
+using System.Runtime.CompilerServices;
 
 namespace BozjaBuddy
 {
@@ -28,6 +31,7 @@ namespace BozjaBuddy
         public const int kDefaultAlarmDuration = 30;
         public const int kDefaultAlarmOffset = 30;
         public const float kDefaultVolume = 1.0f;
+        private static bool _isLocked = false;
 
         public float STYLE_ICON_SIZE { get; set; } = 20f;
         public float mAudioVolume = Configuration.kDefaultVolume;
@@ -45,6 +49,7 @@ namespace BozjaBuddy
         public bool mIsCacheAlertSpecificActive = true;
         public Dictionary<int, int> _cacheAlertSpecificThresholds = new();
         public bool mIsCacheAlertIgnoringActive = false;
+        public bool mIsShowingRecLoadout = true;
         public HashSet<int> mCacheAlertIgnoreIds = new();
         public HashSet<int> mUserFieldNotes = new();
 
@@ -69,10 +74,18 @@ namespace BozjaBuddy
             this.mGuiAssistConfig.itemBox.userHolsterDataByName = this._userHolsterDataByName;
         }
 
-        public void Save()
+        public void Save([CallerMemberName] string pCaller = "")
         {
             //PluginLog.LogDebug("> Save() is being called!");
+            if (Configuration._isLocked) 
+            { 
+                //PluginLog.LogDebug("> CONFIG FILE LOCKED! Aborting save..."); 
+                return; 
+            }
+            //PluginLog.LogDebug($"> CONFIG SAVED! (fromt {pCaller})");
+            Configuration._isLocked = true;
             this.PluginInterface!.SavePluginConfig(this);
+            Configuration._isLocked = false;
         }
         public void SetOverlay(Job pJob, int? pLoadoutId, int pSlotIndex = 0)
         {
