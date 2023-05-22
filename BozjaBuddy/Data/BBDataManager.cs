@@ -47,6 +47,11 @@ namespace BozjaBuddy.Data
             this.mLoadoutsPreset = new Dictionary<int, Loadout>();
             this.mGeneralObjects = new Dictionary<int, GeneralObject>();
 
+            // lumina
+            this.mSheetAction = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Action>();
+            this.mSheetItem = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Item>();
+            this.mSheetMycWarResultNotebook = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>();
+
             // db
             this.mCsLostAction = String.Format("Data Source={0}", this.mPlugin.DATA_PATHS["db"]);
             using (SQLiteConnection mConnLostAction = new SQLiteConnection(this.mCsLostAction))
@@ -82,11 +87,7 @@ namespace BozjaBuddy.Data
                 }
             }
 
-            // lumina
-            this.mSheetAction = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Action>();
-            this.mSheetItem = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Item>();
-            this.mSheetMycWarResultNotebook = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>();
-
+            // lumina 2
             this.SetUpGeneralObjects();
             this.SetUpAuxiliary();
 

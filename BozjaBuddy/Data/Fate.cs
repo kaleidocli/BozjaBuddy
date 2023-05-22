@@ -94,9 +94,18 @@ namespace BozjaBuddy.Data
             }
             tFateChainText = string.Join(" > ", tFateChainTexts);
 
+            string tFieldNoteDrops = string.Join(
+                ", ",
+                this.mLinkFieldNotes.Select(o => mPlugin.mBBDataManager.mFieldNotes.TryGetValue(o, out FieldNote? value) && value != null
+                                            ? value.mName
+                                            : "unknown")
+                                    .ToList()
+                );
+
             return $"[{this.mName}] • [Mettle: {this.mRewardMettleMin}-{this.mRewardMettleMax}] • [Exp: {this.mRewardExpMin}-{this.mRewardExpMax}] • [Tome: {this.mRewardTome}]"
                     + (this.mLocation != null ? $" • [Loc: {WeatherBarSection._mTerritories[this.mLocation!.mTerritoryType]} x:{this.mLocation!.mMapCoordX} y:{this.mLocation!.mMapCoordY}]" : "")
-                    + $" • [FATE chain: {tFateChainText}]";
+                    + $" • [FATE chain: {tFateChainText}]"
+                    + $" • [Field Note: {tFieldNoteDrops}]";
         }
         protected override string GenReprUiTooltip()
         {
@@ -126,13 +135,21 @@ namespace BozjaBuddy.Data
                                             : "unknown")
                                    .ToList()
                 );
+            string tFieldNoteDrops = string.Join(
+                ", ",
+                this.mLinkFieldNotes.Select(o => mPlugin.mBBDataManager.mFieldNotes.TryGetValue(o, out FieldNote? value) && value != null
+                                            ? value.mName
+                                            : "unknown")
+                                    .ToList()
+                );
 
             this.mUiTooltip = $"Name: \t\t\t{this.mName}"
                             + $"\nFATE chain:\t{tFateChainText}"
                             + $"\nFrag drops:\t{tFragDrops}"
                             + $"\nMettle:\t\t\t{Utils.Utils.FormatThousand(this.mRewardMettleMin)} - {Utils.Utils.FormatThousand(this.mRewardMettleMax)}"
                             + $"\nExp:  \t\t\t\t{Utils.Utils.FormatThousand(this.mRewardExpMin)} - {Utils.Utils.FormatThousand(this.mRewardExpMax)}"
-                            + $"\nTome:  \t\t\t{Utils.Utils.FormatThousand(this.mRewardTome)}";
+                            + $"\nTome:  \t\t\t{Utils.Utils.FormatThousand(this.mRewardTome)}"
+                            + $"\nField note:\t  {tFieldNoteDrops}";
             return this.mUiTooltip;
         }
 

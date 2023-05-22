@@ -82,6 +82,7 @@ namespace BozjaBuddy.GUI.Sections
         public override bool DrawGUI()
         {
             DrawOptionBar();
+            ImGui.Separator();
             DrawTable();
             return true;
         }

@@ -174,14 +174,14 @@ namespace BozjaBuddy.GUI.Sections
             if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to delete the current entry"); }
             ImGui.SameLine(); ImGui.Spacing(); ImGui.SameLine(); ImGui.Spacing(); ImGui.SameLine();
             // COPY button
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ClipboardList))
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Upload))
             {
                 ImGui.SetClipboardText(JsonSerializer.Serialize(new LoadoutJson(tLoadout)));
             }
             if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Copy the current entry to clipboard"); }
             ImGui.SameLine();
             // EDIT button
-            if (AuxiliaryViewerSection.mTenpLoadout == null && ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PenSquare))
+            if (AuxiliaryViewerSection.mTenpLoadout == null && ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PencilAlt))
             {
                 AuxiliaryViewerSection.mTenpLoadout = new LoadoutJson(tLoadout);
                 AuxiliaryViewerSection.mTenpLoadout.RecalculateWeight(this.mPlugin);

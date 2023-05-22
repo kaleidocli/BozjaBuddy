@@ -59,6 +59,42 @@ namespace BozjaBuddy.Utils
         {
             ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, pText);
         }
+        /// <summary>https://discord.com/channels/581875019861328007/653504487352303619/1095768356201705623</summary>
+        public static bool IconTextButton(FontAwesomeIcon icon, string text)
+        {
+            var buttonClicked = false;
+
+            var iconSize = UtilsGUI.GetIconSize(icon);
+            var textSize = ImGui.CalcTextSize(text);
+            var padding = ImGui.GetStyle().FramePadding;
+            var spacing = ImGui.GetStyle().ItemSpacing;
+
+            var buttonSizeX = iconSize.X + textSize.X + padding.X * 2 + spacing.X;
+            var buttonSizeY = (iconSize.Y > textSize.Y ? iconSize.Y : textSize.Y) + padding.Y * 2;
+            var buttonSize = new Vector2(buttonSizeX, buttonSizeY);
+
+            if (ImGui.Button("###" + icon.ToIconString() + text, buttonSize))
+            {
+                buttonClicked = true;
+            }
+
+            ImGui.SameLine();
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() - buttonSize.X - padding.X);
+            ImGui.PushFont(UiBuilder.IconFont);
+            ImGui.Text(icon.ToIconString());
+            ImGui.PopFont();
+            ImGui.SameLine();
+            ImGui.Text(text);
+
+            return buttonClicked;
+        }
+        public static Vector2 GetIconSize(FontAwesomeIcon icon)
+        {
+            ImGui.PushFont(UiBuilder.IconFont);
+            var iconSize = ImGui.CalcTextSize(icon.ToIconString());
+            ImGui.PopFont();
+            return iconSize;
+        }
         /// <summary>
         /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
         /// <para>If pSize is not given, the size will be calculated from the size of pContent.</para>
@@ -69,7 +105,7 @@ namespace BozjaBuddy.Utils
             int pTargetGenId, 
             bool pIsWrappedToText = true, 
             bool pIsClosingPUOnClick = true,
-            bool pIsLink = true,
+            bool pIsAuxiLinked = true,
             Vector4? pTextColor = null,
             Vector2? pSize = null)
         {
@@ -86,7 +122,7 @@ namespace BozjaBuddy.Utils
                                         ))
                 {
                     tRes = true;
-                    if (pIsLink)
+                    if (pIsAuxiLinked)
                     {
                         if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
                         {
@@ -102,7 +138,7 @@ namespace BozjaBuddy.Utils
             else if (ImGui.Selectable(pContent, false, pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups))
             {
                 tRes = true;
-                if (pIsLink)
+                if (pIsAuxiLinked)
                 {
                     if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
                     {
@@ -120,7 +156,7 @@ namespace BozjaBuddy.Utils
         }
         /// <summary>
         /// <para>If pSize is not given, the size will be calculated from the size of pContent.</para>
-        /// <para>Return true if link is clicked with LMB or RMB</para>
+        /// <para>Return true if link is clicked with LMB</para>
         /// </summary>
         public static bool SelectableLink_WithPopup(
             Plugin pPlugin, 
@@ -131,7 +167,9 @@ namespace BozjaBuddy.Utils
             Vector4? pTextColor = null, 
             Vector2? pSize = null,
             bool pIsShowingCacheAmount = false,
-            bool pIsShowingLinkIcon = true)
+            bool pIsShowingLinkIcon = true,
+            string pAdditionalHoverText = "",
+            bool pIsAuxiLinked = true)
         {
             bool tRes = UtilsGUI.SelectableLink(
                 pPlugin, 
@@ -140,18 +178,19 @@ namespace BozjaBuddy.Utils
                 pIsWrappedToText, 
                 pIsClosingPUOnClick: pIsClosingPUOnClick, 
                 pTextColor: pTextColor,
-                pSize: pSize);
+                pSize: pSize,
+                pIsAuxiLinked: pIsAuxiLinked);
             if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
             {
                 ImGui.Text("<unrecognizable obj>");
                 return tRes;
             }
             GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
-            UtilsGUI.SetTooltipForLastItem($"[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
-            
+            UtilsGUI.SetTooltipForLastItem($"{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
+
+            ImGui.PushID(pTargetGenId);
             if (ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
             {
-                tRes = true;
                 ImGui.BeginGroup();
                 // Item link to Clipboard + Chat
                 UtilsGUI.ItemLinkButton(pPlugin, pReprName: tObj.GetReprName(), pReprItemLink: tObj.GetReprItemLink());
@@ -192,6 +231,7 @@ namespace BozjaBuddy.Utils
             {
                 pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
             }
+            ImGui.PopID();
             // Lost action's cache amount
             if (pIsShowingCacheAmount)
             {
@@ -379,6 +419,7 @@ namespace BozjaBuddy.Utils
         /// <summary>
         /// <para>A SelectableLink_WithPopup but in form of an image. Can be configured to be a normal Selectable.</para>
         /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
+        /// <para>pIsAuxiLinked:        Whether the Link will pop up an Auxiliary tab</para>
         /// <para>pContent:             Not advised to use.</para>
         /// <para>pLinkPadding:         Link padding from four sides of the image.</para>
         /// <para>pCustomLinkSize:      If set, use the custom size and ignoring padding. Otherwise, use image's size + padding.</para>
@@ -391,6 +432,7 @@ namespace BozjaBuddy.Utils
             TextureWrap pImage,
             string pContent = "",
             bool pIsLink = true,
+            bool pIsAuxiLinked = true,
             bool pIsClosingPUOnClick = true,
             bool pIsShowingCacheAmount = false,
             Vector2? pLinkPadding = null,
@@ -398,7 +440,8 @@ namespace BozjaBuddy.Utils
             Vector2? pCustomLinkSize = null,
             Vector4? pTextColor = null,
             Vector4? pImageOverlayRGBA = null,
-            Vector4? pImageBorderColor = null)
+            Vector4? pImageBorderColor = null,
+            string pAdditionalHoverText = "")
         {
             bool tRes = false;
             var tAnchor = ImGui.GetCursorPos();
@@ -415,7 +458,9 @@ namespace BozjaBuddy.Utils
                     pTextColor: pTextColor,
                     pSize: tLinkSize,
                     pIsShowingCacheAmount: pIsShowingCacheAmount,
-                    pIsShowingLinkIcon: false);
+                    pIsShowingLinkIcon: false,
+                    pAdditionalHoverText: pAdditionalHoverText,
+                    pIsAuxiLinked: pIsAuxiLinked);
             }
             else
             {
@@ -423,7 +468,7 @@ namespace BozjaBuddy.Utils
                     pPlugin,
                     pContent,
                     pTargetGenId,
-                    pIsLink: false,
+                    pIsAuxiLinked: false,
                     pIsClosingPUOnClick: pIsClosingPUOnClick,
                     pTextColor: pTextColor,
                     pSize: tLinkSize);

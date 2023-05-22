@@ -12,6 +12,8 @@ namespace BozjaBuddy.Data
         protected override GeneralObjectSalt mIdSalt { get; set; } = GeneralObjectSalt.FieldNote;
         public override int mId { get; set; } = 0;
         public int mRarity { get; set; } = 0;
+        public int mNumber { get; set; } = 0;
+        public int mItemLinkId { get; set; } = 0;
         public override string mName { get; set; } = String.Empty;
         protected override Plugin mPlugin { get; set; }
 
@@ -22,12 +24,20 @@ namespace BozjaBuddy.Data
             mName = (string)pPackage["name"];
             mRarity = (int)(long)pPackage["rarity"];
             mDescription = pPackage["description"] is System.DBNull ? string.Empty : (string)pPackage["description"];
+            mItemLinkId = (int)(long)pPackage["itemLinkId"];
+
+            var tSheet = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>();
+            if (tSheet != null)
+            {
+                var tLuminaObj = tSheet.FirstOrDefault(o => o.RowId == mId);
+                if (tLuminaObj != null) mNumber = (int)tLuminaObj.Number;
+            }
 
             this.mTabColor = UtilsGUI.Colors.GenObj_BrownFieldNote;
 
             this.SetUpAuxiliary();
         }
-        public override SeString? GetReprItemLink() => null;// SeString.CreateItemLink((uint)mId, false);
+        public override SeString? GetReprItemLink() => SeString.CreateItemLink((uint)this.mItemLinkId, false);
         public override string GetReprClipboardTooltip()
         {
             string tFateText = string.Join(

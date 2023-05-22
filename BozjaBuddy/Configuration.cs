@@ -50,6 +50,7 @@ namespace BozjaBuddy
         public Dictionary<int, int> _cacheAlertSpecificThresholds = new();
         public bool mIsCacheAlertIgnoringActive = false;
         public bool mIsShowingRecLoadout = true;
+        public bool mIsInGridMode_FieldNoteTableSection = false;
         public HashSet<int> mCacheAlertIgnoreIds = new();
         public HashSet<int> mUserFieldNotes = new();
 

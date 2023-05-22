@@ -179,23 +179,8 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.SameLine();
             ImGui.Text(" | ");
             ImGui.SameLine();
-            // Add
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus) && io.KeyShift)
-            {
-                // Save to cache
-                Loadout tLoadoutNew = new Loadout(this.mPlugin, new LoadoutJson());
-                BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
-                this.mIsForcingSort = true;
-                // Open Auxiliary tab
-                if (!AuxiliaryViewerSection.mTabGenIds[tLoadoutNew.GetGenId()])
-                {
-                    AuxiliaryViewerSection.AddTab(this.mPlugin, tLoadoutNew.GetGenId());
-                }
-            }
-            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to add a new entry"); }
             // Import
-            ImGui.SameLine();
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.FileImport) && io.KeyShift)
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Download) && io.KeyShift)
             {
                 // Save to cache
                 LoadoutJson? tLoadoutJson = JsonSerializer.Deserialize<LoadoutJson>(ImGui.GetClipboardText());
@@ -212,6 +197,21 @@ namespace BozjaBuddy.GUI.Sections
                 }
             }
             if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to import an entry from clipboard"); }
+            // Add
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus) && io.KeyShift)
+            {
+                // Save to cache
+                Loadout tLoadoutNew = new Loadout(this.mPlugin, new LoadoutJson());
+                BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
+                this.mIsForcingSort = true;
+                // Open Auxiliary tab
+                if (!AuxiliaryViewerSection.mTabGenIds[tLoadoutNew.GetGenId()])
+                {
+                    AuxiliaryViewerSection.AddTab(this.mPlugin, tLoadoutNew.GetGenId());
+                }
+            }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to add a new entry"); }
         }
 
         /// <summary>

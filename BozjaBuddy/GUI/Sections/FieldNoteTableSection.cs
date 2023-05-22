@@ -1,5 +1,7 @@
 ﻿using BozjaBuddy.Data;
 using BozjaBuddy.Utils;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using Dalamud.Logging;
 using ImGuiNET;
 using ImGuiScene;
@@ -21,7 +23,10 @@ namespace BozjaBuddy.GUI.Sections
                                      ImGuiTableFlags.ContextMenuInBody | ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg |
                                      ImGuiTableFlags.ScrollY | ImGuiTableFlags.Reorderable | ImGuiTableFlags.Sortable |
                                      ImGuiTableFlags.ScrollX;
+        protected static ImGuiTableFlags GRID_FLAG = ImGuiTableFlags.SizingFixedFit |
+                                     ImGuiTableFlags.ContextMenuInBody | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX;
         private float TABLE_SIZE_Y;
+        private float TABLE_HEADER_HEIGHT = 45;
         float FIXED_LINE_HEIGHT;
         private List<int> mFieldNoteIds;
         private TextureCollection mTextureCollection;
@@ -40,7 +45,10 @@ namespace BozjaBuddy.GUI.Sections
                 new Filter.FieldNoteTableSection.FilterDescription()
             };
             FieldNoteTableSection.COLUMN_COUNT = this.mFilters.Length;
-            this.mFieldNoteIds = this.mPlugin.mBBDataManager.mFieldNotes.Keys.ToList();
+            this.mFieldNoteIds = this.mPlugin.mBBDataManager.mFieldNotes.Keys.OrderBy(o => mPlugin.mBBDataManager.mFieldNotes.TryGetValue(o, out FieldNote? value) && value != null
+                                                                                           ? value.mNumber
+                                                                                           : 0)
+                                                                             .ToList();
             if (UtilsGameData.kTexCol_FieldNote != null)
             {
                 this.mTextureCollection = UtilsGameData.kTexCol_FieldNote;
@@ -62,8 +70,9 @@ namespace BozjaBuddy.GUI.Sections
 
         public override bool DrawGUI()
         {
+            DrawOptionBar();
+            ImGui.Separator();
             DrawTable();
-
 
             // debug misc
             //this.DrawTableDebug();
@@ -76,14 +85,22 @@ namespace BozjaBuddy.GUI.Sections
                     "##FieldNote", 
                     FieldNoteTableSection.COLUMN_COUNT, 
                     FieldNoteTableSection.TABLE_FLAG, 
-                    new System.Numerics.Vector2(0.0f, this.TABLE_SIZE_Y)
+                    new System.Numerics.Vector2(0.0f, this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection
+                                                      ? this.TABLE_HEADER_HEIGHT
+                                                      : this.TABLE_SIZE_Y)
                     ))
             {
                 DrawTableHeader();
-                List<int> tIDs = SortTableContent(this.mFieldNoteIds, this.mFilters);
-                DrawTableContent(tIDs);
-
+                if (!this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection)
+                {
+                    List<int> tIDs = SortTableContent(this.mFieldNoteIds, this.mFilters);
+                    DrawTableContent(tIDs);
+                }
                 ImGui.EndTable();
+            }
+            if (this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection)
+            {
+                DrawGridContent(this.mFieldNoteIds);
             }
         }
 
@@ -118,6 +135,7 @@ namespace BozjaBuddy.GUI.Sections
 
         private void DrawTableContent(List<int> pIDs)
         {
+            ImGuiIOPtr io = ImGui.GetIO();
             // CONTENT
             foreach (int iID in pIDs)
             {
@@ -141,12 +159,15 @@ namespace BozjaBuddy.GUI.Sections
                                         this.mPlugin,
                                         tFieldNote.GetGenId(),
                                         tIconWrap,
-                                        pIsLink: false,
+                                        pIsLink: true,
+                                        pIsAuxiLinked: !io.KeyShift,
                                         pImageScaling: 0.5f,
                                         pImageOverlayRGBA: this.mPlugin.Configuration.mUserFieldNotes.Contains(tFieldNote.mId)
                                                             ? null
-                                                            : new Vector4(1, 1, 1, 0.25f)
-                                        ))
+                                                            : new Vector4(1, 1, 1, 0.25f),
+                                        pAdditionalHoverText: "[Shift + LMB] Mark as obtained/unobtained\n"
+                                        )
+                                && io.KeyShift)
                             {
                                 if (this.mPlugin.Configuration.mUserFieldNotes.Add(tFieldNote.mId))
                                 {
@@ -158,7 +179,6 @@ namespace BozjaBuddy.GUI.Sections
                                     this.mPlugin.Configuration.Save();
                                 }
                             }
-                            else UtilsGUI.SetTooltipForLastItem("Click to mark this field note as already owned.");
                             break;
                         case 1:
                             UtilsGUI.SelectableLink_WithPopup(mPlugin, tFieldNote.mName, tFieldNote.GetGenId());
@@ -183,6 +203,101 @@ namespace BozjaBuddy.GUI.Sections
                 }
 
                 ImGui.PopStyleVar();
+            }
+        }
+        private void DrawGridContent(List<int> pIDs)
+        {
+            int tColCount = 10;
+            int tRowCount = 5;
+            if (ImGui.BeginTable(
+                    "##gridfieldnote",
+                    tColCount,
+                    FieldNoteTableSection.GRID_FLAG,
+                    new Vector2(0.0f, this.TABLE_SIZE_Y - this.TABLE_HEADER_HEIGHT)
+                    ))
+            {
+                for (int iRow = 0; iRow < tRowCount; iRow++)
+                {
+                    ImGui.TableNextRow();
+                    for (int iCol = 0; iCol < tColCount; iCol++)
+                    {
+                        int iIndex = iCol + iRow * 10;
+                        ImGui.TableSetColumnIndex(iCol);
+                        if (iIndex >= pIDs.Count) continue;
+                        float tCellWidth = (ImGui.GetWindowSize().X - ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetStyle().ItemSpacing.X * (tColCount - 1)) / tColCount;
+                        this.DrawGridCell(pIDs[iIndex], tCellWidth);
+                    }
+                }
+                ImGui.EndTable();
+            }
+        }
+        private void DrawGridCell(int pId, float pCellWidth)
+        {
+            ImGuiIOPtr io = ImGui.GetIO();
+            // CONTENT
+            var tAnchor = ImGui.GetCursorPos();
+            if (!this.mPlugin.mBBDataManager.mFieldNotes.TryGetValue(pId, out FieldNote? tFieldNote)) return;
+            if (tFieldNote == null) { return; }
+            bool tIsValid = this.CheckFilter(tFieldNote);
+
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(1, 0));
+            TextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(
+                            Convert.ToUInt32(tFieldNote.mId),
+                            pSheet: TextureCollection.Sheet.FieldNote);
+            float tScaling = 1;
+            if (tIconWrap != null) tScaling = (pCellWidth - 1) / tIconWrap.Width;       // account for frame padding 
+            if (tIconWrap != null
+                && UtilsGUI.SelectableLink_Image(
+                        this.mPlugin,
+                        tFieldNote.GetGenId(),
+                        tIconWrap,
+                        pIsLink: true,
+                        pIsAuxiLinked: !io.KeyShift,
+                        pImageScaling: tScaling,
+                        pImageOverlayRGBA: tIsValid 
+                                            ? this.mPlugin.Configuration.mUserFieldNotes.Contains(tFieldNote.mId)
+                                                ? null
+                                                : new Vector4(1, 1, 1, 0.25f)
+                                            : new Vector4(1, 1, 1, 0),
+                        pAdditionalHoverText: "[Shift + LMB] Mark as obtained/unobtained\n"
+                        )
+                && io.KeyShift)
+            {
+                if (this.mPlugin.Configuration.mUserFieldNotes.Add(tFieldNote.mId))
+                {
+                    this.mPlugin.Configuration.Save();
+                }
+                else
+                {
+                    this.mPlugin.Configuration.mUserFieldNotes.Remove(tFieldNote.mId);
+                    this.mPlugin.Configuration.Save();
+                }
+            }
+            // Note Number
+            ImGui.SetCursorPos(tAnchor + new Vector2(0, -2));
+            UtilsGUI.TextDescriptionForWidget(tFieldNote.mNumber.ToString());
+
+            ImGui.PopStyleVar();
+        }
+        
+        private void DrawOptionBar()
+        {
+            ImGui.Text("Scan for obtained Notes:");
+            ImGui.SameLine();
+            UtilsGUI.TextDescriptionForWidget("Type \"/collection\", choose \"Field Record\", then go through the page numbers.");
+            //ImGui.SameLine();
+            //UtilsGUI.ShowHelpMarker("1. Type \"/collection\".\n2. Choose [Field Record]\n3. Go through the page numbers at the bottom of Field Record window. (no need to go through the records)");
+            ImGui.SameLine();
+            AuxiliaryViewerSection.GUIAlignRight(1);
+            if (ImGuiComponents.IconButton(this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection
+                             ? FontAwesomeIcon.GripHorizontal
+                             : FontAwesomeIcon.List))
+            {
+                this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection = !this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection;
+            }
+            else
+            {
+                UtilsGUI.SetTooltipForLastItem($"Current view mode: {(this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection ? "GRID" : "LIST")}");
             }
         }
 
