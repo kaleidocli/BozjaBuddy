@@ -334,7 +334,10 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.SameLine();
                 ImGuiComponents.ToggleButton("##togAro", ref this.mPlugin.Configuration.mIsAroVisible_LostActionTableSection);
                 ImGui.SameLine();
-                UtilsGUI.TextWithHelpMarker("Action-running-out Alert", "The below replicates player's Lost find Cache.\n\n- Filterable.\n- The number represents the amount player possesses.\n- The red dot (Action-running-out Alert) notifies actions that are running low. The alert threshold is modifiable, using the outmost left button.\n- Pressing [Shift + LMB] on an action while in Custom loadout edit mode will add that action to the loadout being edited.");
+                UtilsGUI.TextWithHelpMarker(
+                    "Action-running-out Alert", 
+                    "The below replicates player's Lost find Cache.\n\n- Filterable.\n- The number represents the amount player possesses.\n- The red dot (Action-running-out Alert) notifies actions that are running low. The alert threshold is modifiable, using the outmost left button.\n- Pressing [Shift + LMB] on an action while in Custom loadout edit mode will add that action to the loadout being edited.",
+                    UtilsGUI.Colors.BackgroundText_Grey);
                 ImGui.SameLine();
             }
 
