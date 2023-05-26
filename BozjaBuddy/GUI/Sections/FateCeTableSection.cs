@@ -27,7 +27,7 @@ namespace BozjaBuddy.GUI.Sections
         public FateCeTableSection(Plugin pPlugin)
         {
             this.mPlugin = pPlugin;
-            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
+            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 1.23f);
             this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 1);
 
             this.mFilters = new Filter.Filter[] {

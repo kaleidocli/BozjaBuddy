@@ -166,23 +166,9 @@ namespace BozjaBuddy.Windows
                 // Alert filtering
                 foreach (var u in this.mPlugin.Configuration.mGuiAssistConfig.itemBox.userCacheData)
                 {
-                    // ignore
-                    if (this.mPlugin.Configuration.mIsCacheAlertIgnoringActive
-                        && this.mPlugin.Configuration.mCacheAlertIgnoreIds.Contains(u.Key)) continue;
-                    // specific
-                    var tSpecThres = this.mPlugin.Configuration.GetCacheSpecificThresholds(u.Key);
-                    if (this.mPlugin.Configuration.mIsCacheAlertSpecificActive
-                        && tSpecThres >= u.Value)
+                    if (CharStatsWindow.CheckActionAlert(this.mPlugin, u.Key))
                     {
-                        if (!this.mPlugin.mBBDataManager.mLostActions.TryGetValue(u.Key, out LostAction? iAction)) continue;
-                        tMarkeds.Add(iAction!.mId);
-                    }
-                    // general
-                    else if (this.mPlugin.Configuration.mIsCacheAlertGeneralActive
-                        && this.mPlugin.Configuration.mCacheAlertGeneralThreshold >= u.Value)
-                    {
-                        if (!this.mPlugin.mBBDataManager.mLostActions.TryGetValue(u.Key, out LostAction? iAction)) continue;
-                        tMarkeds.Add(iAction!.mId);
+                        tMarkeds.Add(u.Key);
                     }
                 }
 
@@ -200,6 +186,30 @@ namespace BozjaBuddy.Windows
             }
             ImGui.EndChild();
             ImGui.EndChild();
+        }
+        /// <summary>
+        /// Returns true if Alert is triggered, otherwise false.
+        /// </summary>
+        public static bool CheckActionAlert(Plugin pPlugin, int pActionId)
+        {
+            if (!pPlugin.Configuration.mGuiAssistConfig.itemBox.userCacheData.TryGetValue(pActionId, out var tAmount)) return false;
+            // ignore
+            if (pPlugin.Configuration.mIsCacheAlertIgnoringActive
+                && pPlugin.Configuration.mCacheAlertIgnoreIds.Contains(pActionId)) return false;
+            // specific
+            var tSpecThres = pPlugin.Configuration.GetCacheSpecificThresholds(pActionId);
+            if (pPlugin.Configuration.mIsCacheAlertSpecificActive
+                && tSpecThres >= tAmount)
+            {
+                return true;
+            }
+            // general
+            else if (pPlugin.Configuration.mIsCacheAlertGeneralActive
+                && pPlugin.Configuration.mCacheAlertGeneralThreshold >= tAmount)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

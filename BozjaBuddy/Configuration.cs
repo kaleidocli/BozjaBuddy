@@ -24,7 +24,7 @@ namespace BozjaBuddy
         public int Version { get; set; } = 0;
         public Dalamud.Interface.Windowing.Window.WindowSizeConstraints SizeConstraints = new()
         {
-            MinimumSize = new Vector2(675, 485),
+            MinimumSize = new Vector2(675, 509),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
 
@@ -50,7 +50,9 @@ namespace BozjaBuddy
         public Dictionary<int, int> _cacheAlertSpecificThresholds = new();
         public bool mIsCacheAlertIgnoringActive = false;
         public bool mIsShowingRecLoadout = true;
-        public bool mIsInGridMode_FieldNoteTableSection = false;
+        public bool mIsInGridMode_FieldNoteTableSection = true;
+        public bool mIsInGridMode_LostActionTableSection = true;
+        public bool mIsAroVisible_LostActionTableSection = true;
         public HashSet<int> mCacheAlertIgnoreIds = new();
         public HashSet<int> mUserFieldNotes = new();
 

@@ -34,7 +34,7 @@ namespace BozjaBuddy.GUI.Sections
         public FieldNoteTableSection(Plugin pPlugin)
         {
             this.mPlugin = pPlugin;
-            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
+            this.CalcTableHeight();
             this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 1);
 
             this.mFilters = new Filter.Filter[] {
@@ -294,6 +294,7 @@ namespace BozjaBuddy.GUI.Sections
                              : FontAwesomeIcon.List))
             {
                 this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection = !this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection;
+                this.CalcTableHeight();
             }
             else
             {
@@ -305,6 +306,9 @@ namespace BozjaBuddy.GUI.Sections
         {
 
         }
+        private void CalcTableHeight() => this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * (15 + (this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection
+                                                                                                ? 1.88f
+                                                                                                : 2.08f));
 
         public override void Dispose()
         {

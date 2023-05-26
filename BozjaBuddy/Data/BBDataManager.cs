@@ -11,6 +11,7 @@ using Lumina.Excel.GeneratedSheets;
 using BozjaBuddy.Data.Alarm;
 using BozjaBuddy.Utils;
 using System.Runtime.CompilerServices;
+using System.Linq;
 
 namespace BozjaBuddy.Data
 {
@@ -33,6 +34,7 @@ namespace BozjaBuddy.Data
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Action>? mSheetAction;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? mSheetItem;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>? mSheetMycWarResultNotebook;
+        public List<List<int>> mUiMap_MycItemBox;
 
         public BBDataManager(Plugin pPlugin) 
         {
@@ -92,10 +94,14 @@ namespace BozjaBuddy.Data
             this.SetUpAuxiliary();
 
             // json - UIMap
-            List<UIMap_MycItemBoxRow>? tUIMap_MycInfo = JsonSerializer.Deserialize<List<UIMap_MycItemBoxRow>>(
+            List<UIMap_MycItemBoxRow>? tUIMap_MycItemBox = JsonSerializer.Deserialize<List<UIMap_MycItemBoxRow>>(
                         File.ReadAllText(this.mPlugin.DATA_PATHS["UIMap_LostAction.json"])
                     );
-            if (tUIMap_MycInfo != null) this.SetUpUiMap(tUIMap_MycInfo);
+            if (tUIMap_MycItemBox != null)
+            {
+                this.SetUpUiMap(tUIMap_MycItemBox);
+                this.mUiMap_MycItemBox = tUIMap_MycItemBox.Select(o => o.objIds ?? new List<int>()).ToList();
+            }
         }
 
         private Dictionary<int, TDbObj> DbLoader<TDbObj> (out Dictionary<int, TDbObj> pDict, SQLiteCommand pCommand, string pQuery, Func<Plugin, SQLiteDataReader, TDbObj> tDel, string pKeyCollumn = "id")
@@ -338,9 +344,10 @@ namespace BozjaBuddy.Data
                 {
                     foreach (UIMap_MycItemBoxRow iRow in tUIMap_MycInfo)
                     {
-                        for (int i = 0; i < iRow.objId.Count; i++)
+                        if (iRow.objIds == null) { continue; }
+                        for (int i = 0; i < iRow.objIds.Count; i++)
                         {
-                            this.mLostActions[iRow.objId[i]].mUINode = new(
+                            this.mLostActions[iRow.objIds[i]].mUINode = new(
                                     "MYCItemBox",
                                     new List<int>(new int[] { iRow.head, iRow.head + i + 1 }),
                                     iRow.order,
@@ -633,6 +640,6 @@ namespace BozjaBuddy.Data
     {
         public int order { get; set; }
         public int head { get; set; }
-        public List<int> objId { get; set; }
+        public List<int>? objIds { get; set; }
     }
 }

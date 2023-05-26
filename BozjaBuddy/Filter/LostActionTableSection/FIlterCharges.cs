@@ -24,7 +24,7 @@ namespace BozjaBuddy.Filter.LostActionTableSection
         }
 
         public override bool CanPassFilter(LostAction pLostAction)
-            => !mIsFilteringActive | (pLostAction.mCharges >= mCurrValue[0] && pLostAction.mCharges <= mCurrValue[1]);
+            => !mIsFilteringActive | pLostAction.mCharges > 100 | (pLostAction.mCharges >= mCurrValue[0] && pLostAction.mCharges <= mCurrValue[1]);
         public override bool IsFiltering() => this.mCurrValue[0] > 0 || this.mCurrValue[1] < 99;
         public override void ResetCurrValue() { this.mCurrValue[0] = 0; this.mCurrValue[1] = 99; }
 
