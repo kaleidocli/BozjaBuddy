@@ -11,6 +11,7 @@ using System.Numerics;
 using Dalamud.Interface;
 using System.Security.Cryptography;
 using BozjaBuddy.Windows;
+using static BozjaBuddy.Utils.UtilsGUI;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -182,12 +183,30 @@ namespace BozjaBuddy.GUI.Sections
                     switch (i)
                     {
                         case 0:
-                            if (tIconWrap != null)
-                                ImGui.Image(tIconWrap.ImGuiHandle,
-                                    this.mIsCompactModeActive
-                                    ? Utils.Utils.ResizeToIcon(this.mPlugin, tIconWrap!)
-                                    : new System.Numerics.Vector2(tIconWrap.Width * 0.75f, tIconWrap.Height * 0.75f));
-                            AuxiliaryViewerSection.GUILoadoutEditAdjuster(this.mPlugin, iID);
+                            UtilsGUI.InputPayload tInputPayload = new();
+                            if (tIconWrap != null
+                                && UtilsGUI.SelectableLink_Image(
+                                        this.mPlugin,
+                                        tLostAction.GetGenId(),
+                                        tIconWrap,
+                                        pIsLink: true,
+                                        pIsAuxiLinked: !ImGui.GetIO().KeyShift,
+                                        pImageScaling: this.mIsCompactModeActive
+                                                       ? Utils.Utils.GetIconResizeRatio(this.mPlugin, tIconWrap.Height)
+                                                       : 0.75f,
+                                        pInputPayload: tInputPayload,
+                                        pAdditionalHoverText: AuxiliaryViewerSection.mTenpLoadout != null
+                                                              ? $"[Shift+LMB/RMB] Add/remove from loadout\n"
+                                                              : ""
+                            )
+                                && tInputPayload.mIsKeyShift)
+                            {
+                                AuxiliaryViewerSection.GUILoadoutEditAdjuster_Incre(this.mPlugin, tLostAction.mId);
+                            }
+                            else if (tIconWrap != null && tInputPayload.mIsHovered && tInputPayload.mIsMouseRmb && tInputPayload.mIsKeyShift)
+                            {
+                                AuxiliaryViewerSection.GUILoadoutEditAdjuster_Decre(this.mPlugin, tLostAction.mId);
+                            }
                             break;
                         case 1:
                             UtilsGUI.SelectableLink_WithPopup(mPlugin, tLostAction.mName, tLostAction.GetGenId(), pIsShowingCacheAmount: true);
@@ -304,7 +323,7 @@ namespace BozjaBuddy.GUI.Sections
             {
                 AuxiliaryViewerSection.GUILoadoutEditAdjuster_Incre(this.mPlugin, tLostAction.mId);
             }
-            else if (tInputPayload.mIsHovered && tInputPayload.mIsMouseRmb && tInputPayload.mIsKeyShift)
+            else if (tIconWrap != null && tInputPayload.mIsHovered && tInputPayload.mIsMouseRmb && tInputPayload.mIsKeyShift)
             {
                 AuxiliaryViewerSection.GUILoadoutEditAdjuster_Decre(this.mPlugin, tLostAction.mId);
             }
