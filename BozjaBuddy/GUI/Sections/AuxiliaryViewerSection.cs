@@ -314,7 +314,7 @@ namespace BozjaBuddy.GUI.Sections
                     {
                         AuxiliaryViewerSection.GUILoadoutEditAdjuster_Incre(this.mPlugin, iActionId);
                     }
-                    else if (tInputPayload.mIsHovered && tInputPayload.mIsMouseRmb && tInputPayload.mIsKeyShift)
+                    else if (tIconWrap != null && tInputPayload.mIsHovered && tInputPayload.mIsMouseRmb && tInputPayload.mIsKeyShift)
                     {
                         AuxiliaryViewerSection.GUILoadoutEditAdjuster_Decre(this.mPlugin, iActionId);
                     }

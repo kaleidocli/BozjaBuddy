@@ -10,6 +10,7 @@ namespace BozjaBuddy.Utils
 {
     public class Utils
     {
+        public static float GetIconResizeRatio(Plugin pPlugin, int pValue) => pPlugin.Configuration.STYLE_ICON_SIZE / pValue;
         public static Vector2 ResizeToIcon(Plugin pPlugin, float pWidth, float pHeight)
         {
             return new Vector2(pWidth * (pPlugin.Configuration.STYLE_ICON_SIZE / pWidth), 
