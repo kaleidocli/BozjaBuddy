@@ -107,11 +107,15 @@ namespace BozjaBuddy.Utils
             bool pIsClosingPUOnClick = true,
             bool pIsAuxiLinked = true,
             Vector4? pTextColor = null,
-            Vector2? pSize = null)
+            Vector2? pSize = null,
+            InputPayload? pInputPayload = null)
         {
             bool tRes = false;
-            ImGui.PushID(pTargetGenId);
             Vector2? tTextSize = pSize.HasValue ? null : ImGui.CalcTextSize(pContent);
+            pInputPayload ??= new();
+
+            ImGui.PushID(pTargetGenId);
+            pInputPayload.CaptureInput();
             if (pTextColor.HasValue) ImGui.PushStyleColor(ImGuiCol.Text, pTextColor.Value);
             if (pIsWrappedToText)
             {
@@ -134,20 +138,31 @@ namespace BozjaBuddy.Utils
                         }
                     }
                 }
-            }
-            else if (ImGui.Selectable(pContent, false, pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups))
-            {
-                tRes = true;
-                if (pIsAuxiLinked)
+                else
                 {
-                    if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
+                    pInputPayload.mIsHovered = ImGui.IsItemHovered();
+                }
+            }
+            else
+            {
+                if (ImGui.Selectable(pContent, false, pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups))
+                {
+                    tRes = true;
+                    if (pIsAuxiLinked)
                     {
-                        AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
+                        if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
+                        {
+                            AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
+                        }
+                        else
+                        {
+                            AuxiliaryViewerSection._mGenIdToTabFocus = pTargetGenId;
+                        }
                     }
-                    else
-                    {
-                        AuxiliaryViewerSection._mGenIdToTabFocus = pTargetGenId;
-                    }
+                }
+                else        // keep this in this scope to focus only on the above Selectable
+                {
+                    pInputPayload.mIsHovered = ImGui.IsItemHovered();
                 }
             }
             if (pTextColor.HasValue) ImGui.PopStyleColor();
@@ -169,8 +184,10 @@ namespace BozjaBuddy.Utils
             bool pIsShowingCacheAmount = false,
             bool pIsShowingLinkIcon = true,
             string pAdditionalHoverText = "",
-            bool pIsAuxiLinked = true)
+            bool pIsAuxiLinked = true,
+            InputPayload? pInputPayload = null)
         {
+            pInputPayload ??= new InputPayload();
             bool tRes = UtilsGUI.SelectableLink(
                 pPlugin, 
                 pContent + (pIsShowingLinkIcon ? "  »" : ""), 
@@ -179,17 +196,18 @@ namespace BozjaBuddy.Utils
                 pIsClosingPUOnClick: pIsClosingPUOnClick, 
                 pTextColor: pTextColor,
                 pSize: pSize,
-                pIsAuxiLinked: pIsAuxiLinked);
+                pIsAuxiLinked: pIsAuxiLinked,
+                pInputPayload: pInputPayload);
             if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
             {
                 ImGui.Text("<unrecognizable obj>");
                 return tRes;
             }
             GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
-            UtilsGUI.SetTooltipForLastItem($"{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
+            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
 
             ImGui.PushID(pTargetGenId);
-            if (ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
+            if (!pInputPayload.mIsKeyShift && ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
             {
                 ImGui.BeginGroup();
                 // Item link to Clipboard + Chat
@@ -441,9 +459,10 @@ namespace BozjaBuddy.Utils
             Vector4? pTextColor = null,
             Vector4? pImageOverlayRGBA = null,
             Vector4? pImageBorderColor = null,
-            string pAdditionalHoverText = "")
+            string pAdditionalHoverText = "",
+            InputPayload? pInputPayload = null)
         {
-            bool tRes = false;
+            bool tRes;
             var tAnchor = ImGui.GetCursorPos();
             // Draw link
             Vector2 tLinkSize = (pCustomLinkSize ?? new Vector2(pImage.Width, pImage.Height) * pImageScaling);
@@ -460,7 +479,8 @@ namespace BozjaBuddy.Utils
                     pIsShowingCacheAmount: pIsShowingCacheAmount,
                     pIsShowingLinkIcon: false,
                     pAdditionalHoverText: pAdditionalHoverText,
-                    pIsAuxiLinked: pIsAuxiLinked);
+                    pIsAuxiLinked: pIsAuxiLinked,
+                    pInputPayload: pInputPayload);
             }
             else
             {
@@ -471,7 +491,8 @@ namespace BozjaBuddy.Utils
                     pIsAuxiLinked: false,
                     pIsClosingPUOnClick: pIsClosingPUOnClick,
                     pTextColor: pTextColor,
-                    pSize: tLinkSize);
+                    pSize: tLinkSize,
+                    pInputPayload: pInputPayload);
             }
             // Set link pos
             ImGui.SetCursorPos(pLinkPadding == null ? tAnchor : tAnchor - pLinkPadding.Value);
@@ -630,6 +651,35 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 GenObj_GreenMob = new(0.61f, 0.92f, 0.77f, 0.4f);
             public readonly static Vector4 GenObj_RedLoadout = Utils.RGBAtoVec4(158, 41, 16, 122);
             public readonly static Vector4 GenObj_BrownFieldNote = Utils.RGBAtoVec4(224, 197, 160, 122);
+        }
+
+        public class InputPayload
+        {
+            private static DateTime kLastMouseClicked = DateTime.MinValue;
+            private const double kMouseClickValidityThreshold = 150;
+            private static double DeltaLastMouseClick() => (DateTime.Now - InputPayload.kLastMouseClicked).TotalMilliseconds;
+            public static bool CheckMouseClickValidity()
+            {
+                if (InputPayload.DeltaLastMouseClick() > kMouseClickValidityThreshold)
+                {
+                    InputPayload.kLastMouseClicked = DateTime.Now;
+                    return true;
+                }
+                return false;
+            }
+
+            public bool mIsHovered = false;
+            public bool mIsMouseRmb = false;
+            public bool mIsMouseLmb = false;
+            public bool mIsKeyShift = false;
+
+            public void CaptureInput()
+            {
+                var io = ImGui.GetIO();
+                if (io.KeyShift) mIsKeyShift = true;
+                if (io.MouseReleased[0]) mIsMouseLmb = true;
+                if (io.MouseReleased[1]) mIsMouseRmb = true;
+            }
         }
     }
 }

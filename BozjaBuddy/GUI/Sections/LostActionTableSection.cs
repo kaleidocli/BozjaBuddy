@@ -121,6 +121,20 @@ namespace BozjaBuddy.GUI.Sections
                 this.DrawGridContent(this.mPlugin.mBBDataManager.mUiMap_MycItemBox, 16);
             }
         }
+        public void DrawTable_GridOnly()
+        {
+            if (ImGui.BeginTable(
+                    "##LostActionGridOnly",
+                    LostActionTableSection.COLUMN_COUNT,
+                    LostActionTableSection.TABLE_FLAG & ~ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.SizingStretchProp,
+                    new System.Numerics.Vector2(0.0f, this.TABLE_HEADER_HEIGHT))
+                )
+            {
+                DrawTableHeader();
+                ImGui.EndTable();
+            }
+            this.DrawGridContent(this.mPlugin.mBBDataManager.mUiMap_MycItemBox, 16);
+        }
 
         private void DrawTableHeader()
         {
@@ -220,6 +234,7 @@ namespace BozjaBuddy.GUI.Sections
         /// <summary>pColCount:        Specifically hard-coded, for cell scaling and performance.</summary>
         private void DrawGridContent(List<List<int>> pMap, int pColCount)
         {
+            var tScreenAnchor = ImGui.GetCursorScreenPos();
             if (ImGui.BeginTable(
                     "##gridfieldnote",
                     pColCount,
@@ -240,14 +255,15 @@ namespace BozjaBuddy.GUI.Sections
                         iColIdx++;
                     }
                 }
-                //// Specifically for Lost Elixir
-                //if (pMap[^1][^1] == 23922)
-                //{
-                //    ImGui.TableNextRow();
-                //    ImGui.TableSetColumnIndex(0);
-                //    this.DrawGridCell(23922, tCellWidth);
-                //}
                 ImGui.EndTable();
+            }
+            if (AuxiliaryViewerSection.mTenpLoadout != null)
+            {
+                ImGui.GetWindowDrawList().AddText(
+                        tScreenAnchor + new Vector2(420, 150),
+                        ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NormalText_Orange, 0.6f)),
+                        "[Shift+LMB] Add to loadout\n[Shift+RMB] Remove from loadout"
+                    );
             }
         }
         private void DrawGridCell(int pId, float pCellWidth)
@@ -264,6 +280,7 @@ namespace BozjaBuddy.GUI.Sections
                             Convert.ToUInt32(tLostAction.mId),
                             pSheet: TextureCollection.Sheet.Action);
             float tScaling = 1;
+            UtilsGUI.InputPayload tInputPayload = new();
             if (tIconWrap != null) tScaling = (pCellWidth - 1) / tIconWrap.Width;       // account for frame padding 
             if (tIconWrap != null
                 && UtilsGUI.SelectableLink_Image(
@@ -277,12 +294,19 @@ namespace BozjaBuddy.GUI.Sections
                                             ? true      // FIXME: Check if currently edited custom loadout contains this action
                                                 ? null
                                                 : new Vector4(1, 1, 1, 0.25f)
-                                            : new Vector4(1, 1, 1, 0)
-                        //pAdditionalHoverText: $"[Shift + LMB] \n"
+                                            : new Vector4(1, 1, 1, 0),
+                        pInputPayload: tInputPayload,
+                        pAdditionalHoverText: AuxiliaryViewerSection.mTenpLoadout != null
+                                              ? $"[Shift+LMB/RMB] Add/remove from loadout\n"
+                                              : ""
                         )
-                && io.KeyShift)
+                && tInputPayload.mIsKeyShift)
             {
-                // FIXME: DO SOMETHING HERE (add to custom loadout being edited)
+                AuxiliaryViewerSection.GUILoadoutEditAdjuster_Incre(this.mPlugin, tLostAction.mId);
+            }
+            else if (tInputPayload.mIsHovered && tInputPayload.mIsMouseRmb && tInputPayload.mIsKeyShift)
+            {
+                AuxiliaryViewerSection.GUILoadoutEditAdjuster_Decre(this.mPlugin, tLostAction.mId);
             }
             // Cache amount
             if (this.mPlugin.Configuration._userCacheData.TryGetValue(pId, out int tAmount))
