@@ -22,6 +22,8 @@ namespace BozjaBuddy.Filter.MobTableSection
             => !mIsFilteringActive
                 | mCurrValue == Location.Area.None
                 | mCurrValue == pMob.mLocation?.mAreaFlag;
+        public override bool IsFiltering() => this.mCurrValue != Location.Area.None;
+        public override void ResetCurrValue() { this.mCurrValue = Location.Area.None; }
 
         public override void DrawFilterGUI()
         {

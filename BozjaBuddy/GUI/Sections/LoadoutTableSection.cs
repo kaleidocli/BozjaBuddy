@@ -13,6 +13,7 @@ using ImGuiScene;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using BozjaBuddy.Windows;
+using System.Security.Cryptography;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -29,7 +30,6 @@ namespace BozjaBuddy.GUI.Sections
         float FIXED_LINE_HEIGHT;
         private List<int> mLoadoutIds;
         private Filter.Filter[] mFilters;
-        private bool mIsShowingRec = true;
         unsafe private Dictionary<string, ImGuiTextFilterPtr> mTextFilters = new();
         private Dictionary<string, int> mTextFiltersCurrVal = new();
 
@@ -41,7 +41,7 @@ namespace BozjaBuddy.GUI.Sections
         {
             this.mPlugin = pPlugin;
 
-            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
+            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 2.02f);
             this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 1);
 
             this.mFilters = new Filter.Filter[]{
@@ -85,7 +85,7 @@ namespace BozjaBuddy.GUI.Sections
             {
                 DrawTableHeader();
                 List<int> tIDs =  SortTableContent(this.mLoadoutIds, this.mFilters);
-                DrawTableContent(tIDs, this.mIsShowingRec);
+                DrawTableContent(tIDs, this.mPlugin.Configuration.mIsShowingRecLoadout);
 
                 ImGui.EndTable();
             }
@@ -107,7 +107,11 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PushID(ImGui.TableGetColumnName(iCol));
                 ImGui.PushItemWidth(ImGui.GetColumnWidth(iCol) - LoadoutTableSection.HEADER_TEXT_FIELD_SIZE_OFFSET);
                 ImGui.PushTextWrapPos(0);
+                if (this.mFilters[iCol].IsFiltering())
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.TableCell_Red));
+
                 this.mFilters[iCol].DrawFilterGUI(); ImGui.SameLine();
+
                 ImGui.PopTextWrapPos();
                 ImGui.TableHeader("");
                 ImGui.PopItemWidth();
@@ -163,7 +167,8 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.SameLine();
             UtilsGUI.ShowHelpMarker("Recommended loadouts by many AdvForays communities.\n\n- To restore these loadouts, press the Spinning Arrow button.\n- Recommended loadouts only serve as a suggestion and may be outdated. As such, please abide by the rules of your community if you are attending their runs!\n- Any suggestions regarding this are preferred being posted in XIVLauncher's Discord > Plugins > #plugin-help-forum > Bozja Buddy.");
             ImGui.SameLine();
-            ImGuiComponents.ToggleButton("recToggle", ref this.mIsShowingRec);
+            ImGuiComponents.ToggleButton("recToggle", ref this.mPlugin.Configuration.mIsShowingRecLoadout);
+            UtilsGUI.SetTooltipForLastItem("Hide recommended loadouts in Loadout tables, in loadout drop-down, and in Search-all results.");
             // Restore preset
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowsSpin) && io.KeyShift)
@@ -174,23 +179,8 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.SameLine();
             ImGui.Text(" | ");
             ImGui.SameLine();
-            // Add
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus) && io.KeyShift)
-            {
-                // Save to cache
-                Loadout tLoadoutNew = new Loadout(this.mPlugin, new LoadoutJson());
-                BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
-                this.mIsForcingSort = true;
-                // Open Auxiliary tab
-                if (!AuxiliaryViewerSection.mTabGenIds[tLoadoutNew.GetGenId()])
-                {
-                    AuxiliaryViewerSection.AddTab(this.mPlugin, tLoadoutNew.GetGenId());
-                }
-            }
-            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to add a new entry"); }
             // Import
-            ImGui.SameLine();
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.FileImport) && io.KeyShift)
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Download) && io.KeyShift)
             {
                 // Save to cache
                 LoadoutJson? tLoadoutJson = JsonSerializer.Deserialize<LoadoutJson>(ImGui.GetClipboardText());
@@ -207,6 +197,21 @@ namespace BozjaBuddy.GUI.Sections
                 }
             }
             if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to import an entry from clipboard"); }
+            // Add
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus) && io.KeyShift)
+            {
+                // Save to cache
+                Loadout tLoadoutNew = new Loadout(this.mPlugin, new LoadoutJson());
+                BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
+                this.mIsForcingSort = true;
+                // Open Auxiliary tab
+                if (!AuxiliaryViewerSection.mTabGenIds[tLoadoutNew.GetGenId()])
+                {
+                    AuxiliaryViewerSection.AddTab(this.mPlugin, tLoadoutNew.GetGenId());
+                }
+            }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to add a new entry"); }
         }
 
         /// <summary>
@@ -397,6 +402,7 @@ namespace BozjaBuddy.GUI.Sections
                     }
                     foreach (Loadout iLoadout in tLoadouts.Values)
                     {
+                        if (!pPlugin.Configuration.mIsShowingRecLoadout && iLoadout.mId > 9999) continue;
                         if (pGuiVar_TextFilters[pGuiKey].PassFilter(iLoadout.mName)
                             && ImGui.Selectable($"{iLoadout.mName}"))
                         {

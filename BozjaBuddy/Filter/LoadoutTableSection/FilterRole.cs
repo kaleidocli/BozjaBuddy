@@ -27,6 +27,8 @@ namespace BozjaBuddy.Filter.LoadoutTableSection
 
         public override bool CanPassFilter(Loadout pLoadout)
             => !mIsFilteringActive | pLoadout.mRole.mRoleFlagBit.HasFlag(mCurrValue.mRoleFlagBit);
+        public override bool IsFiltering() => this.mCurrValue.mRoleFlagBit != Role.None;
+        public override void ResetCurrValue() { this.mCurrValue.SetRoleFlagBit(Role.None); }
 
         public override void DrawFilterGUI()
         {
@@ -39,7 +41,7 @@ namespace BozjaBuddy.Filter.LoadoutTableSection
             }
             if (ImGui.BeginPopup("popup"))
             {
-                this.mGUI.HeaderRoleIconButtons(this.mCurrValue);
+                this.mGUI.HeaderRoleIconButtons(this.mCurrValue, this);
                 ImGui.EndPopup();
             }
         }

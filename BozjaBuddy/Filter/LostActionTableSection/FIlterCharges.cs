@@ -19,17 +19,20 @@ namespace BozjaBuddy.Filter.LostActionTableSection
         }
         protected override void Init()
         {
-            mLastValue = new int[2] { 0, 9999 };
-            mCurrValue = new int[2] { 0, 9999 };
+            mLastValue = new int[2] { 0, 99 };
+            mCurrValue = new int[2] { 0, 99 };
         }
 
         public override bool CanPassFilter(LostAction pLostAction)
-            => !mIsFilteringActive | (pLostAction.mCharges >= mCurrValue[0] && pLostAction.mCharges <= mCurrValue[1]);
+            => !mIsFilteringActive | pLostAction.mCharges > 100 | (pLostAction.mCharges >= mCurrValue[0] && pLostAction.mCharges <= mCurrValue[1]);
+        public override bool IsFiltering() => this.mCurrValue[0] > 0 || this.mCurrValue[1] < 99;
+        public override void ResetCurrValue() { this.mCurrValue[0] = 0; this.mCurrValue[1] = 99; }
+
         public override bool CanPassFilter(Fragment pFragment) => true;
 
         public override void DrawFilterGUI()
         {
-            mGUI.HeaderNumberInputPair(mFilterName, ref mCurrValue);
+            mGUI.HeaderNumberInputPair(mFilterName, ref mCurrValue, this);
         }
     }
 }

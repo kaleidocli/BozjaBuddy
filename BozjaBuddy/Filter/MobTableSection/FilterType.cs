@@ -26,10 +26,12 @@ namespace BozjaBuddy.Filter.MobTableSection
             => !mIsFilteringActive
                 | mCurrValue == Mob.MobType.None
                 | mCurrValue == pMob.mType;
+        public override bool IsFiltering() => this.mCurrValue != Mob.MobType.None;
+        public override void ResetCurrValue() { this.mCurrValue = Mob.MobType.None; }
 
         public override void DrawFilterGUI()
         {
-            Mob.MobType[] tValues = { Mob.MobType.None,
+            Mob.MobType[] tValues = {   Mob.MobType.None,
                                         Mob.MobType.Normal,
                                         Mob.MobType.Legion,
                                         Mob.MobType.Sprite,

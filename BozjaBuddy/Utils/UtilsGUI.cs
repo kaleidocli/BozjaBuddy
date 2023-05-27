@@ -10,6 +10,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImGuiScene;
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -58,62 +59,156 @@ namespace BozjaBuddy.Utils
         {
             ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, pText);
         }
-        public static bool SelectableLink(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true, Vector4? pColor = null)
+        /// <summary>https://discord.com/channels/581875019861328007/653504487352303619/1095768356201705623</summary>
+        public static bool IconTextButton(FontAwesomeIcon icon, string text)
+        {
+            var buttonClicked = false;
+
+            var iconSize = UtilsGUI.GetIconSize(icon);
+            var textSize = ImGui.CalcTextSize(text);
+            var padding = ImGui.GetStyle().FramePadding;
+            var spacing = ImGui.GetStyle().ItemSpacing;
+
+            var buttonSizeX = iconSize.X + textSize.X + padding.X * 2 + spacing.X;
+            var buttonSizeY = (iconSize.Y > textSize.Y ? iconSize.Y : textSize.Y) + padding.Y * 2;
+            var buttonSize = new Vector2(buttonSizeX, buttonSizeY);
+
+            if (ImGui.Button("###" + icon.ToIconString() + text, buttonSize))
+            {
+                buttonClicked = true;
+            }
+
+            ImGui.SameLine();
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() - buttonSize.X - padding.X);
+            ImGui.PushFont(UiBuilder.IconFont);
+            ImGui.Text(icon.ToIconString());
+            ImGui.PopFont();
+            ImGui.SameLine();
+            ImGui.Text(text);
+
+            return buttonClicked;
+        }
+        public static Vector2 GetIconSize(FontAwesomeIcon icon)
+        {
+            ImGui.PushFont(UiBuilder.IconFont);
+            var iconSize = ImGui.CalcTextSize(icon.ToIconString());
+            ImGui.PopFont();
+            return iconSize;
+        }
+        /// <summary>
+        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
+        /// <para>If pSize is not given, the size will be calculated from the size of pContent.</para>
+        /// </summary>
+        public static bool SelectableLink(
+            Plugin pPlugin, 
+            string pContent, 
+            int pTargetGenId, 
+            bool pIsWrappedToText = true, 
+            bool pIsClosingPUOnClick = true,
+            bool pIsAuxiLinked = true,
+            Vector4? pTextColor = null,
+            Vector2? pSize = null,
+            InputPayload? pInputPayload = null)
         {
             bool tRes = false;
+            Vector2? tTextSize = pSize.HasValue ? null : ImGui.CalcTextSize(pContent);
+            pInputPayload ??= new();
+
             ImGui.PushID(pTargetGenId);
-            var tTextSize = ImGui.CalcTextSize(pContent);
-            if (pColor.HasValue) ImGui.PushStyleColor(ImGuiCol.Text, pColor.Value);
+            pInputPayload.CaptureInput();
+            if (pTextColor.HasValue) ImGui.PushStyleColor(ImGuiCol.Text, pTextColor.Value);
             if (pIsWrappedToText)
             {
                 if (ImGui.Selectable(pContent,
                                         false,
                                         pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups, 
-                                        new System.Numerics.Vector2(tTextSize.X + 0.5f, tTextSize.Y + 0.25f)
+                                        pSize ?? new System.Numerics.Vector2(tTextSize!.Value.X + 0.5f, tTextSize!.Value.Y + 0.25f)
                                         ))
                 {
                     tRes = true;
-                    if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
+                    if (pIsAuxiLinked)
                     {
-                        AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
+                        if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
+                        {
+                            AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
+                        }
+                        else
+                        {
+                            AuxiliaryViewerSection._mGenIdToTabFocus = pTargetGenId;
+                        }
                     }
-                    else
-                    {
-                        AuxiliaryViewerSection._mGenIdToTabFocus = pTargetGenId;
-                    }
-                }
-            }
-            else if (ImGui.Selectable(pContent, false, pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups))
-            {
-                tRes = true;
-                if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
-                {
-                    AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
                 }
                 else
                 {
-                    AuxiliaryViewerSection._mGenIdToTabFocus = pTargetGenId;
+                    pInputPayload.mIsHovered = ImGui.IsItemHovered();
                 }
             }
-            if (pColor.HasValue) ImGui.PopStyleColor();
+            else
+            {
+                if (ImGui.Selectable(pContent, false, pIsClosingPUOnClick ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups))
+                {
+                    tRes = true;
+                    if (pIsAuxiLinked)
+                    {
+                        if (!AuxiliaryViewerSection.mTabGenIds[pTargetGenId])
+                        {
+                            AuxiliaryViewerSection.AddTab(pPlugin, pTargetGenId);
+                        }
+                        else
+                        {
+                            AuxiliaryViewerSection._mGenIdToTabFocus = pTargetGenId;
+                        }
+                    }
+                }
+                else        // keep this in this scope to focus only on the above Selectable
+                {
+                    pInputPayload.mIsHovered = ImGui.IsItemHovered();
+                }
+            }
+            if (pTextColor.HasValue) ImGui.PopStyleColor();
             ImGui.PopID();
             return tRes;
         }
-        /// <summary> Return true if link is clicked with LMB or RMB </summary>
-        public static bool SelectableLink_WithPopup(Plugin pPlugin, string pContent, int pTargetGenId, bool pIsWrappedToText = true, bool pIsClosingPUOnClick = true, Vector4? pColor = null, bool pIsShowingCacheAmount = false)
+        /// <summary>
+        /// <para>If pSize is not given, the size will be calculated from the size of pContent.</para>
+        /// <para>Return true if link is clicked with LMB</para>
+        /// </summary>
+        public static bool SelectableLink_WithPopup(
+            Plugin pPlugin, 
+            string pContent, 
+            int pTargetGenId, 
+            bool pIsWrappedToText = true, 
+            bool pIsClosingPUOnClick = true, 
+            Vector4? pTextColor = null, 
+            Vector2? pSize = null,
+            bool pIsShowingCacheAmount = false,
+            bool pIsShowingLinkIcon = true,
+            string pAdditionalHoverText = "",
+            bool pIsAuxiLinked = true,
+            InputPayload? pInputPayload = null)
         {
-            bool tRes = UtilsGUI.SelectableLink(pPlugin, pContent + "  »", pTargetGenId, pIsWrappedToText, pIsClosingPUOnClick: pIsClosingPUOnClick, pColor);
+            pInputPayload ??= new InputPayload();
+            bool tRes = UtilsGUI.SelectableLink(
+                pPlugin, 
+                pContent + (pIsShowingLinkIcon ? "  »" : ""), 
+                pTargetGenId, 
+                pIsWrappedToText, 
+                pIsClosingPUOnClick: pIsClosingPUOnClick, 
+                pTextColor: pTextColor,
+                pSize: pSize,
+                pIsAuxiLinked: pIsAuxiLinked,
+                pInputPayload: pInputPayload);
             if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
             {
                 ImGui.Text("<unrecognizable obj>");
                 return tRes;
             }
             GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
-            UtilsGUI.SetTooltipForLastItem($"[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
-            
-            if (ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
+            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
+
+            ImGui.PushID(pTargetGenId);
+            if (!pInputPayload.mIsKeyShift && ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
             {
-                tRes = true;
                 ImGui.BeginGroup();
                 // Item link to Clipboard + Chat
                 UtilsGUI.ItemLinkButton(pPlugin, pReprName: tObj.GetReprName(), pReprItemLink: tObj.GetReprItemLink());
@@ -154,6 +249,7 @@ namespace BozjaBuddy.Utils
             {
                 pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
             }
+            ImGui.PopID();
             // Lost action's cache amount
             if (pIsShowingCacheAmount)
             {
@@ -338,6 +434,79 @@ namespace BozjaBuddy.Utils
             if (pGuiId != null) ImGui.PopID();
             return tRes;
         }
+        /// <summary>
+        /// <para>A SelectableLink_WithPopup but in form of an image. Can be configured to be a normal Selectable.</para>
+        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
+        /// <para>pIsAuxiLinked:        Whether the Link will pop up an Auxiliary tab</para>
+        /// <para>pContent:             Not advised to use.</para>
+        /// <para>pLinkPadding:         Link padding from four sides of the image.</para>
+        /// <para>pCustomLinkSize:      If set, use the custom size and ignoring padding. Otherwise, use image's size + padding.</para>
+        /// <para>pImageOverlayRGBA:    If set, a color tint will overlay the image. Can be used to ajust image's transparency.</para>
+        /// <para>pIamgeBorderColor:    If set, a border with given color will be rendered around the image (not the link).</para>
+        /// </summary>
+        public static bool SelectableLink_Image(
+            Plugin pPlugin,
+            int pTargetGenId,
+            TextureWrap pImage,
+            string pContent = "",
+            bool pIsLink = true,
+            bool pIsAuxiLinked = true,
+            bool pIsClosingPUOnClick = true,
+            bool pIsShowingCacheAmount = false,
+            Vector2? pLinkPadding = null,
+            float pImageScaling = 1, 
+            Vector2? pCustomLinkSize = null,
+            Vector4? pTextColor = null,
+            Vector4? pImageOverlayRGBA = null,
+            Vector4? pImageBorderColor = null,
+            string pAdditionalHoverText = "",
+            InputPayload? pInputPayload = null)
+        {
+            bool tRes;
+            var tAnchor = ImGui.GetCursorPos();
+            // Draw link
+            Vector2 tLinkSize = (pCustomLinkSize ?? new Vector2(pImage.Width, pImage.Height) * pImageScaling);
+            if (pLinkPadding.HasValue && !pCustomLinkSize.HasValue) tLinkSize += pLinkPadding.Value * 2;     // padding
+            if (pIsLink)
+            {
+                tRes = UtilsGUI.SelectableLink_WithPopup(
+                    pPlugin,
+                    pContent,
+                    pTargetGenId,
+                    pIsClosingPUOnClick: pIsClosingPUOnClick,
+                    pTextColor: pTextColor,
+                    pSize: tLinkSize,
+                    pIsShowingCacheAmount: pIsShowingCacheAmount,
+                    pIsShowingLinkIcon: false,
+                    pAdditionalHoverText: pAdditionalHoverText,
+                    pIsAuxiLinked: pIsAuxiLinked,
+                    pInputPayload: pInputPayload);
+            }
+            else
+            {
+                tRes = UtilsGUI.SelectableLink(
+                    pPlugin,
+                    pContent,
+                    pTargetGenId,
+                    pIsAuxiLinked: false,
+                    pIsClosingPUOnClick: pIsClosingPUOnClick,
+                    pTextColor: pTextColor,
+                    pSize: tLinkSize,
+                    pInputPayload: pInputPayload);
+            }
+            // Set link pos
+            ImGui.SetCursorPos(pLinkPadding == null ? tAnchor : tAnchor - pLinkPadding.Value);
+            // Draw image
+            ImGui.Image(
+                pImage.ImGuiHandle, 
+                new Vector2(pImage.Width * pImageScaling, pImage.Height * pImageScaling),
+                new Vector2(0f, 0f),
+                new Vector2(1f, 1f),
+                pImageOverlayRGBA ?? new Vector4(1, 1, 1, 1),
+                pImageBorderColor ?? Vector4.Zero
+                );
+            return tRes;
+        }
         public static void DrawRoleFlagAsIconString(Plugin pPlugin, RoleFlag pRoleFlag)
         {
             List<TextureWrap?> tRoleIcons = RoleFlag.FlagToIcon(pRoleFlag.mRoleFlagBit);
@@ -461,6 +630,7 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 NormalText_Red = ImGuiColors.DalamudRed;
             public readonly static Vector4 TableCell_Green = new Vector4(0.67f, 1, 0.59f, 0.2f);
             public readonly static Vector4 TableCell_Yellow = new Vector4(0.93f, 0.93f, 0.35f, 0.2f);
+            public readonly static Vector4 TableCell_Red = Utils.RGBAtoVec4(249, 77, 77, 51);
             public readonly static Vector4 Button_Red = Utils.RGBAtoVec4(92, 63, 70, 255);
             public readonly static Vector4 Button_Green = new(0.61f, 0.92f, 0.77f, 0.4f);
             public readonly static Vector4 MycItemBoxOverlay_Black = Utils.RGBAtoVec4(0, 0, 0, 150);
@@ -480,6 +650,36 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 GenObj_PinkFate = new(0.9f, 0.61f, 0.9f, 0.4f);
             public readonly static Vector4 GenObj_GreenMob = new(0.61f, 0.92f, 0.77f, 0.4f);
             public readonly static Vector4 GenObj_RedLoadout = Utils.RGBAtoVec4(158, 41, 16, 122);
+            public readonly static Vector4 GenObj_BrownFieldNote = Utils.RGBAtoVec4(224, 197, 160, 122);
+        }
+
+        public class InputPayload
+        {
+            private static DateTime kLastMouseClicked = DateTime.MinValue;
+            private const double kMouseClickValidityThreshold = 150;
+            private static double DeltaLastMouseClick() => (DateTime.Now - InputPayload.kLastMouseClicked).TotalMilliseconds;
+            public static bool CheckMouseClickValidity()
+            {
+                if (InputPayload.DeltaLastMouseClick() > kMouseClickValidityThreshold)
+                {
+                    InputPayload.kLastMouseClicked = DateTime.Now;
+                    return true;
+                }
+                return false;
+            }
+
+            public bool mIsHovered = false;
+            public bool mIsMouseRmb = false;
+            public bool mIsMouseLmb = false;
+            public bool mIsKeyShift = false;
+
+            public void CaptureInput()
+            {
+                var io = ImGui.GetIO();
+                if (io.KeyShift) mIsKeyShift = true;
+                if (io.MouseReleased[0]) mIsMouseLmb = true;
+                if (io.MouseReleased[1]) mIsMouseRmb = true;
+            }
         }
     }
 }

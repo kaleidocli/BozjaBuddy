@@ -1,17 +1,17 @@
 {
   "mLoadouts": [
     {
-      "mId": 10000,
-      "mName": "README Loadout",
-      "mDescription": "This is a loadout.\n- ALWAYS save after finishing loadout, or click the edit button again to discard unsaved changes.\n- You can add lost actions from this below menu, or the left menu, or the Lost action table.\n- You can copy/import loadouts. They\u0027re just json. There might be exploits using this method so be aware.\n",
-      "mGroup": ".default",
-      "mRoleInt": 11111,
-      "mWeight": 47,
-      "mActionIds": {
-        "20707": 2,
-        "20708": 4,
-        "23919": 1
-      }
+        "mId": 10000,
+        "mName": "README (hide recommendeded loadouts by the [toggle button] on the right half of the toolbar above)",
+        "mDescription": "This is a loadout.\n- ALWAYS save after finishing loadout, or click the edit button again to discard unsaved changes.\n- You can add lost actions from this below menu, or the left menu, or the Lost action table.\n- You can copy/import loadouts. They\u0027re just json. There might be exploits using this method so be aware.\n",
+        "mGroup": ".default",
+        "mRoleInt": 11111,
+        "mWeight": 47,
+        "mActionIds": {
+            "20707": 2,
+            "20708": 4,
+            "23919": 1
+        }
     },
     {
       "mId": 10001,

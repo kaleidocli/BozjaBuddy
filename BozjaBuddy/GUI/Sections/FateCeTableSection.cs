@@ -5,10 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState.Fates;
-using Dalamud.Interface.Components;
 using BozjaBuddy.Utils;
-using BozjaBuddy.Data.Alarm;
-using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -30,18 +27,19 @@ namespace BozjaBuddy.GUI.Sections
         public FateCeTableSection(Plugin pPlugin)
         {
             this.mPlugin = pPlugin;
-            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
+            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 1.23f);
             this.FIXED_LINE_HEIGHT = (float)(ImGui.GetTextLineHeight() * 1);
 
             this.mFilters = new Filter.Filter[] {
                 new Filter.FateCeTableSection.FilterType(true, this.mPlugin, true),
                 new Filter.FateCeTableSection.FilterName(),
                 new Filter.FateCeTableSection.FilterStatus(false, this.mPlugin, true),
+                new Filter.FilterNone(false, " "),
+                new Filter.FateCeTableSection.FilterFieldNote(true, this.mPlugin),
+                new Filter.FateCeTableSection.FilterLocation(),
                 new Filter.FateCeTableSection.FilterMettle(true, this.mPlugin, true),
                 new Filter.FateCeTableSection.FilterExp(true, this.mPlugin, true),
-                new Filter.FateCeTableSection.FilterTome(true, this.mPlugin, true),
-                new Filter.FateCeTableSection.FilterLocation(),
-                new Filter.FilterNone(false, "Alarm")
+                new Filter.FateCeTableSection.FilterTome(true, this.mPlugin, true)
             };
             FateCeTableSection.COLUMN_COUNT = this.mFilters.Length;
             this.mFateIDs = this.mPlugin.mBBDataManager.mFates.Keys.ToList();
@@ -96,6 +94,8 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PushID(ImGui.TableGetColumnName(iCol));
                 ImGui.PushItemWidth(ImGui.GetColumnWidth(iCol) - FateCeTableSection.HEADER_TEXT_FIELD_SIZE_OFFSET);
                 ImGui.PushTextWrapPos(0);
+                if (this.mFilters[iCol].IsFiltering())
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.TableCell_Red));
 
                 this.mFilters[iCol].DrawFilterGUI(); ImGui.SameLine();
 
@@ -172,22 +172,31 @@ namespace BozjaBuddy.GUI.Sections
                         }
                         break;
                     case 3:
-                        ImGui.Text($"{Utils.Utils.FormatThousand(tFate.mRewardMettleMin)} - {Utils.Utils.FormatThousand(tFate.mRewardMettleMax)}");
-                        break;
-                    case 4:
-                        ImGui.Text($"{Utils.Utils.FormatThousand(tFate.mRewardExpMin)} - {Utils.Utils.FormatThousand(tFate.mRewardExpMax)}");
-                        break;
-                    case 5:
-                        ImGui.Text($"{tFate.mRewardTome}");
-                        break;
-                    case 6:
-                        UtilsGUI.LocationLinkButton(this.mPlugin, tFate.mLocation!);
-                        break;
-                    case 7:
                         ImGui.PushID($"a{tFate.mId}");
                         UtilsGUI.ACPUFateCeButton(this.mPlugin, tFate.mId, tFate.mName);
                         ImGui.PopID();
                         break;
+                    case 4:
+                        foreach (int iiID in tFate.mLinkFieldNotes)
+                        {
+                            FieldNote tFieldNote = this.mPlugin.mBBDataManager.mFieldNotes[iiID];
+                            ImGui.PushTextWrapPos(0);
+                            UtilsGUI.SelectableLink_WithPopup(mPlugin, tFieldNote.mName + $"  »##{i}", tFieldNote.GetGenId()); ImGui.PopTextWrapPos();
+                        }
+                        break;
+                    case 5:
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tFate.mLocation!);
+                        break;
+                    case 6:
+                        ImGui.Text($"{Utils.Utils.FormatThousand(tFate.mRewardMettleMin)} - {Utils.Utils.FormatThousand(tFate.mRewardMettleMax)}");
+                        break;
+                    case 7:
+                        ImGui.Text($"{Utils.Utils.FormatThousand(tFate.mRewardExpMin)} - {Utils.Utils.FormatThousand(tFate.mRewardExpMax)}");
+                        break;
+                    case 8:
+                        ImGui.Text($"{tFate.mRewardTome}");
+                        break;
+
                     default: break;
                 }
             }

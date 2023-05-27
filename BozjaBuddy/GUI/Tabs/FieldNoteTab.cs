@@ -1,24 +1,24 @@
+﻿using BozjaBuddy.GUI.Sections;
 using System;
 using System.Collections.Generic;
-using BozjaBuddy.GUI.Sections;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace BozjaBuddy.GUI.Tabs
 {
-    /// <summary>
-    /// A Tab featuring a LostActionTableSection and an AuxilaryViewerSection
-    /// </summary>
-    internal class LostActionTab : Tab, IDisposable
+    internal class FieldNoteTab : Tab, IDisposable
     {
         protected override string mName { get; set; }
         protected override Dictionary<int, Section> mSortedSections { get; set; }
         protected override Plugin mPlugin { get; set; }
 
-        public LostActionTab(Plugin pPlugin)
+        public FieldNoteTab(Plugin pPlugin)
         {
-            this.mName = "Lost Action/Fragment";
+            this.mName = "Field Note";
             this.mPlugin = pPlugin;
             mSortedSections = new Dictionary<int, Section>() {
-                { 0, new LostActionTableSection(this.mPlugin) },
+                { 0, new FieldNoteTableSection(this.mPlugin) },
                 { 1, new AuxiliaryViewerSection(this.mPlugin) }
             };
         }

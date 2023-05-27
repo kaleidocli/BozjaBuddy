@@ -27,6 +27,8 @@ namespace BozjaBuddy.Filter.FateCeTableSection
 
         public override bool CanPassFilter(Fate tFate)
             => !mIsFilteringActive | (tFate.mRewardTome >= mCurrValue[0] && tFate.mRewardTome <= mCurrValue[1]);
+        public override bool IsFiltering() => this.mCurrValue[0] > 0 || this.mCurrValue[1] < 99999999;
+        public override void ResetCurrValue() { this.mCurrValue[0] = 0; this.mCurrValue[1] = 99999999; }
 
         public override List<int> Sort(List<int> tIDs, bool pIsAscending = true)
         {
@@ -39,7 +41,7 @@ namespace BozjaBuddy.Filter.FateCeTableSection
 
         public override void DrawFilterGUI()
         {
-            mGUI.HeaderNumberInputPair(mFilterName, ref mCurrValue);
+            mGUI.HeaderNumberInputPair(mFilterName, ref mCurrValue, this);
         }
     }
 }

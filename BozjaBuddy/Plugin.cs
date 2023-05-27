@@ -17,6 +17,7 @@ using System;
 using Dalamud.Game.ClientState;
 using BozjaBuddy.Utils;
 using BozjaBuddy.GUI;
+using System.Numerics;
 
 namespace BozjaBuddy
 {
@@ -103,6 +104,11 @@ namespace BozjaBuddy
             this.GUIAssistManager = new(this);
 
             if (this.Configuration.UserLoadouts == null) { this.mBBDataManager.ReloadLoadoutsPreset(); }    // for first install
+            this.Configuration.SizeConstraints = new()      // overwrite on-disk config's size constraint
+            {
+                MinimumSize = new Vector2(675, 509),
+                MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
+            };
 
             this.PluginInterface.UiBuilder.BuildFonts += this.BuildFont;
             this.PluginInterface.UiBuilder.RebuildFonts();

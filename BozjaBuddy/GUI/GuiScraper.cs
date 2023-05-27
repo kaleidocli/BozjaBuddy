@@ -6,9 +6,11 @@ using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Lumina.Data.Parsing.Uld.NodeData;
 
 namespace BozjaBuddy.GUI
 {
@@ -17,6 +19,7 @@ namespace BozjaBuddy.GUI
         private bool mIsActive = true;
         private Thread? mScrapper = null;
         private Plugin mPlugin;
+        private Cycles mCycles = new();
 
         private GuiScraper() { }
         public GuiScraper(Plugin pPlugin)
@@ -45,54 +48,129 @@ namespace BozjaBuddy.GUI
             {
                 while (this.mIsActive)
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(200);
+                    if (this.mCycles.CheckCycle("mycInfo", 5)) this.Scraper_MycInfo();
+                    if (this.mCycles.CheckCycle("mycWarResultNotebook", 0.2f)) this.Scraper_MycWarResultNotebook();
+                    if (this.mCycles.CheckCycle("save", 60)) this.mPlugin.Configuration.Save();
+                }
+            }
+        }
+        private void Scraper_MycInfo()
+        {
+            unsafe
+            {
+                var tCharStats = this.mPlugin.Configuration.mGuiAssistConfig.charStats;
 
-                    var tCharStats = this.mPlugin.Configuration.mGuiAssistConfig.charStats;
+                // Mettle, ranks, etc.
+                var tAddonMycInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCInfo");
+                if (tAddonMycInfo == null) { return; }
 
-                    // Mettle, ranks, etc.
-                    var tAddonMycInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCInfo");
-                    if (tAddonMycInfo == null) { continue; }
+                var tNodeRank = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 7 }); if (tNodeRank == null) { return; }
+                var tNodeMettle = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 14 }); if (tNodeMettle == null) { return; }
+                var tNodeMettleMax = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 17 }); if (tNodeMettleMax == null) { return; }
+                var tNodeProof = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 22 }); if (tNodeProof == null) { return; }
+                var tNodeCluster = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 33 }); if (tNodeCluster == null) { return; }
+                var tNodeNoto = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 26 }); if (tNodeNoto == null) { return; }
 
-                    var tNodeRank = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 7 }); if (tNodeRank == null) { continue; }
-                    var tNodeMettle = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 14 }); if (tNodeMettle == null) { continue; }
-                    var tNodeMettleMax = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 17 }); if (tNodeMettleMax == null) { continue; }
-                    var tNodeProof = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 22 }); if (tNodeProof == null) { continue; }
-                    var tNodeCluster = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 33 }); if (tNodeCluster == null) { continue; }
-                    var tNodeNoto = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 26 }); if (tNodeNoto == null) { continue; }
-                    
-                    tCharStats.isInit = true;
-                    if (!int.TryParse(tNodeRank->NodeText.ToString(), out tCharStats.rank)) tCharStats.rank = 0;
-                    if (!int.TryParse(tNodeMettle->NodeText.ToString().Replace(",", ""), out tCharStats.mettle)) tCharStats.mettle = 0;
-                    if (!int.TryParse(tNodeMettleMax->NodeText.ToString().Replace(",", ""), out tCharStats.mettleMax)) tCharStats.mettleMax = 0;
-                    if (!int.TryParse(tNodeProof->NodeText.ToString(), out tCharStats.proof)) tCharStats.proof = 0;
-                    if (!int.TryParse(tNodeCluster->NodeText.ToString().Split('/').First(), out tCharStats.cluster)) tCharStats.cluster = 0;
-                    if (!int.TryParse(tNodeNoto->NodeText.ToString(), out tCharStats.noto)) tCharStats.noto = 0;
+                tCharStats.isInit = true;
+                if (!int.TryParse(tNodeRank->NodeText.ToString(), out tCharStats.rank)) tCharStats.rank = 0;
+                if (!int.TryParse(tNodeMettle->NodeText.ToString().Replace(",", ""), out tCharStats.mettle)) tCharStats.mettle = 0;
+                if (!int.TryParse(tNodeMettleMax->NodeText.ToString().Replace(",", ""), out tCharStats.mettleMax)) tCharStats.mettleMax = 0;
+                if (!int.TryParse(tNodeProof->NodeText.ToString(), out tCharStats.proof)) tCharStats.proof = 0;
+                if (!int.TryParse(tNodeCluster->NodeText.ToString().Split('/').First(), out tCharStats.cluster)) tCharStats.cluster = 0;
+                if (!int.TryParse(tNodeNoto->NodeText.ToString(), out tCharStats.noto)) tCharStats.noto = 0;
 
-                    // Rays
-                    if (this.mPlugin.ClientState.LocalPlayer != null)
+                // Rays
+                if (this.mPlugin.ClientState.LocalPlayer != null)
+                {
+                    Dictionary<int, int> tStatusList = new();
+                    foreach (Dalamud.Game.ClientState.Statuses.Status s in this.mPlugin.ClientState.LocalPlayer.StatusList)
                     {
-                        Dictionary<int, int> tStatusList = new();
-                        foreach (Dalamud.Game.ClientState.Statuses.Status s in this.mPlugin.ClientState.LocalPlayer.StatusList)
+                        tStatusList.TryAdd((int)s.StatusId, (int)s.StackCount);
+                    }
+                    foreach (int iStatusId in new int[] { 2625, 2626, 2627 })
+                    {
+                        if (tStatusList.TryGetValue(iStatusId, out int tTemp))
                         {
-                            tStatusList.TryAdd((int)s.StatusId, (int)s.StackCount);
-                        }
-                        foreach (int iStatusId in new int[] { 2625, 2626, 2627 })
-                        {
-                            if (tStatusList.TryGetValue(iStatusId, out int tTemp))
+                            switch (iStatusId)
                             {
-                                switch (iStatusId)
-                                {
-                                    case 2625: tCharStats.rayFortitude = tTemp == 0 ? tCharStats.rayFortitude : tTemp; break;
-                                    case 2626: tCharStats.rayValor = tTemp == 0 ? tCharStats.rayValor : tTemp; break;
-                                    case 2627: tCharStats.raySuccor = tTemp == 0 ? tCharStats.raySuccor : tTemp; break;
-                                }
+                                case 2625: tCharStats.rayFortitude = tTemp == 0 ? tCharStats.rayFortitude : tTemp; break;
+                                case 2626: tCharStats.rayValor = tTemp == 0 ? tCharStats.rayValor : tTemp; break;
+                                case 2627: tCharStats.raySuccor = tTemp == 0 ? tCharStats.raySuccor : tTemp; break;
                             }
                         }
                     }
-
-                    this.mPlugin.Configuration.mGuiAssistConfig.charStats = tCharStats;
-                    this.mPlugin.Configuration.Save();
                 }
+                this.mPlugin.Configuration.mGuiAssistConfig.charStats = tCharStats;
+            }
+        }
+        /// <summary>
+        /// https://github.com/goatcorp/Dalamud/blob/fa73ccd3eeb3d7c08a07031e5485bc5aa29d13d8/Dalamud/Interface/Internal/UiDebug.cs#L260
+        /// </summary>
+        private void Scraper_MycWarResultNotebook()
+        {
+            unsafe
+            {
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCWarResultNotebook");
+                if (tAddon == null) return;
+                HashSet<int> tUserFieldNotes = this.mPlugin.Configuration.mUserFieldNotes;
+
+                // Page
+                int tCurrPage = 1;
+                int[] tPageNodeIds = { 19, 20, 21, 22, 23 };
+                foreach (int id in tPageNodeIds)
+                {
+                    var tPageImgNode = UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCWarResultNotebook", new int[] { id, 5 });     // id of the frame around the page number
+                    if (tPageImgNode == null) continue;
+                    if (tPageImgNode->IsVisible) { tCurrPage = id - 18; break; }
+                }
+                // Note
+                int[] tNoteNodeIds = { 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 };
+                foreach (int id in tNoteNodeIds)
+                {
+                    var tNoteImgNode = (AtkImageNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCWarResultNotebook", new int[] { id, 6 }); // id of the note's character icon image
+                    if (tNoteImgNode == null
+                        || tNoteImgNode->PartsList == null
+                        || tNoteImgNode->PartId > tNoteImgNode->PartsList->PartCount) continue;
+
+                    var tTexInfo = tNoteImgNode->PartsList->Parts[tNoteImgNode->PartId].UldAsset;
+                    if (tTexInfo == null) continue;
+                    var tTexType = tTexInfo->AtkTexture.TextureType;
+                    if (tTexType != TextureType.Resource) continue;
+                    var texFileNameStdString = &tTexInfo->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName;
+                    var texString = texFileNameStdString->Length < 16
+                        ? Marshal.PtrToStringAnsi((IntPtr)texFileNameStdString->Buffer)
+                        : Marshal.PtrToStringAnsi((IntPtr)texFileNameStdString->BufferPtr);
+                    if (texString == null) continue;
+
+                    if (texString == "ui/icon/072000/072576_hr1.tex")
+                        tUserFieldNotes.Remove((id - 7) + ((tCurrPage - 1) * 10));
+                    else 
+                        tUserFieldNotes.Add((id - 7) + ((tCurrPage - 1) * 10));
+                }
+            }
+        }
+
+        private struct Cycles
+        {
+            public DateTime save = DateTime.Now;
+            public DateTime mycInfo = DateTime.Now;
+            public Dictionary<string, DateTime> cycles = new();
+
+            public Cycles() { }
+
+            public bool CheckCycle(string pKey, float pThreshold)
+            {
+                if (!this.cycles.ContainsKey(pKey))
+                {
+                    this.cycles[pKey] = DateTime.Now;
+                }
+                if ((DateTime.Now - this.cycles[pKey]).TotalSeconds > pThreshold)
+                {
+                    this.cycles[pKey] = DateTime.Now;
+                    return true;
+                }
+                return false;
             }
         }
     }

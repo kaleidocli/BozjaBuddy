@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BozjaBuddy.Data;
 using BozjaBuddy.GUI;
+using Dalamud.Utility;
 
 namespace BozjaBuddy.Filter
 {
@@ -19,6 +20,7 @@ namespace BozjaBuddy.Filter
         protected string mCurrValue = string.Empty;
         protected bool mIsFilteringActive = true;
         public bool mIsSortingActive = false;
+        public bool mIsContainedInCell = true;
         protected Plugin? mPlugin = null;
 
         protected virtual void Init() { }
@@ -31,11 +33,14 @@ namespace BozjaBuddy.Filter
         public virtual bool CanPassFilter(Fate tFate) => true;
         public virtual bool CanPassFilter(Mob tMob) => true;
         public virtual bool CanPassFilter(Loadout tLoadout) => true;
+        public virtual bool CanPassFilter(FieldNote tFieldNote) => true;
         protected bool CanPassFilter(string pEntityValue)
             => !mIsFilteringActive | pEntityValue.Contains(mCurrValue.ToString(), StringComparison.CurrentCultureIgnoreCase);
 
         protected bool CanPassFilter(int pEntityValue)
             => !mIsFilteringActive | mCurrValue.Equals(pEntityValue);
+        public virtual bool IsFiltering() => !this.mCurrValue.IsNullOrEmpty();
+        public virtual void ResetCurrValue() => this.mCurrValue = "";
         public virtual List<int> Sort(List<int> tIDs, bool pIsAscending = true) => tIDs;
         public abstract void DrawFilterGUI();
         public virtual void EnableFiltering(bool pOption) { mIsFilteringActive = pOption; }

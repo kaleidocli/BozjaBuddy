@@ -22,6 +22,7 @@ namespace BozjaBuddy.Data
         public virtual List<int> mLinkFates { get; set; } = new List<int>();
         public virtual List<int> mLinkFragments { get; set; } = new List<int>();
         public virtual List<int> mLinkVendors { get; set; } = new List<int>();
+        public virtual List<int> mLinkFieldNotes { get; set; } = new List<int>();
         public virtual Location? mLocation { get; set; } = null;
         public virtual System.Numerics.Vector4? mTabColor { get; set; } = null;
         public virtual bool mIsExist { get; set; } = true;
@@ -65,7 +66,8 @@ namespace BozjaBuddy.Data
             Mob = 3,
             Fate = 4,
             Vendor = 5,
-            Loadout = 6
+            Loadout = 6,
+            FieldNote = 7
         }
     }
 }

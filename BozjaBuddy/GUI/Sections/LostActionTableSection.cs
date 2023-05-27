@@ -7,6 +7,10 @@ using System.Linq;
 using Dalamud.Interface.Components;
 using BozjaBuddy.Utils;
 using Dalamud.Logging;
+using System.Numerics;
+using Dalamud.Interface;
+using System.Security.Cryptography;
+using BozjaBuddy.Windows;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -21,11 +25,16 @@ namespace BozjaBuddy.GUI.Sections
                                      ImGuiTableFlags.ContextMenuInBody | ImGuiTableFlags.Resizable    | ImGuiTableFlags.RowBg    |
                                      ImGuiTableFlags.ScrollY           | ImGuiTableFlags.Reorderable  | ImGuiTableFlags.Sortable |
                                      ImGuiTableFlags.ScrollX;
+        protected static ImGuiTableFlags GRID_FLAG = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.BordersOuter |
+                             ImGuiTableFlags.ContextMenuInBody | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX;
         private float TABLE_SIZE_Y;
+        private float TABLE_HEADER_HEIGHT = 45;
         private bool mIsCompactModeActive = false;
         private List<int> mActionIDs;
         private Filter.Filter[] mFilters;
         private TextureCollection mTextureCollection;
+        unsafe ImGuiTextFilterPtr mFilter_CacheAlert1 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+        unsafe ImGuiTextFilterPtr mFilter_CacheAlert2 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
 
         protected override Plugin mPlugin { get; set; }
         private float FIXED_LINE_HEIGHT
@@ -42,7 +51,8 @@ namespace BozjaBuddy.GUI.Sections
         {
             this.mPlugin = pPlugin;
 
-            this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
+            //this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * 15;
+            this.CalcTableHeight();
 
             this.mFilters = new Filter.Filter[]{
                 new Filter.LostActionTableSection.FilterType(),
@@ -82,20 +92,48 @@ namespace BozjaBuddy.GUI.Sections
         public override bool DrawGUI()
         {
             DrawOptionBar();
+            ImGui.Separator();
             DrawTable();
             return true;
         }
 
         private void DrawTable()
         {
-            if (ImGui.BeginTable("##LostAction", LostActionTableSection.COLUMN_COUNT, LostActionTableSection.TABLE_FLAG, new System.Numerics.Vector2(0.0f, this.TABLE_SIZE_Y)))
+            if (ImGui.BeginTable(
+                    "##LostAction", 
+                    LostActionTableSection.COLUMN_COUNT, 
+                    LostActionTableSection.TABLE_FLAG, 
+                    new System.Numerics.Vector2(0.0f, this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection
+                                                      ? this.TABLE_HEADER_HEIGHT
+                                                      : this.TABLE_SIZE_Y))
+                )
             {
                 DrawTableHeader();
-                List<int> tIDs = SortTableContent(this.mActionIDs, this.mFilters);
-                DrawTableContent(tIDs);
-
+                if (!this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection)
+                {
+                    List<int> tIDs = SortTableContent(this.mActionIDs, this.mFilters);
+                    DrawTableContent(tIDs);
+                }
                 ImGui.EndTable();
             }
+            if (this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection)
+            {
+                this.DrawGridContent(this.mPlugin.mBBDataManager.mUiMap_MycItemBox, 16);
+            }
+        }
+        public void DrawTable_GridOnly()
+        {
+            if (ImGui.BeginTable(
+                    "##LostActionGridOnly",
+                    LostActionTableSection.COLUMN_COUNT,
+                    LostActionTableSection.TABLE_FLAG & ~ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.SizingStretchProp,
+                    new System.Numerics.Vector2(0.0f, this.TABLE_HEADER_HEIGHT))
+                )
+            {
+                DrawTableHeader();
+                ImGui.EndTable();
+            }
+            this.DrawGridContent(this.mPlugin.mBBDataManager.mUiMap_MycItemBox, 16);
         }
 
         private void DrawTableHeader()
@@ -115,17 +153,16 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PushID(ImGui.TableGetColumnName(iCol));
                 ImGui.PushItemWidth(ImGui.GetColumnWidth(iCol) - LostActionTableSection.HEADER_TEXT_FIELD_SIZE_OFFSET);
                 ImGui.PushTextWrapPos(0);
+                if (this.mFilters[iCol].IsFiltering())
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.TableCell_Red));
+
                 this.mFilters[iCol].DrawFilterGUI(); ImGui.SameLine();
+
                 ImGui.PopTextWrapPos();
                 ImGui.TableHeader("");
                 ImGui.PopItemWidth();
                 ImGui.PopID();
             }
-        }
-
-        private void DrawTableContent()
-        {
-            this.DrawTableContent(this.mActionIDs);
         }
 
         private void DrawTableContent(List<int> pIDs)
@@ -194,14 +231,160 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.PopStyleVar();
             }
         }
+        /// <summary>pColCount:        Specifically hard-coded, for cell scaling and performance.</summary>
+        private void DrawGridContent(List<List<int>> pMap, int pColCount)
+        {
+            var tScreenAnchor = ImGui.GetCursorScreenPos();
+            if (ImGui.BeginTable(
+                    "##gridfieldnote",
+                    pColCount,
+                    LostActionTableSection.GRID_FLAG,
+                    new Vector2(0.0f, this.TABLE_SIZE_Y - this.TABLE_HEADER_HEIGHT - 25)
+                    ))
+            {
+                float tCellWidth = 500.95f / pColCount;     // default=538.95
+                foreach (List<int> iRow in pMap)
+                {
+                    ImGui.TableNextRow();
+                    int iColIdx = 0;
+                    foreach (int iId in iRow)
+                    {
+                        if (iColIdx >= pColCount) break;
+                        ImGui.TableSetColumnIndex(iColIdx);
+                        this.DrawGridCell(iId, tCellWidth);
+                        iColIdx++;
+                    }
+                }
+                ImGui.EndTable();
+            }
+            if (AuxiliaryViewerSection.mTenpLoadout != null)
+            {
+                ImGui.GetWindowDrawList().AddText(
+                        tScreenAnchor + new Vector2(420, 150),
+                        ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NormalText_Orange, 0.6f)),
+                        "[Shift+LMB] Add to loadout\n[Shift+RMB] Remove from loadout"
+                    );
+            }
+        }
+        private void DrawGridCell(int pId, float pCellWidth)
+        {
+            ImGuiIOPtr io = ImGui.GetIO();
+            // CONTENT
+            var tAnchor = ImGui.GetCursorPos();
+            if (!this.mPlugin.mBBDataManager.mLostActions.TryGetValue(pId, out LostAction? tLostAction)) return;
+            if (tLostAction == null) { return; }
+            bool tIsValid = this.CheckFilter(tLostAction);
+
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(1, 0));
+            TextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(
+                            Convert.ToUInt32(tLostAction.mId),
+                            pSheet: TextureCollection.Sheet.Action);
+            float tScaling = 1;
+            UtilsGUI.InputPayload tInputPayload = new();
+            if (tIconWrap != null) tScaling = (pCellWidth - 1) / tIconWrap.Width;       // account for frame padding 
+            if (tIconWrap != null
+                && UtilsGUI.SelectableLink_Image(
+                        this.mPlugin,
+                        tLostAction.GetGenId(),
+                        tIconWrap,
+                        pIsLink: true,
+                        pIsAuxiLinked: !io.KeyShift,
+                        pImageScaling: tScaling,
+                        pImageOverlayRGBA: tIsValid
+                                            ? true      // FIXME: Check if currently edited custom loadout contains this action
+                                                ? null
+                                                : new Vector4(1, 1, 1, 0.25f)
+                                            : new Vector4(1, 1, 1, 0),
+                        pInputPayload: tInputPayload,
+                        pAdditionalHoverText: AuxiliaryViewerSection.mTenpLoadout != null
+                                              ? $"[Shift+LMB/RMB] Add/remove from loadout\n"
+                                              : ""
+                        )
+                && tInputPayload.mIsKeyShift)
+            {
+                AuxiliaryViewerSection.GUILoadoutEditAdjuster_Incre(this.mPlugin, tLostAction.mId);
+            }
+            else if (tInputPayload.mIsHovered && tInputPayload.mIsMouseRmb && tInputPayload.mIsKeyShift)
+            {
+                AuxiliaryViewerSection.GUILoadoutEditAdjuster_Decre(this.mPlugin, tLostAction.mId);
+            }
+            // Cache amount
+            if (this.mPlugin.Configuration._userCacheData.TryGetValue(pId, out int tAmount))
+            {
+                var tDrawList = ImGui.GetWindowDrawList();
+                var tScreenAnchor = ImGui.GetCursorScreenPos();
+                ImGui.SetCursorPos(tAnchor + new Vector2(pCellWidth - 7.25f * tAmount.ToString().Length, pCellWidth - 15));
+                tDrawList.AddRectFilled(
+                        ImGui.GetCursorScreenPos() + new Vector2(-3, 3.5f),
+                        tScreenAnchor + new Vector2(pCellWidth, -1),
+                        ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.MycItemBoxOverlay_Black, 0.15f))
+                    );
+                tDrawList.AddText(
+                        ImGui.GetCursorScreenPos(),
+                        ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NormalText_Orange),
+                        $"{tAmount}"
+                    );
+                // Action Alert
+                if (this.mPlugin.Configuration.mIsAroVisible_LostActionTableSection
+                    && CharStatsWindow.CheckActionAlert(this.mPlugin, pId))
+                {
+                    tDrawList.AddCircleFilled(
+                            tScreenAnchor + new Vector2(2, -pCellWidth + 2),
+                            3.9f,
+                            ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.MycItemBoxOverlay_Red, 0.8f))
+                        );
+                }
+            }
+
+            ImGui.PopStyleVar();
+        }
         private void DrawOptionBar()
         {
-            AuxiliaryViewerSection.GUIAlignRight("Compact mode      ");
-            //ImGui.Checkbox("Compact", ref this.mIsCompactModeActive);
+            if (this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection)
+            {
+                // ARO config
+                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.SlidersH))
+                {
+                    ImGui.OpenPopup("##alertConfig");
+                }
+                else { UtilsGUI.SetTooltipForLastItem("Configs for Action-Running-out Alert (also found in Config > Misc > [A])"); }
+                if (ImGui.IsPopupOpen("##alertConfig")) ImGui.SetNextWindowSize(new Vector2(550, 450));
+                if (ImGui.BeginPopup("##alertConfig"))
+                {
+                    ConfigWindow.Draw_CacheAlertConfig(this.mPlugin, this.mPlugin.Configuration, this.mFilter_CacheAlert1, this.mFilter_CacheAlert2);
+                    ImGui.EndPopup();
+                }
+                // ARO toggle
+                ImGui.SameLine();
+                ImGuiComponents.ToggleButton("##togAro", ref this.mPlugin.Configuration.mIsAroVisible_LostActionTableSection);
+                ImGui.SameLine();
+                UtilsGUI.TextWithHelpMarker(
+                    "Action-running-out Alert", 
+                    "The below replicates player's Lost find Cache.\n\n- Filterable.\n- The number represents the amount player possesses.\n- The red dot (Action-running-out Alert) notifies actions that are running low. The alert threshold is modifiable, using the outmost left button.\n- Pressing [Shift + LMB] on an action while in Custom loadout edit mode will add that action to the loadout being edited.",
+                    UtilsGUI.Colors.BackgroundText_Grey);
+                ImGui.SameLine();
+            }
+
+            AuxiliaryViewerSection.GUIAlignRight("Compact mode      [GRID]");
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Compact mode");
             ImGui.SameLine();
             ImGuiComponents.ToggleButton("comTog", ref this.mIsCompactModeActive);
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection
+                             ? FontAwesomeIcon.GripHorizontal
+                             : FontAwesomeIcon.List))
+            {
+                this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection = !this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection;
+                this.CalcTableHeight();
+            }
+            else
+            {
+                UtilsGUI.SetTooltipForLastItem($"Current view mode: {(this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection ? "GRID" : "LIST")}");
+            }
         }
+        private void CalcTableHeight() => this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * (15 + (this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection
+                                                                                                        ? 3
+                                                                                                        : 2));
         public override void DrawGUIDebug()
         {
             ImGui.Text(String.Format("Edited: {0} {1}", this.mFilters[0].GetCurrValue(),

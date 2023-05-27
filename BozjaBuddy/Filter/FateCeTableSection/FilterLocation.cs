@@ -21,6 +21,8 @@ namespace BozjaBuddy.Filter.FateCeTableSection
             => !mIsFilteringActive
                 | mCurrValue == Location.Area.None
                 | mCurrValue == pFate.mLocation?.mAreaFlag;
+        public override bool IsFiltering() => this.mCurrValue != Location.Area.None;
+        public override void ResetCurrValue() { this.mCurrValue = Location.Area.None; }
 
         public override void DrawFilterGUI()
         {

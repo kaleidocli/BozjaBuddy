@@ -3,6 +3,8 @@ using System;
 using BozjaBuddy.Data;
 using BozjaBuddy.Utils;
 using System.Collections.Generic;
+using BozjaBuddy.Filter;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI
 {
@@ -15,28 +17,47 @@ namespace BozjaBuddy.GUI
             ImGui.Text(pHeaderName.ToUpper());
         }
 
-        public void HeaderTextInput(String pHeaderName, ref string pCurrValue, ref bool pEditedState)
+        public void HeaderTextInput(String pHeaderName, ref string pCurrValue, ref bool pEditedState, Filter.Filter? pFilter, ImGuiInputTextFlags pFlags = ImGuiInputTextFlags.None)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(0, 0));
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+            if (pFilter != null && pFilter.mIsContainedInCell && pFilter.IsFiltering()) 
+                ImGui.SetNextItemWidth(ImGui.GetColumnWidth() - 30);
 
-            ImGui.InputTextWithHint("", pHeaderName.ToUpper(), ref pCurrValue, 64);
+            ImGui.InputTextWithHint("", pHeaderName.ToUpper(), ref pCurrValue, 64, ImGuiInputTextFlags.None | pFlags);
 
             ImGui.PopStyleVar(); ImGui.PopStyleVar();
+
+            if (pFilter != null && pFilter.IsFiltering())
+            {
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 10);
+                if (ImGui.Button($" X ##{pHeaderName}")) pFilter.ResetCurrValue();
+            }
+
             pEditedState = ImGui.IsItemDeactivatedAfterEdit();
         }
 
-        public void HeaderSelectable(String pRoleName, ref bool pSelecableFlag, bool pSameLine = true, bool pClosePopupOnSelect = false)
+        public bool HeaderSelectable(String pRoleName, ref bool pSelecableFlag, Filter.Filter? pFilter, bool pSameLine = true, bool pClosePopupOnSelect = false)
         {
-            ImGui.Selectable(pRoleName, 
+            var tIsFiltering = pFilter != null && pFilter.IsFiltering();
+            var tRes = ImGui.Selectable(pRoleName, 
                                 ref pSelecableFlag, 
-                                (pClosePopupOnSelect ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups), 
-                                new System.Numerics.Vector2(ImGui.GetFontSize() / 2, ImGui.GetFontSize()));
+                                (pClosePopupOnSelect ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.DontClosePopups),
+                                new System.Numerics.Vector2(ImGui.GetColumnWidth() - GUIFilter.HEADER_TEXT_FIELD_SIZE_OFFSET - (tIsFiltering ? 30 : 0), ImGui.GetFontSize()));
+            if (tIsFiltering)
+            {
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 10);
+                if (ImGui.Button($" X ##{pRoleName}")) pFilter!.ResetCurrValue();
+            }
             if (pSameLine) ImGui.SameLine();
+            return tRes;
         }
 
-        public void HeaderNumberInputPair(String pHeaderName, ref int[] pCurrValue)
+        public void HeaderNumberInputPair(String pHeaderName, ref int[] pCurrValue, Filter.Filter? pFilter)
         {
+            bool tIsFiltering = pFilter != null && pFilter.IsFiltering();
             if (ImGui.Selectable(pHeaderName.ToUpper(), 
                     true, 
                     ImGuiSelectableFlags.None, 
@@ -50,6 +71,11 @@ namespace BozjaBuddy.GUI
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, new System.Numerics.Vector2(1, 0));
 
                 ImGui.InputInt2("", ref pCurrValue[0], ImGuiInputTextFlags.CharsDecimal);
+                if (tIsFiltering)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.Button($" X ##{pHeaderName}")) pFilter!.ResetCurrValue();
+                }
 
                 ImGui.PopStyleVar();
                 ImGui.PopItemWidth();
@@ -76,8 +102,9 @@ namespace BozjaBuddy.GUI
             }
         }
     
-        public void HeaderRoleIconButtons(RoleFlag pRoleFlag)
+        public void HeaderRoleIconButtons(RoleFlag pRoleFlag, Filter.Filter? pFilter)
         {
+            bool tIsFiltering = pFilter != null && pFilter.IsFiltering();
             pRoleFlag.UpdateRoleFlagBit();
             List<Role> tRoles = new List<Role>() { Role.Tank, Role.Healer, Role.Melee, Role.Range, Role.Caster };
             for (int i = 0; i < tRoles.Count; i++)
@@ -99,6 +126,11 @@ namespace BozjaBuddy.GUI
                 ImGui.PopStyleVar();
                 ImGui.PopStyleVar();
                 ImGui.PopID();
+            }
+            if (tIsFiltering)
+            {
+                ImGui.SameLine();
+                if (ImGui.Button($" X ##rcancel")) pFilter!.ResetCurrValue();
             }
         }
     }
