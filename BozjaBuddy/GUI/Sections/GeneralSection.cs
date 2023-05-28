@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Dalamud.Interface.Components;
 using System.Runtime.CompilerServices;
 using System.Data;
+using Dalamud.Interface.Colors;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -49,8 +50,21 @@ namespace BozjaBuddy.GUI.Sections
             // Search all box
             string tSearchVal = this.mGuiVars["searchAll"];
             ImGui.SameLine();
-            GeneralSection.DrawSearchAllBox(this.mPlugin, ref tSearchVal);
+            GeneralSection.DrawSearchAllBox(this.mPlugin, ref tSearchVal, pTextBoxWidth: ImGui.GetContentRegionAvail().X - 27);
             this.mGuiVars["searchAll"] = tSearchVal;
+            // Section switch button
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowsUpDown, defaultColor: this.mPlugin.Configuration.mIsAuxiFocused
+                                                                                                         ? UtilsGUI.Colors.MycItemBoxOverlay_Red
+                                                                                                         : null))
+            {
+                this.mPlugin.Configuration.mIsAuxiFocused = !this.mPlugin.Configuration.mIsAuxiFocused;
+                this.mPlugin.MainWindow.RearrangeSection();
+            }
+            else
+            {
+                UtilsGUI.SetTooltipForLastItem($"Alternative layout: {(this.mPlugin.Configuration.mIsAuxiFocused ? "ON" : "OFF")}\n- Bring the information viewer to the top.\n\n(can be toggled by pressing [Alt] while this plugin window is being focused)");
+            }
 
             return true;
         }

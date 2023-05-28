@@ -53,6 +53,7 @@ namespace BozjaBuddy
         public bool mIsInGridMode_FieldNoteTableSection = true;
         public bool mIsInGridMode_LostActionTableSection = true;
         public bool mIsAroVisible_LostActionTableSection = true;
+        public bool mIsAuxiFocused = false;
         public HashSet<int> mCacheAlertIgnoreIds = new();
         public HashSet<int> mUserFieldNotes = new();
 

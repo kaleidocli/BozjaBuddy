@@ -64,6 +64,7 @@ namespace BozjaBuddy.GUI.Sections
                                                                     : ImGuiTabItemFlags.None))
             {
                 if (pObj.GetGenId() == AuxiliaryViewerSection._mGenIdToTabFocus) AuxiliaryViewerSection._mGenIdToTabFocus = -1;   // Release selected
+                ImGui.BeginChild($"##{pObj.mId}", new Vector2(ImGui.GetWindowWidth(), 390));
                 if (pObj is Loadout)
                 {
                     this.DrawTabHeaderLoadout(pObj);
@@ -79,6 +80,8 @@ namespace BozjaBuddy.GUI.Sections
                     this.DrawTabHeader(pObj);
                     this.DrawTabContent(pObj);
                 }
+                ImGui.Separator();
+                ImGui.EndChild();
                 ImGui.EndTabItem();
             }
             if (pObj.mTabColor != null) ImGui.PopStyleColor();
@@ -291,6 +294,19 @@ namespace BozjaBuddy.GUI.Sections
                 if (ImGui.BeginMenuBar())
                 {
                     ImGui.TextColored(tLoadout.mWeight > 99 ? UtilsGUI.Colors.NormalText_Red : UtilsGUI.Colors.BackgroundText_Grey, $"WEIGHT: {tLoadout.mWeight} / 99");
+                    ImGui.SameLine();
+                    // Lost action grid popup
+                    //ImGui.SetCursorPos(new Vector2(ImGui.GetCursorPosX() + (ImGui.GetWindowWidth() / 5 * 2 + 10), 0));
+                    AuxiliaryViewerSection.GUIAlignRight(-5);
+                    if (ImGui.Button(" + "))
+                    {
+                        ImGui.OpenPopup("##lagrid");
+                    }
+                    if (ImGui.BeginPopup("##lagrid"))
+                    {
+                        this.mLostActionTableSection.DrawTable_GridOnly();
+                        ImGui.EndPopup();
+                    }
                     ImGui.EndMenuBar();
                 }
                 UtilsGUI.InputPayload tInputPayload = new();

@@ -9,6 +9,7 @@ namespace BozjaBuddy.GUI.Tabs
     {
         protected override string mName { get; set; }
         protected override Dictionary<int, Section> mSortedSections { get; set; }
+        protected override Dictionary<int, Section> mSortedSections_Default { get; set; }
         protected override Plugin mPlugin { get; set; }
         public FateCeTab(Plugin pPlugin)
         {
@@ -19,6 +20,7 @@ namespace BozjaBuddy.GUI.Tabs
                 { 1, new FateCeTableSection(this.mPlugin) },
                 { 2, new AuxiliaryViewerSection(this.mPlugin) }
             };
+            this.mSortedSections_Default = this.mSortedSections;
         }
         public override bool DrawGUI()
         {

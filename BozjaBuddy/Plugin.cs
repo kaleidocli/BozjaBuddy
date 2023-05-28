@@ -45,6 +45,7 @@ namespace BozjaBuddy
         public AlarmManager AlarmManager { get; init; }
         public GuiScraper GuiScraper { get; init; }
         public GUIAssistManager GUIAssistManager { get; init; }
+        public MainWindow MainWindow { get; init; }
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -80,8 +81,9 @@ namespace BozjaBuddy
 
             mBBDataManager = new BBDataManager(this);
             UtilsGameData.Init(this);
+            this.MainWindow = new(this);
             WindowSystem.AddWindow(new ConfigWindow(this));
-            WindowSystem.AddWindow(new MainWindow(this));
+            WindowSystem.AddWindow(this.MainWindow);
             WindowSystem.AddWindow(new AlarmWindow(this));
             WindowSystem.AddWindow(new CharStatsWindow(this));
 
@@ -112,6 +114,8 @@ namespace BozjaBuddy
 
             this.PluginInterface.UiBuilder.BuildFonts += this.BuildFont;
             this.PluginInterface.UiBuilder.RebuildFonts();
+
+            this.MainWindow.RearrangeSection();
         }
         
         private void BuildFont()
