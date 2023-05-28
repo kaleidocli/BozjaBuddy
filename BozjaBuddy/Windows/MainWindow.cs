@@ -4,6 +4,7 @@ using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using BozjaBuddy.GUI.Tabs;
 using BozjaBuddy.GUI.Sections;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.Windows;
 
@@ -32,6 +33,14 @@ public class MainWindow : Window, IDisposable
         this.mFieldNoteTab = new FieldNoteTab(this.Plugin);
     }
 
+    public void RearrangeSection()
+    {
+        this.mLostActionTab.RearrangeSection();
+        this.mFateCeTab.RearrangeSection();
+        this.mMobTab.RearrangeSection();
+        this.mLoadoutTab.RearrangeSection();
+        this.mFieldNoteTab.RearrangeSection();
+    }
     public void Dispose()
     {
         this.mLostActionTab.Dispose();
@@ -43,6 +52,13 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
+        if (ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows)
+            && ImGui.GetIO().KeyAlt
+            && UtilsGUI.InputPayload.CheckKeyClickValidity())
+        {
+            this.Plugin.Configuration.mIsAuxiFocused = !this.Plugin.Configuration.mIsAuxiFocused;
+            this.Plugin.MainWindow.RearrangeSection();
+        }
         this.mGeneralSection.DrawGUI();
         if (ImGui.BeginTabBar("Tab Bat")) {
             this.mLostActionTab.DrawGUI();

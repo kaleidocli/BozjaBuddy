@@ -384,11 +384,18 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.SameLine();
             }
 
-            AuxiliaryViewerSection.GUIAlignRight("Compact mode      [GRID]");
-            ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Compact mode");
-            ImGui.SameLine();
-            ImGuiComponents.ToggleButton("comTog", ref this.mIsCompactModeActive);
-            ImGui.SameLine();
+            if (!this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection)
+            {
+                AuxiliaryViewerSection.GUIAlignRight("Compact mode      [GRID]");
+                ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Compact mode");
+                ImGui.SameLine();
+                ImGuiComponents.ToggleButton("comTog", ref this.mIsCompactModeActive);
+                ImGui.SameLine();
+            }
+            else
+            {
+                AuxiliaryViewerSection.GUIAlignRight(-1);
+            }
             if (ImGuiComponents.IconButton(this.mPlugin.Configuration.mIsInGridMode_LostActionTableSection
                              ? FontAwesomeIcon.GripHorizontal
                              : FontAwesomeIcon.List))

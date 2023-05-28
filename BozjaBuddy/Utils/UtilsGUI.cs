@@ -656,8 +656,11 @@ namespace BozjaBuddy.Utils
         public class InputPayload
         {
             private static DateTime kLastMouseClicked = DateTime.MinValue;
+            private static DateTime kLastKeyClicked = DateTime.MinValue;
             private const double kMouseClickValidityThreshold = 150;
+            private const double kKeyClickValidityThreshold = 250;
             private static double DeltaLastMouseClick() => (DateTime.Now - InputPayload.kLastMouseClicked).TotalMilliseconds;
+            private static double DeltaLastKeyClick() => (DateTime.Now - InputPayload.kLastKeyClicked).TotalMilliseconds;
             public static bool CheckMouseClickValidity()
             {
                 if (InputPayload.DeltaLastMouseClick() > kMouseClickValidityThreshold)
@@ -667,16 +670,27 @@ namespace BozjaBuddy.Utils
                 }
                 return false;
             }
+            public static bool CheckKeyClickValidity()
+            {
+                if (InputPayload.DeltaLastKeyClick() > kKeyClickValidityThreshold)
+                {
+                    InputPayload.kLastKeyClicked = DateTime.Now;
+                    return true;
+                }
+                return false;
+            }
 
             public bool mIsHovered = false;
             public bool mIsMouseRmb = false;
             public bool mIsMouseLmb = false;
             public bool mIsKeyShift = false;
+            public bool mIsKeyAlt = false;
 
             public void CaptureInput()
             {
                 var io = ImGui.GetIO();
                 if (io.KeyShift) mIsKeyShift = true;
+                if (io.KeyAlt) mIsKeyAlt = true;
                 if (io.MouseReleased[0]) mIsMouseLmb = true;
                 if (io.MouseReleased[1]) mIsMouseRmb = true;
             }

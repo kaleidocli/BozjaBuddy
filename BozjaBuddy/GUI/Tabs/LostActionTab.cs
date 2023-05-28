@@ -11,6 +11,7 @@ namespace BozjaBuddy.GUI.Tabs
     {
         protected override string mName { get; set; }
         protected override Dictionary<int, Section> mSortedSections { get; set; }
+        protected override Dictionary<int, Section> mSortedSections_Default { get; set; }
         protected override Plugin mPlugin { get; set; }
 
         public LostActionTab(Plugin pPlugin)
@@ -21,6 +22,7 @@ namespace BozjaBuddy.GUI.Tabs
                 { 0, new LostActionTableSection(this.mPlugin) },
                 { 1, new AuxiliaryViewerSection(this.mPlugin) }
             };
+            this.mSortedSections_Default = this.mSortedSections;
         }
 
         public void Dispose()

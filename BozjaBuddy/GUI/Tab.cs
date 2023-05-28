@@ -2,6 +2,7 @@ using ImGuiNET;
 using BozjaBuddy.Interface;
 using System.Collections.Generic;
 using BozjaBuddy.Utils;
+using BozjaBuddy.GUI.Sections;
 
 namespace BozjaBuddy.GUI
 {
@@ -12,8 +13,42 @@ namespace BozjaBuddy.GUI
     {
         protected abstract string mName { get; set; }
         protected abstract Dictionary<int, Section> mSortedSections { get; set; }
+        protected abstract Dictionary<int, Section> mSortedSections_Default { get; set; }
         protected abstract Plugin mPlugin { get; set; }
 
+        /// <summary>
+        /// Do not create new Section. Find and put front Auxi section by default
+        /// </summary>
+        public virtual void RearrangeSection()
+        {
+            if (this.mPlugin.Configuration.mIsAuxiFocused)
+            {
+                if (this.mSortedSections.Count < 2) return;
+
+                Dictionary<int, Section> tRes = new();
+                int tResKey = 1; // save 0 idx for focused Section
+                Section? tFocusedSection = null;
+                foreach (var iKey in mSortedSections.Keys)
+                {
+                    if (mSortedSections[iKey] is AuxiliaryViewerSection)
+                    {
+                        tFocusedSection = mSortedSections[iKey];
+                    }
+                    else
+                    {
+                        tRes[tResKey] = mSortedSections[iKey];
+                        tResKey++;
+                    }
+                }
+                if (tFocusedSection == null) { return; }
+                tRes.Add(0, tFocusedSection);
+                this.mSortedSections = tRes;
+            }
+            else if (this.mSortedSections_Default != null)
+            {
+                this.mSortedSections = this.mSortedSections_Default;
+            }
+        }
         
         public virtual bool DrawGUI()
         {
