@@ -143,7 +143,10 @@ namespace BozjaBuddy.GUI
                         : Marshal.PtrToStringAnsi((IntPtr)texFileNameStdString->BufferPtr);
                     if (texString == null) continue;
 
-                    if (texString == "ui/icon/072000/072576_hr1.tex" || texString == "ui/icon/072000/072608_hr1.tex")
+                    if (texString == "ui/icon/072000/072576_hr1.tex"
+                        || texString == "ui/icon/072000/072576.tex"
+                        || texString == "ui/icon/072000/072608_hr1.tex"
+                        || texString == "ui/icon/072000/072608.tex")
                         tUserFieldNotes.Remove((id - 7) + ((tCurrPage - 1) * 10));
                     else 
                         tUserFieldNotes.Add((id - 7) + ((tCurrPage - 1) * 10));

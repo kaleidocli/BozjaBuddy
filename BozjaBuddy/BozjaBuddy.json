@@ -14,5 +14,6 @@
         "fragment",
         "relic",
         "alarm"
-    ]
+    ],
+    "AcceptsFeedback":  true
 }

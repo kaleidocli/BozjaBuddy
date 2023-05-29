@@ -41,6 +41,8 @@ namespace BozjaBuddy.GUI.GUIAssist
         private ExtGui_MycInfo mExtGui_MycInfo;
         private HashSet<int> _MycItemBagTrade_ValidNodeIds = new HashSet<int>(new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
 
+        private bool mHasAppliedAutoroleFilter = false;
+
         private GUIAssistManager() { }
         public GUIAssistManager(Plugin pPlugin) 
         {
@@ -219,6 +221,21 @@ namespace BozjaBuddy.GUI.GUIAssist
             unsafe
             {
                 var tAddonMycItemBox = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCItemBox");
+                if (tAddonMycItemBox == null)
+                {
+                    this.mHasAppliedAutoroleFilter = false;
+                }
+                else
+                {
+                    if (!this.mHasAppliedAutoroleFilter
+                        && !this.mPlugin.Configuration.mGuiAssistConfig.itemBox.isDisabled_AutoRoleFilter)
+                    {
+                        RoleFlag tUserRole = new();
+                        tUserRole.SetRoleFlagBit(UtilsGameData.GetUserRole(this.mPlugin) ?? Role.None);
+                        this.mExtGui_MycItemBox.mFilterRole.SetCurrValue(tUserRole);
+                        this.mHasAppliedAutoroleFilter = true;
+                    }
+                }
 
                 // Update user's Cache and Holster saved info (only when the Box is opened, and every 1 sec)
                 if (tAddonMycItemBox != null && (DateTime.Now - this._cycle3).TotalSeconds > this.mPlugin.Configuration.mGuiAssistConfig.itemBox.refreshRate)
@@ -370,10 +387,31 @@ break;
                                     }
                                 }
                             }
-                            else if (tLoadout == null && tIsFilteredIn)
+                            else if (tLoadout == null)
                             {
-                                this.ShowNode(iLostAction.mUINode);
-                                this.UnfadeNode(iLostAction.mUINode); 
+                                if (tIsFilteredIn)
+                                {
+                                    this.ShowNode(iLostAction.mUINode);
+                                    this.UnfadeNode(iLostAction.mUINode);
+                                }
+                                else
+                                {
+                                    switch (tTextFilterLevel)
+                                    {
+                                        case 0:
+                                            this.ShowNode(iLostAction.mUINode);
+                                            this.UnfadeNode(iLostAction.mUINode);
+                                            break;
+                                        case 1:
+                                            this.ShowNode(iLostAction.mUINode);
+                                            this.FadeNode(iLostAction.mUINode);
+                                            break;
+                                        case 2:
+                                            this.HideNode(iLostAction.mUINode);
+                                            break;
+                                        default: break;
+                                    }
+                                }
                             }
                         }
                     }

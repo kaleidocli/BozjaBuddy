@@ -55,6 +55,10 @@ namespace BozjaBuddy.Filter.LostActionTableSection
                 ImGui.EndPopup();
             }
         }
+        public void SetCurrValue(RoleFlag pRoleFlag)
+        {
+            this.mCurrValue = pRoleFlag;
+        }
 
         public override string GetCurrValue()
         {

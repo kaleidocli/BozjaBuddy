@@ -528,6 +528,20 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
         UtilsGUI.ShowHelpMarker($"Refresh rate is the rate at which the UI is updated.\nLower value yields better user experience at the cost of potential game stuttering. And vice versa.\n The default value ({pPlugin.Configuration.mGuiAssistConfig.itemBox.refreshRateDefault}) is recommended.");
+
+        // Auto-role Filter
+        bool tTemp7 = !pPlugin.Configuration.mGuiAssistConfig.itemBox.isDisabled_AutoRoleFilter;
+        if (ImGuiComponents.ToggleButton("tg_7", ref tTemp7))
+        {
+            pPlugin.Configuration.mGuiAssistConfig.itemBox.isDisabled_AutoRoleFilter = !tTemp7;
+            pPlugin.Configuration.Save();
+        }
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
+        UtilsGUI.TextDescriptionForWidget("7. Auto Role-filter.");
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
+        UtilsGUI.ShowHelpMarker($"Automatically apply your current role to the Lost Find Cahe every time you open it.\nDoes not clear the filter when disabled.");
     }
     public static void Draw_LoadoutPairingButton(Plugin pPlugin, Dictionary<string, ImGuiTextFilterPtr> pGuiVar_TextFilters)
     {

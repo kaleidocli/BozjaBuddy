@@ -11,6 +11,7 @@ using Dalamud.Interface.Components;
 using System.Runtime.CompilerServices;
 using System.Data;
 using Dalamud.Interface.Colors;
+using System.Linq;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -50,8 +51,23 @@ namespace BozjaBuddy.GUI.Sections
             // Search all box
             string tSearchVal = this.mGuiVars["searchAll"];
             ImGui.SameLine();
-            GeneralSection.DrawSearchAllBox(this.mPlugin, ref tSearchVal, pTextBoxWidth: ImGui.GetContentRegionAvail().X - 27);
+            GeneralSection.DrawSearchAllBox(this.mPlugin, ref tSearchVal, pTextBoxWidth: ImGui.GetContentRegionAvail().X - 52);
             this.mGuiVars["searchAll"] = tSearchVal;
+            // Help button
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Question))
+            {
+                ImGui.OpenPopup("##helperpu");
+            }
+            else
+            {
+                UtilsGUI.SetTooltipForLastItem("Keybinds\n\n1. [Alt] to toggle alternative layout while plugin's main window is focused.\n2. With a link (hinted by symbol »):\n- Hover for quick info.\n- [LMB] to open link in info viewer section at the bottom.\n- [RMB] to see more options (marketboard, location, alarm, etc.).\n- For action's icon link, [Shift+LMB/RMB] will add the selected action to the currently edited Custom Loadout.");
+            }
+            if (ImGui.BeginPopup("##helperpu", ImGuiWindowFlags.NoResize))
+            {
+                GeneralSection.DrawHelper(this.mPlugin);
+                ImGui.EndPopup();
+            }
             // Section switch button
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowsUpDown, defaultColor: this.mPlugin.Configuration.mIsAuxiFocused
@@ -124,6 +140,48 @@ namespace BozjaBuddy.GUI.Sections
                     ImGui.EndPopup();
                 }
             }
+        }
+        private static void DrawHelper(Plugin pPlugin)
+        {
+            if (!ImGui.BeginTabBar("##helpertb")) return;
+            
+            // Tab: General
+            if (ImGui.BeginTabItem("General"))
+            {
+                ImGui.BeginChild("##hw", new Vector2(500, 200));
+                ImGui.PushTextWrapPos();
+                ImGui.Text("1. Any website or communities mentioned in this plugin are not sponsored or affiliated with the author in anyway.");
+                ImGui.Separator();
+                ImGui.Text("2. Any issues related to ownership or validity of community-created content, such as Recommended loadouts; please let us know and we may edited/removed accordingly.");
+                ImGui.Separator();
+                ImGui.Text("3. The plugin is designed with convenience in mind. However, if anything feels intrusive to you, feel free to let us know.");
+                ImGui.Separator();
+                ImGui.Text("4. The plugin will not have any automatical or braindead functionality (e.g. solve mechanics you, etc.)");
+                ImGui.Separator();
+                ImGui.Text("5. Technical issues can be sent through normal feedback function. Suggestions/inquiries please forward to XIVLauncher's discord > Plugin-help-forum > Bozja-buddy.");
+                ImGui.PopTextWrapPos();
+                ImGui.EndChild();
+                ImGui.EndTabItem();
+            }
+            // Tab: Keybinds
+            if (ImGui.BeginTabItem("Keybinds"))
+            {
+                ImGui.BeginChild("##hw", new Vector2(500, 200));
+                ImGui.PushTextWrapPos();
+                ImGui.Text("1. [Alt] to toggle alternative layout while plugin's main window is focused.");
+                ImGui.Separator();
+                ImGui.Text("2. With a link (hinted by symbol » like");
+                ImGui.SameLine();
+                UtilsGUI.SelectableLink_WithPopup(pPlugin, "this", pPlugin.mBBDataManager.mLostActions.First().Value.GetGenId());
+                ImGui.SameLine();
+                ImGui.Text("):");
+                ImGui.Text("- Hover for quick info.\n- [LMB] to open link in info viewer section at the bottom.\n- [RMB] to see available options (marketboard, location, alarm, etc.).\n- For action's icon link, [Shift+LMB/RMB] will add the selected action to the currently edited Custom Loadout.");
+                ImGui.PopTextWrapPos();
+                ImGui.EndChild();
+                ImGui.EndTabItem();
+            }
+
+            ImGui.EndTabBar();
         }
         public unsafe void DrawActionCount()
         {

@@ -163,7 +163,7 @@ namespace BozjaBuddy.Utils
             {
                 1 => Role.Tank,
                 2 => Role.Melee,
-                3 => tJob.GameData!.JobIndex == 2 ? Role.Range : Role.Caster,
+                3 => tJob.GameData!.PrimaryStat == 2 ? Role.Range : Role.Caster,
                 4 => Role.Healer,
                 _ => ~tRole,
             };
