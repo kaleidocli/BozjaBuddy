@@ -222,6 +222,7 @@ namespace BozjaBuddy
                 public bool isDisabled_LoadoutMiniview = false;
                 public bool isDisabled_FilterText = false;
                 public bool isDisabled_FilterLoadout = false;
+                public bool isDisabled_AutoRoleFilter = false;
 
                 public float refreshRate = 0.3f;
                 public int filterTextLevel = 1;

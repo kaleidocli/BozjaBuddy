@@ -132,7 +132,7 @@ namespace BozjaBuddy.GUI.GUIExtension
 
                 ImGui.SameLine();
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(0, 0));
-                this.mFilterRole.DrawFilterGUI();
+                this.mFilterRole.DrawFilterGUI(); 
                 ImGui.PopStyleVar();
 
                 tAnchor1 = ImGui.GetCursorScreenPos();
