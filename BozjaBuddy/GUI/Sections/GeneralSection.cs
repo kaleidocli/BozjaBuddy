@@ -148,17 +148,21 @@ namespace BozjaBuddy.GUI.Sections
             // Tab: General
             if (ImGui.BeginTabItem("General"))
             {
-                ImGui.BeginChild("##hw", new Vector2(500, 200));
+                ImGui.BeginChild("##hw", new Vector2(550, 250));
                 ImGui.PushTextWrapPos();
                 ImGui.Text("1. Any website or communities mentioned in this plugin are not sponsored or affiliated with the author in anyway.");
                 ImGui.Separator();
-                ImGui.Text("2. Any issues related to ownership or validity of community-created content, such as Recommended loadouts; please let us know and we may edited/removed accordingly.");
+                UtilsGUI.TextDescriptionForWidget("2. Any issues related to ownership or validity of community-created content, such as recommended loadouts; please let us know.");
                 ImGui.Separator();
                 ImGui.Text("3. The plugin is designed with convenience in mind. However, if anything feels intrusive to you, feel free to let us know.");
                 ImGui.Separator();
-                ImGui.Text("4. The plugin will not have any automatical or braindead functionality (e.g. solve mechanics you, etc.)");
+                UtilsGUI.TextDescriptionForWidget("4. The plugin will not have any automatic or braindead functionality (i.e. solving mechanics for you)");
                 ImGui.Separator();
                 ImGui.Text("5. Technical issues can be sent through normal feedback function. Suggestions/inquiries please forward to XIVLauncher's discord > Plugin-help-forum > Bozja-buddy.");
+                ImGui.Separator();
+                UtilsGUI.TextDescriptionForWidget("6. Out of respect, we ask our users to AVOID mentioning this plugin in any community.");
+                ImGui.SameLine();
+                UtilsGUI.ShowHelpMarker("Info in this plugin should be taken with a grain of salt.\nWe don't want people to annoy the mods/hosts by bringing this plugin up as an argument or excuse (i.e. '...but Bozja Buddy made me bring wrong stuff').\nWe created this plugin to makes life easier, not to become a nuisance to anyone.");
                 ImGui.PopTextWrapPos();
                 ImGui.EndChild();
                 ImGui.EndTabItem();

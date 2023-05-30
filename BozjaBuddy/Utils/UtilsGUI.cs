@@ -7,6 +7,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImGuiScene;
@@ -15,6 +16,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.IO.Pipes;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -506,6 +509,32 @@ namespace BozjaBuddy.Utils
                 pImageBorderColor ?? Vector4.Zero
                 );
             return tRes;
+        }
+        public static void UrlButton(string pUrl, string? pHoveredText = null, FontAwesomeIcon pIcon = FontAwesomeIcon.Globe, string? pGuiId = null)
+        {
+            UtilsGUI.InputPayload tInput = new();
+            tInput.CaptureInput();
+            ImGui.PushID(pGuiId ?? pUrl);
+            if (ImGuiComponents.IconButton(pIcon) && !pUrl.IsNullOrEmpty())
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo(pUrl)
+                    {
+                        UseShellExecute = true,
+                    });
+                }
+                catch (Exception e) { PluginLog.LogError(e.Message); }
+            }
+            else if (ImGui.IsItemHovered() && tInput.mIsMouseRmb)
+            {
+                ImGui.SetClipboardText(pUrl);
+            }
+            else
+            {
+                UtilsGUI.SetTooltipForLastItem($"[{pUrl}]\n\n[RMB] Copy URL to clipboard\n" + (pHoveredText ?? ""));
+            }
+            ImGui.PopID();
         }
         public static void DrawRoleFlagAsIconString(Plugin pPlugin, RoleFlag pRoleFlag)
         {
