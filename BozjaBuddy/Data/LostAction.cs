@@ -58,6 +58,9 @@ namespace BozjaBuddy.Data
                     this.mPlugin.mBBDataManager.mFragments[iId].mLinkFates
                                        .Select(o => this.mPlugin.mBBDataManager.mFates.ContainsKey(o)
                                                 ? this.mPlugin.mBBDataManager.mFates[o].mName
+                                                  + (this.mPlugin.mBBDataManager.mFates[o].mLinkVendors.Count > 0
+                                                    ? " (cluster)"
+                                                    : "")
                                                 : "unknown")
                                        .ToList()
                     );
@@ -80,6 +83,9 @@ namespace BozjaBuddy.Data
                 ", ",
                 this.mLinkFragments.Select(o => this.mPlugin.mBBDataManager.mFragments.ContainsKey(o)
                                             ? this.mPlugin.mBBDataManager.mFragments[o].mName
+                                                + (this.mPlugin.mBBDataManager.mFragments[o].mLinkVendors.Count > 0
+                                                    ? " (cluster)"
+                                                    : "")
                                             : "unknown")
                                    .ToList()
                                     );
@@ -87,7 +93,7 @@ namespace BozjaBuddy.Data
             this.mUiTooltip = $"Name:\t\t\t\t{this.mName}"
                             + $"\nRole:   \t\t\t\t{this.mRole}"
                             + $"\n\n{this.mDescription_semi}"
-                            + $"\n\nFragments:   \t{tFragDrops}"
+                            + $"\n\nFragments:  \t{tFragDrops}"
                             + $"\nFATE drops:  \t{tFateText}"
                             + $"\nMob drops:   \t{tMobDrops}";
             return this.mUiTooltip;

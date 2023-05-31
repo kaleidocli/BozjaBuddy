@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>0.3.4.4</Version>
+    <Version>0.3.5.1</Version>
     <Description>A sample plugin.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
@@ -83,8 +83,12 @@
 
   <ItemGroup>
     <Folder Include="db\audio\" />
+    <Folder Include="db\img\" />
   </ItemGroup>
   <ItemGroup>
+	<None Update="db\img\**">
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</None>
     <None Update="db\LostAction.db">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

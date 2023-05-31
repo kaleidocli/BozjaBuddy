@@ -54,6 +54,9 @@ namespace BozjaBuddy.Data
                 );
 
             this.mUiTooltip = $"Name:\t\t\t\t{this.mName}"
+                            + (this.mLinkVendors.Count > 0
+                                ? " (cluster)"
+                                : "")
                             + $"\nLost Actions:\t{tActionText}"
                             + $"\nFATE:  \t\t\t\t{tFateText}"
                             + $"\nMobs: \t\t\t\t{tMobText}";

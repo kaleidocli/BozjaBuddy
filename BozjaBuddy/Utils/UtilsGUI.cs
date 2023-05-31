@@ -7,6 +7,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImGuiScene;
@@ -15,6 +16,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.IO.Pipes;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -505,6 +508,92 @@ namespace BozjaBuddy.Utils
                 pImageOverlayRGBA ?? new Vector4(1, 1, 1, 1),
                 pImageBorderColor ?? Vector4.Zero
                 );
+            return tRes;
+        }
+        /// <summary>
+        /// By default, display URL on hovering.
+        /// </summary>
+        public static void UrlButton(string pUrl, string? pHoveredText = null, FontAwesomeIcon pIcon = FontAwesomeIcon.Globe, string? pGuiId = null)
+        {
+            UtilsGUI.InputPayload tInput = new();
+            tInput.CaptureInput();
+            ImGui.PushID(pGuiId ?? pUrl);
+            if (ImGuiComponents.IconButton(pIcon) && !pUrl.IsNullOrEmpty())
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo(pUrl)
+                    {
+                        UseShellExecute = true,
+                    });
+                }
+                catch (Exception e) { PluginLog.LogError(e.Message); }
+            }
+            else if (ImGui.IsItemHovered() && tInput.mIsMouseRmb)
+            {
+                ImGui.SetClipboardText(pUrl);
+            }
+            else
+            {
+                UtilsGUI.SetTooltipForLastItem($"[{pUrl}]\n\n[RMB] Copy URL to clipboard\n" + (pHoveredText ?? ""));
+            }
+            ImGui.PopID();
+        }
+        /// <summary>
+        /// While rendering in a pop up, texture's width will not exceed half of the screen's width.
+        /// </summary>
+        public static bool DrawImgFromDb(
+            Plugin pPlugin, 
+            string pImgKey, 
+            bool pIsScaledToRegionWidth = false,
+            float pExtraScaling = 1,
+            bool pIsPU = false)
+        {
+            bool tRes = false;
+
+            if (pPlugin.mBBDataManager.mImages.TryGetValue(pImgKey, out TextureWrap? tImg)
+                && tImg != null)
+            {
+                float tScale = (pIsScaledToRegionWidth
+                                    ? (ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X - ImGui.GetStyle().WindowPadding.X) / tImg.Width
+                                    : 1)
+                               * pExtraScaling;
+                if (tImg.Width * tScale > ImGui.GetIO().DisplaySize.X / 2)
+                {
+                    tScale = (ImGui.GetIO().DisplaySize.X / 2) / tImg.Width;
+                }
+                UtilsGUI.InputPayload tInput = new();
+                ImGui.Image(
+                    tImg.ImGuiHandle, 
+                    new Vector2(
+                        tImg.Width * tScale, 
+                        tImg.Height * tScale
+                        )
+                    );
+                tInput.CaptureInput();
+                // extras
+                if (ImGui.IsItemHovered())
+                {
+                    if (!pIsPU)
+                    {
+                        // hovered text
+                        UtilsGUI.SetTooltipForLastItem("[RMB] View large");
+                        // img pu
+                        if (tInput.mIsMouseRmb)
+                        {
+                            ImGui.OpenPopup($"##imgpu{pImgKey}");
+                        }
+                    }
+                }
+                if (ImGui.BeginPopup($"##imgpu{pImgKey}"))
+                {
+                    UtilsGUI.DrawImgFromDb(pPlugin, pImgKey, pIsPU: true);
+                    ImGui.EndPopup();
+                }
+
+                tRes = true;
+            }
+
             return tRes;
         }
         public static void DrawRoleFlagAsIconString(Plugin pPlugin, RoleFlag pRoleFlag)

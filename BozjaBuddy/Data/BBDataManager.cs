@@ -12,10 +12,11 @@ using BozjaBuddy.Data.Alarm;
 using BozjaBuddy.Utils;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using ImGuiScene;
 
 namespace BozjaBuddy.Data
 {
-    public class BBDataManager
+    public class BBDataManager : IDisposable
     {
         private const int kFateTableUpdateInterval = 1;
         private static DateTime kFateTableLastUpdate = DateTime.MinValue;
@@ -35,6 +36,7 @@ namespace BozjaBuddy.Data
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? mSheetItem;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>? mSheetMycWarResultNotebook;
         public List<List<int>> mUiMap_MycItemBox;
+        public Dictionary<string, TextureWrap?> mImages;
 
         public BBDataManager(Plugin pPlugin) 
         {
@@ -102,6 +104,28 @@ namespace BozjaBuddy.Data
                 this.SetUpUiMap(tUIMap_MycItemBox);
                 this.mUiMap_MycItemBox = tUIMap_MycItemBox.Select(o => o.objIds ?? new List<int>()).ToList();
             }
+
+            // db images
+            this.mImages = new();
+            try
+            {
+                foreach (string tImagePath in Directory.GetFiles(
+                                    Path.Combine(this.mPlugin.PluginInterface.AssemblyLocation.DirectoryName!, @"db\img"),
+                                    "*.png",
+                                    SearchOption.TopDirectoryOnly
+                ))
+                {
+                    // get texturewrap
+                    var b = File.ReadAllBytes(tImagePath);
+                    var twrap = this.mPlugin.PluginInterface.UiBuilder.LoadImage(b);
+                    // prep key
+                    string fname = tImagePath.Split("\\").LastOrDefault("");
+                    if (fname == "") { continue; }
+                    // add to collection
+                    this.mImages.Add( fname, twrap);
+                }
+            }
+            catch (Exception e) { PluginLog.LogError(e.Message); }
         }
 
         private Dictionary<int, TDbObj> DbLoader<TDbObj> (out Dictionary<int, TDbObj> pDict, SQLiteCommand pCommand, string pQuery, Func<Plugin, SQLiteDataReader, TDbObj> tDel, string pKeyCollumn = "id")
@@ -390,6 +414,14 @@ namespace BozjaBuddy.Data
                 }
             }
             this.SaveLoadouts();
+        }
+
+        public void Dispose()
+        {
+            foreach (var tTex in this.mImages.Values)
+            {
+                tTex?.Dispose();
+            }
         }
 
         /// <summary>
