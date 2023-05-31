@@ -25,8 +25,15 @@ namespace BozjaBuddy.GUI.Sections
             { 6, "Wrath" },
             { 7, "T. Avowed (Hot/Cold)" },
             { 8, "Stygimoloch" },
-            { 9, "Queen" }
+            { 9, "Queen" },
+            { 10, "Credits" }
         };
+        private List<string> mCreators = new()
+            {
+                "\tTraffica Falena",
+                "\tXain'ra",
+                "\tSaeran Choi"
+            };
         private Dictionary<string, List<List<string>>> mCommunitiesInfo = new() {
             { 
                 "na", new() {
@@ -100,6 +107,7 @@ namespace BozjaBuddy.GUI.Sections
                 case 7: this.DrawTopic_TrinityAvowed(); break;
                 case 8: this.DrawTopic_Stygimoloch(); break;
                 case 9: this.DrawTopic_Queen(); break;
+                case 10: this.DrawTopic_Credit(); break;
                 default: this.DrawTopic_Intro(); break;
             }
         }
@@ -126,7 +134,7 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.SameLine(); ImGui.Text("join a community and seek advice.");
             ImGui.SameLine(); UtilsGUI.ShowHelpMarker("Wikis and plugins can only get you so far. The resources and supports provided by DRS communities will get you to the end and beyond.\n\nFor that reason, this plugin will not try to teach you how to do DRS, but rather pointers to the resources and communities that excel in such task.");
             UtilsGUI.TextDescriptionForWidget("- Requirements are relatively clear-cut. Most DRS hosts only ask participants to:");
-            UtilsGUI.TextDescriptionForWidget("\t• Respect their guidelines.\t• Prepare appropriate actions.\t• Don't be toxic and have fun.");
+            UtilsGUI.TextDescriptionForWidget("\t• Respect their guidelines.\t• Bring appropriate actions.\t• No toxic and have fun.");
             UtilsGUI.TextDescriptionForWidget("- No parse, no hardcore raiding experience required.");
             UtilsGUI.TextDescriptionForWidget("- Don't hesitate to DC travel between communities. Just make sure to stick with your static til the end, even if you've already cleared in another group!");
             ImGui.Text("Out of respect, we ask our users to AVOID mentioning this plugin in any community.");            
@@ -308,6 +316,19 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.SameLine(); UtilsGUI.UrlButton("https://youtube.com/playlist?list=PLfH2VGgD6CCwYv-7nTniyXBgIxnBZZYeQ");
             ImGui.Separator();
             UtilsGUI.DrawImgFromDb(this.mPlugin, "qun_1.png", pIsScaledToRegionWidth: true);
+        }
+        public void DrawTopic_Credit()
+        {
+            ImGui.PushTextWrapPos();
+            ImGui.Text("This plugin is not affiliated with any community or website in any way. All content included in this plugin is NOT created/owned by the dev; they are community-effort.");
+            ImGui.Text("We owe our thanks to the creators of the infographic in this section:");
+            ImGui.Text(String.Join("\n", this.mCreators));
+            ImGui.Text("And many others that we unfortunately couldn't find out, but nevertheless very much appreciate!");
+            ImGui.Separator();
+            ImGui.Text("Out of respect, we ask our users to AVOID mentioning this plugin in any community.");
+            ImGui.SameLine();
+            UtilsGUI.ShowHelpMarker("First off, plugins are against ToS. Hence don't talk about it in the first place.\n- Info in this plugin should be taken with a grain of salt.\n- We don't want people to annoy the mods/hosts by bringing this plugin up as an argument or excuse (i.e. '...but Bozja Buddy made me bring wrong stuff').\n- We created this plugin to makes life easier, not to become a nuisance to anyone.");
+            ImGui.PopTextWrapPos();
         }
         public override void DrawGUIDebug() { }
 
