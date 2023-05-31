@@ -145,28 +145,6 @@ namespace BozjaBuddy.GUI.Sections
         {
             if (!ImGui.BeginTabBar("##helpertb")) return;
             
-            // Tab: General
-            if (ImGui.BeginTabItem("General"))
-            {
-                ImGui.BeginChild("##hw", new Vector2(550, 250));
-                ImGui.PushTextWrapPos();
-                ImGui.Text("1. Any website or communities mentioned in this plugin are not sponsored or affiliated with the author in anyway.");
-                ImGui.Separator();
-                UtilsGUI.TextDescriptionForWidget("2. Any issues related to ownership or validity of community-created content, such as recommended loadouts; please let us know.");
-                ImGui.Separator();
-                ImGui.Text("3. The plugin is designed with convenience in mind. However, if anything feels intrusive to you, feel free to let us know.");
-                ImGui.Separator();
-                UtilsGUI.TextDescriptionForWidget("4. The plugin will not have any automatic or braindead functionality (i.e. solving mechanics for you)");
-                ImGui.Separator();
-                ImGui.Text("5. Technical issues can be sent through normal feedback function. Suggestions/inquiries please forward to XIVLauncher's discord > Plugin-help-forum > Bozja-buddy.");
-                ImGui.Separator();
-                UtilsGUI.TextDescriptionForWidget("6. Out of respect, we ask our users to AVOID mentioning this plugin in any community.");
-                ImGui.SameLine();
-                UtilsGUI.ShowHelpMarker("Info in this plugin should be taken with a grain of salt.\nWe don't want people to annoy the mods/hosts by bringing this plugin up as an argument or excuse (i.e. '...but Bozja Buddy made me bring wrong stuff').\nWe created this plugin to makes life easier, not to become a nuisance to anyone.");
-                ImGui.PopTextWrapPos();
-                ImGui.EndChild();
-                ImGui.EndTabItem();
-            }
             // Tab: Keybinds
             if (ImGui.BeginTabItem("Keybinds"))
             {
@@ -180,6 +158,30 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.SameLine();
                 ImGui.Text("):");
                 ImGui.Text("- Hover for quick info.\n- [LMB] to open link in info viewer section at the bottom.\n- [RMB] to see available options (marketboard, location, alarm, etc.).\n- For action's icon link, [Shift+LMB/RMB] will add the selected action to the currently edited Custom Loadout.");
+                ImGui.PopTextWrapPos();
+                ImGui.EndChild();
+                ImGui.EndTabItem();
+            }
+            // Tab: General
+            if (ImGui.BeginTabItem("General"))
+            {
+                ImGui.BeginChild("##hw", new Vector2(550, 250));
+                ImGui.PushTextWrapPos();
+                ImGui.Text("1. Any website or communities mentioned in this plugin do not sponsor or affiliated with the plugin in anyway.");
+                ImGui.Separator();
+                UtilsGUI.TextDescriptionForWidget("2. No content in this plugin is created/owned by the devs. Any issues related to ownership or validity of community-created content, such as recommended loadouts; please let us know.");
+                ImGui.Separator();
+                ImGui.Text("3. The plugin is designed with convenience in mind. However, if anything feels intrusive to you, feel free to let us know.");
+                ImGui.Separator();
+                UtilsGUI.TextDescriptionForWidget("4. The plugin will not have any automatic or braindead functionality (i.e. solving mechanics for you)");
+                ImGui.Separator();
+                ImGui.Text("5. Technical issues can be sent through Dalamud's feedback function.");
+                ImGui.SameLine(); UtilsGUI.ShowHelpMarker("This functionality can be found in Dalamud's plugin browser > Next to where you toggle on/off a plugin.");
+                ImGui.Text("Suggestions/inquiries please forward to XIVLauncher's discord > Plugin-help-forum > Bozja-buddy.");
+                ImGui.Separator();
+                UtilsGUI.TextDescriptionForWidget("6. Out of respect, we ask our users to AVOID mentioning this plugin in any community.");
+                ImGui.SameLine();
+                UtilsGUI.ShowHelpMarker("Info in this plugin should be taken with a grain of salt.\nWe don't want people to annoy the mods/hosts by bringing this plugin up as an argument or excuse (i.e. '...but Bozja Buddy made me bring wrong stuff').\nWe created this plugin to makes life easier, not to become a nuisance to anyone.");
                 ImGui.PopTextWrapPos();
                 ImGui.EndChild();
                 ImGui.EndTabItem();

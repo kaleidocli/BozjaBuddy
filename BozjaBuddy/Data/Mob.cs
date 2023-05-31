@@ -58,8 +58,19 @@ namespace BozjaBuddy.Data
                                             : "unknown")
                                    .ToList()
                 );
+            string tFragDrops = string.Join(
+                ", ",
+                this.mLinkFragments.Select(o => this.mPlugin.mBBDataManager.mFragments.ContainsKey(o)
+                                            ? this.mPlugin.mBBDataManager.mFragments[o].mName
+                                                + (this.mPlugin.mBBDataManager.mFragments[o].mLinkVendors.Count > 0
+                                                    ? " (cluster)"
+                                                    : "")
+                                            : "unknown")
+                                   .ToList()
+                                    );
 
             this.mUiTooltip = $"Name:\t{this.mName}"
+                            + $"\nFrags: \t{tFragDrops}"
                             + $"\nLoc.:\t\t{this.mLocation?.ToString()} x:{this.mLocation?.mMapCoordX} y:{this.mLocation?.mMapCoordY}";
             return this.mUiTooltip;
         }

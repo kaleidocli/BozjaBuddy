@@ -69,8 +69,8 @@ public class MainWindow : Window, IDisposable
             this.mFateCeTab.DrawGUI();
             this.mMobTab.DrawGUI();
             this.mFieldNoteTab.DrawGUI();
-            this.mLoadoutTab.DrawGUI();
             this.mDrsTab.DrawGUI();
+            this.mLoadoutTab.DrawGUI();
 
             ImGui.EndTabBar();
         }

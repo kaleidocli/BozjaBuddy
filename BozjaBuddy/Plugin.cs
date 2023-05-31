@@ -134,6 +134,7 @@ namespace BozjaBuddy
             this.PluginInterface.UiBuilder.BuildFonts -= this.BuildFont;
             UtilsGameData.Dispose();
             this.GuiScraper.Stop();
+            this.mBBDataManager.Dispose();
         }
 
         private void OnCommand(string command, string args)

@@ -510,6 +510,9 @@ namespace BozjaBuddy.Utils
                 );
             return tRes;
         }
+        /// <summary>
+        /// By default, display URL on hovering.
+        /// </summary>
         public static void UrlButton(string pUrl, string? pHoveredText = null, FontAwesomeIcon pIcon = FontAwesomeIcon.Globe, string? pGuiId = null)
         {
             UtilsGUI.InputPayload tInput = new();
@@ -535,6 +538,63 @@ namespace BozjaBuddy.Utils
                 UtilsGUI.SetTooltipForLastItem($"[{pUrl}]\n\n[RMB] Copy URL to clipboard\n" + (pHoveredText ?? ""));
             }
             ImGui.PopID();
+        }
+        /// <summary>
+        /// While rendering in a pop up, texture's width will not exceed half of the screen's width.
+        /// </summary>
+        public static bool DrawImgFromDb(
+            Plugin pPlugin, 
+            string pImgKey, 
+            bool pIsScaledToRegionWidth = false,
+            float pExtraScaling = 1,
+            bool pIsPU = false)
+        {
+            bool tRes = false;
+
+            if (pPlugin.mBBDataManager.mImages.TryGetValue(pImgKey, out TextureWrap? tImg)
+                && tImg != null)
+            {
+                float tScale = (pIsScaledToRegionWidth
+                                    ? (ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X - ImGui.GetStyle().WindowPadding.X) / tImg.Width
+                                    : 1)
+                               * pExtraScaling;
+                if (tImg.Width * tScale > ImGui.GetIO().DisplaySize.X / 2)
+                {
+                    tScale = (ImGui.GetIO().DisplaySize.X / 2) / tImg.Width;
+                }
+                UtilsGUI.InputPayload tInput = new();
+                ImGui.Image(
+                    tImg.ImGuiHandle, 
+                    new Vector2(
+                        tImg.Width * tScale, 
+                        tImg.Height * tScale
+                        )
+                    );
+                tInput.CaptureInput();
+                // extras
+                if (ImGui.IsItemHovered())
+                {
+                    if (!pIsPU)
+                    {
+                        // hovered text
+                        UtilsGUI.SetTooltipForLastItem("[RMB] View large");
+                        // img pu
+                        if (tInput.mIsMouseRmb)
+                        {
+                            ImGui.OpenPopup($"##imgpu{pImgKey}");
+                        }
+                    }
+                }
+                if (ImGui.BeginPopup($"##imgpu{pImgKey}"))
+                {
+                    UtilsGUI.DrawImgFromDb(pPlugin, pImgKey, pIsPU: true);
+                    ImGui.EndPopup();
+                }
+
+                tRes = true;
+            }
+
+            return tRes;
         }
         public static void DrawRoleFlagAsIconString(Plugin pPlugin, RoleFlag pRoleFlag)
         {
