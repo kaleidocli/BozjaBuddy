@@ -218,8 +218,9 @@ namespace BozjaBuddy.GUI.Sections
                             foreach (int iiID in tLostAction.mLinkFragments)
                             {
                                 Fragment tFragment = this.mPlugin.mBBDataManager.mFragments[iiID];
-                                ImGui.PushTextWrapPos(0);
-                                UtilsGUI.SelectableLink_WithPopup(mPlugin, tFragment.mName + $"  »##{iID}", tFragment.GetGenId()); ImGui.PopTextWrapPos();
+                                ImGui.PushID($"{iID}{iiID}");
+                                UtilsGUI.SelectableLink_WithPopup(mPlugin, tFragment.mName, tFragment.GetGenId());
+                                ImGui.PopID();
                             }
                             break;
                         case 4:
