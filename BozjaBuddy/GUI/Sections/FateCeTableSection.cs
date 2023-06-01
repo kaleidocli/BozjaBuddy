@@ -180,8 +180,9 @@ namespace BozjaBuddy.GUI.Sections
                         foreach (int iiID in tFate.mLinkFieldNotes)
                         {
                             FieldNote tFieldNote = this.mPlugin.mBBDataManager.mFieldNotes[iiID];
-                            ImGui.PushTextWrapPos(0);
-                            UtilsGUI.SelectableLink_WithPopup(mPlugin, tFieldNote.mName + $"  »##{i}", tFieldNote.GetGenId()); ImGui.PopTextWrapPos();
+                            ImGui.PushID($"{iiID}{pID}");
+                            UtilsGUI.SelectableLink_WithPopup(mPlugin, tFieldNote.mName, tFieldNote.GetGenId());
+                            ImGui.PopID();
                         }
                         break;
                     case 5:

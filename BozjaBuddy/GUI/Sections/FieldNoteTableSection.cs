@@ -190,7 +190,9 @@ namespace BozjaBuddy.GUI.Sections
                             foreach (int iId in tFieldNote.mLinkFates)
                             {
                                 if (!this.mPlugin.mBBDataManager.mFates.TryGetValue(iId, out var tFate) || tFate == null) continue;
+                                ImGui.PushID($"{iId}{iID}");
                                 UtilsGUI.SelectableLink_WithPopup(this.mPlugin, tFate.mName, tFate.GetGenId());
+                                ImGui.PopID();
                             }
                             break;
                         case 4:
