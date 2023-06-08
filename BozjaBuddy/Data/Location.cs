@@ -44,6 +44,32 @@ namespace BozjaBuddy.Data
             this.UpdateAreaFlag();
             this.UpdateStringRepr();
         }
+        public Location(Plugin pPlugin, Level pLevel)
+        {
+            this.mPlugin = pPlugin;
+            this.mMapCoordX = pLevel.X;
+            this.mMapCoordY = pLevel.Y;
+            this.mTerritoryType = pLevel.Territory.Value != null
+                                  ? pLevel.Territory.Value.Name
+                                  : "";
+            this.mTerritoryID = pLevel.Territory.Value != null
+                                  ? pLevel.Territory.Value.RowId
+                                  : 0;
+            this.mMapID = pLevel.Territory.Value != null
+                                  ? pLevel.Territory.Value.Map.Row
+                                  : 0;
+            this.mReprString = string.Format(
+                    "{0} ({1})",
+                    pLevel.Territory.Value != null
+                                  ? pLevel.Territory.Value.PlaceName
+                                  : "",
+                    pLevel.Territory.Value != null
+                                  ? pLevel.Territory.Value.PlaceNameRegion
+                                  : ""
+                );
+            this.UpdateAreaFlag();
+            this.UpdateStringRepr();
+        }
 
         public override string ToString() => this.mReprString;
         public string ToStringFull() => $"{this} x:{this.mMapCoordX} y:{this.mMapCoordY}";
@@ -67,7 +93,8 @@ namespace BozjaBuddy.Data
         {
             switch (this.mAreaFlag)
             {
-                case Area.None: this.mReprString = "None"; break;
+                case Area.None: 
+                    if (this.mReprString == string.Empty) this.mReprString = "None"; break;
                 case Area.Bozja_Zone1: this.mReprString = "Bozja Zone 1"; break;
                 case Area.Bozja_Zone2: this.mReprString = "Bozja Zone 2"; break;
                 case Area.Bozja_Zone3: this.mReprString = "Bozja Zone 3"; break;

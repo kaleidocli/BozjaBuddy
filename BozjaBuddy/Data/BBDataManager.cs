@@ -13,6 +13,8 @@ using BozjaBuddy.Utils;
 using System.Runtime.CompilerServices;
 using System.Linq;
 using ImGuiScene;
+using System.Data.Entity.Infrastructure;
+using System.Drawing;
 
 namespace BozjaBuddy.Data
 {
@@ -20,6 +22,15 @@ namespace BozjaBuddy.Data
     {
         private const int kFateTableUpdateInterval = 1;
         private static DateTime kFateTableLastUpdate = DateTime.MinValue;
+        private static HashSet<int> kAllowedQuest = new();
+        private static HashSet<int> kAllowedQuestGenre = new()
+        {
+            76,      // Resistance weapons
+            21,      // Return to Ivalice
+            8,       // ShB
+            9,       // ShB post 1
+            10       // ShB post 2
+        };
 
         private Plugin mPlugin;
         private string mCsLostAction;
@@ -32,9 +43,13 @@ namespace BozjaBuddy.Data
         public Dictionary<int, Loadout> mLoadouts;
         public Dictionary<int, Loadout> mLoadoutsPreset;
         public Dictionary<int, FieldNote> mFieldNotes;
+        public Dictionary<int, Quest> mQuests;
+        public Dictionary<int, QuestChain> mQuestChains;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Action>? mSheetAction;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? mSheetItem;
+        public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Quest>? mSheetQuest;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>? mSheetMycWarResultNotebook;
+        public Lumina.Excel.ExcelSheet<ENpcResident>? mSheetNpc;
         public List<List<int>> mUiMap_MycItemBox;
         public Dictionary<string, TextureWrap?> mImages;
 
@@ -49,12 +64,16 @@ namespace BozjaBuddy.Data
             this.mLoadouts = new Dictionary<int, Loadout>();
             this.mFieldNotes = new Dictionary<int, FieldNote>();
             this.mLoadoutsPreset = new Dictionary<int, Loadout>();
+            this.mQuests = new();
+            this.mQuestChains = new();
             this.mGeneralObjects = new Dictionary<int, GeneralObject>();
 
             // lumina
             this.mSheetAction = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Action>();
             this.mSheetItem = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Item>();
             this.mSheetMycWarResultNotebook = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>();
+            this.mSheetQuest = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Quest>();
+            this.mSheetNpc = this.mPlugin.DataManager.Excel.GetSheet<ENpcResident>();
 
             // db
             this.mCsLostAction = String.Format("Data Source={0}", this.mPlugin.DATA_PATHS["db"]);
@@ -69,6 +88,21 @@ namespace BozjaBuddy.Data
                 this.DataSetUpMob(tCommand);
                 this.DataSetUpVendor(tCommand);
                 this.DataSetUpFieldNote(tCommand);
+                this.DataSetUpQuest(tCommand);
+                this.DataSetupQuestChain(tCommand);
+            }
+            if (this.mQuests != null)
+            {
+                foreach (var q in this.mQuests)
+                {
+                    if (q.Value.mLumina.JournalGenre.Value != null
+                        && q.Value.mLumina.JournalGenre.Value.RowId != 76) continue;
+                    string temp = string.Join(
+                            ", ",
+                            q.Value.mNextQuestIds.Select(o => this.mQuests.TryGetValue(o, out Quest? tQuest) ? tQuest.mName : "")
+                        ); ;
+                    PluginLog.LogDebug($"> Loaded id={q.Value.mId} --- {q.Value.mName} --- ({String.Join(", ", q.Value.mNextQuestIds)}) --- {temp}");
+                }
             }
 
             // json
@@ -322,6 +356,51 @@ namespace BozjaBuddy.Data
                 }
 
                 tReader.Close();
+            }
+        }
+        private void DataSetUpQuest(SQLiteCommand pCommand)
+        {
+            if (this.mSheetQuest == null) return;
+
+            HashSet<Tuple<int, int>>? tLinkers = new();
+            // Get selected quests
+            HashSet<Lumina.Excel.GeneratedSheets.Quest> tQuests = this.mSheetQuest.Where(
+                                                                                        i => i.Expansion.Value.RowId == 3       // ShB
+                                                                                            || (i.JournalGenre.Value != null
+                                                                                                && BBDataManager.kAllowedQuestGenre.Contains((int)i.JournalGenre.Value.RowId))
+                                                                                        )
+                                                                                    .Select(o => o)
+                                                                                    .ToHashSet();
+            // Init base lumina
+            foreach (var q in tQuests)
+            {
+                this.mQuests.TryAdd((int)q.RowId, new Quest(this.mPlugin, q, ref tLinkers));
+            }
+            // Build links
+            foreach (var qq in this.mQuests)
+            {
+                Quest.LinkNextQuest(qq.Value, ref tLinkers);
+            }
+            // Load data from db
+            pCommand.CommandText = "SELECT * FROM Quest;";
+            SQLiteDataReader tReader = pCommand.ExecuteReader();
+
+            while (tReader.Read())
+            {
+                if (!this.mQuests.TryGetValue((int)(long)tReader["id"], out Quest? tQuest)
+                    && tQuest == null)
+                    continue;
+                tQuest.SetUpDb(tReader);
+            }
+            tReader.Close();
+        }
+        private void DataSetupQuestChain(SQLiteCommand pCommand)
+        {
+            DbLoader<QuestChain>(out this.mQuestChains, pCommand, "SELECT * FROM QuestChain;", (p, t) => new QuestChain(p, t));
+
+            foreach (var iChain in this.mQuestChains.Values)
+            {
+                QuestChain.LinkQuestsToChain(iChain.mId, ref this.mQuests, ref this.mQuestChains);
             }
         }
 

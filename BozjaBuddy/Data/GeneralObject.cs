@@ -67,7 +67,9 @@ namespace BozjaBuddy.Data
             Fate = 4,
             Vendor = 5,
             Loadout = 6,
-            FieldNote = 7
+            FieldNote = 7,
+            Quest = 8,
+            QuestChain = 9
         }
     }
 }
