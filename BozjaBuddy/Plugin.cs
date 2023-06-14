@@ -86,6 +86,7 @@ namespace BozjaBuddy
             WindowSystem.AddWindow(this.MainWindow);
             WindowSystem.AddWindow(new AlarmWindow(this));
             WindowSystem.AddWindow(new CharStatsWindow(this));
+            WindowSystem.AddWindow(new TestWindow(this));
 
             this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
 

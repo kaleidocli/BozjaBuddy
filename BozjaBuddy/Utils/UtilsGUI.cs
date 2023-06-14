@@ -1,6 +1,7 @@
 ﻿using BozjaBuddy.Data;
 using BozjaBuddy.Data.Alarm;
 using BozjaBuddy.GUI;
+using BozjaBuddy.GUI.NodeGraphViewer;
 using BozjaBuddy.GUI.Sections;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
@@ -746,8 +747,11 @@ namespace BozjaBuddy.Utils
         {
             private static DateTime kLastMouseClicked = DateTime.MinValue;
             private static DateTime kLastKeyClicked = DateTime.MinValue;
+            private static DateTime kLastWheelWheeled = DateTime.MinValue;
+            private static Vector2? kLastMouseDragDelta = null;
             private const double kMouseClickValidityThreshold = 150;
             private const double kKeyClickValidityThreshold = 250;
+            private static float kDelayBetweenMouseWheelCapture = 100;
             private static double DeltaLastMouseClick() => (DateTime.Now - InputPayload.kLastMouseClicked).TotalMilliseconds;
             private static double DeltaLastKeyClick() => (DateTime.Now - InputPayload.kLastKeyClicked).TotalMilliseconds;
             public static bool CheckMouseClickValidity()
@@ -772,16 +776,67 @@ namespace BozjaBuddy.Utils
             public bool mIsHovered = false;
             public bool mIsMouseRmb = false;
             public bool mIsMouseLmb = false;
+            public bool mIsMouseRmbDown = false;
+            public bool mIsMouseLmbDown = false;
             public bool mIsKeyShift = false;
             public bool mIsKeyAlt = false;
+            public Vector2 mMousePos = Vector2.Zero;
+            public bool mIsMouseDragLeft = false;
+            public bool mIsMouseDragRight = false;
+            public Vector2? mMouseDragDelta = null;
+            public float mMouseWheelValue = 0;
 
-            public void CaptureInput()
+            public void CaptureInput(bool pCaptureMouseWheel = false, bool pCaptureMouseDrag = false)
             {
                 var io = ImGui.GetIO();
                 if (io.KeyShift) mIsKeyShift = true;
                 if (io.KeyAlt) mIsKeyAlt = true;
                 if (io.MouseReleased[0]) mIsMouseLmb = true;
                 if (io.MouseReleased[1]) mIsMouseRmb = true;
+                if (io.MouseDown[0]) mIsMouseLmbDown = true;
+                if (io.MouseDown[1]) mIsMouseRmbDown = true;
+                this.mMousePos = io.MousePos;
+                if (pCaptureMouseDrag) this.mMouseDragDelta = this.CaptureMouseDragDelta();
+                if (pCaptureMouseWheel) this.mMouseWheelValue = this.CaptureMouseWheel();
+            }
+            /// <summary> https://git.anna.lgbt/ascclemens/QuestMap/src/commit/2030f8374eb65a64947b2bc37f35fc53ff3723f4/QuestMap/PluginUi.cs#L857 </summary>
+            public Vector2? CaptureMouseDragDelta()
+            {
+                Vector2? tRes = null;
+                this.mIsMouseDragLeft = ImGui.IsMouseDragging(ImGuiMouseButton.Left);
+                this.mIsMouseDragRight = ImGui.IsMouseDragging(ImGuiMouseButton.Right);
+                if (this.mIsMouseDragLeft)
+                {
+                    if (InputPayload.kLastMouseDragDelta == null)
+                    {
+                        InputPayload.kLastMouseDragDelta = ImGui.GetMouseDragDelta();
+                        return tRes;
+                    }
+                    var d = ImGui.GetMouseDragDelta();
+                    if (this.mIsMouseDragLeft)
+                    {
+                        tRes = (d - InputPayload.kLastMouseDragDelta);
+                        tRes = tRes.Value + tRes.Value * 0.1f;   // dragging loss is around 10% without compensation
+                    }
+
+                    InputPayload.kLastMouseDragDelta = d;
+                }
+                else
+                {
+                    InputPayload.kLastMouseDragDelta = null;
+                }
+                PluginLog.LogDebug($"> {tRes}");
+                return tRes;
+            }
+            private float CaptureMouseWheel()
+            {
+                var tRes = ImGui.GetIO().MouseWheel;
+                if (tRes != 0
+                    && (DateTime.Now - InputPayload.kLastWheelWheeled).TotalMilliseconds < InputPayload.kDelayBetweenMouseWheelCapture)
+                {
+                    InputPayload.kLastWheelWheeled = DateTime.Now;
+                }
+                return ImGui.GetIO().MouseWheel;
             }
         }
     }

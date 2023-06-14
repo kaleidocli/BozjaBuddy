@@ -30,6 +30,9 @@ namespace BozjaBuddy.GUI.Sections
 
         public override bool DrawGUI()
         {
+            // Test window
+            UtilsGUI.WindowLinkedButton(mPlugin, TestWindow.kHandle, Dalamud.Interface.FontAwesomeIcon.Tape);
+            ImGui.SameLine();
             // Char stats button
             UtilsGUI.WindowLinkedButton(mPlugin, CharStatsWindow.kHandle, Dalamud.Interface.FontAwesomeIcon.Portrait);
             if (ImGui.IsItemHovered())
