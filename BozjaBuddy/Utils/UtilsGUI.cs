@@ -752,6 +752,7 @@ namespace BozjaBuddy.Utils
             private const double kMouseClickValidityThreshold = 150;
             private const double kKeyClickValidityThreshold = 250;
             private static float kDelayBetweenMouseWheelCapture = 100;
+            public static bool kWasLmbDragged = false;
             private static double DeltaLastMouseClick() => (DateTime.Now - InputPayload.kLastMouseClicked).TotalMilliseconds;
             private static double DeltaLastKeyClick() => (DateTime.Now - InputPayload.kLastKeyClicked).TotalMilliseconds;
             public static bool CheckMouseClickValidity()
@@ -776,14 +777,18 @@ namespace BozjaBuddy.Utils
             public bool mIsHovered = false;
             public bool mIsMouseRmb = false;
             public bool mIsMouseLmb = false;
+            public bool mIsMouseMid = false;
             public bool mIsMouseRmbDown = false;
             public bool mIsMouseLmbDown = false;
             public bool mIsKeyShift = false;
             public bool mIsKeyAlt = false;
+            public bool mIsKeyCtrl = false;
             public Vector2 mMousePos = Vector2.Zero;
+            private Vector2? mFirstMouseLeftHoldPos = null;
+            public bool mIsALmbDragRelease = false;
             public bool mIsMouseDragLeft = false;
             public bool mIsMouseDragRight = false;
-            public Vector2? mMouseDragDelta = null;
+            public Vector2? mLmbDragDelta = null;
             public float mMouseWheelValue = 0;
 
             public void CaptureInput(bool pCaptureMouseWheel = false, bool pCaptureMouseDrag = false)
@@ -791,17 +796,34 @@ namespace BozjaBuddy.Utils
                 var io = ImGui.GetIO();
                 if (io.KeyShift) mIsKeyShift = true;
                 if (io.KeyAlt) mIsKeyAlt = true;
+                if (io.KeyCtrl) mIsKeyCtrl = true;
                 if (io.MouseReleased[0]) mIsMouseLmb = true;
                 if (io.MouseReleased[1]) mIsMouseRmb = true;
+                if (io.MouseReleased[2]) mIsMouseMid = true;
                 if (io.MouseDown[0]) mIsMouseLmbDown = true;
                 if (io.MouseDown[1]) mIsMouseRmbDown = true;
                 this.mMousePos = io.MousePos;
-                if (pCaptureMouseDrag) this.mMouseDragDelta = this.CaptureMouseDragDelta();
-                if (pCaptureMouseWheel) this.mMouseWheelValue = this.CaptureMouseWheel();
+                this.mIsALmbDragRelease = InputPayload.kWasLmbDragged;
+
+                if (pCaptureMouseDrag)
+                {
+                    this.CaptureMouseDragDelta();
+                }
+                if (pCaptureMouseWheel) this.CaptureMouseWheel();
+
+                if (!this.mIsMouseLmb)
+                {
+                    InputPayload.kWasLmbDragged = false;
+                    this.mIsALmbDragRelease = InputPayload.kWasLmbDragged;
+                }
             }
             /// <summary> https://git.anna.lgbt/ascclemens/QuestMap/src/commit/2030f8374eb65a64947b2bc37f35fc53ff3723f4/QuestMap/PluginUi.cs#L857 </summary>
-            public Vector2? CaptureMouseDragDelta()
+            private Vector2? CaptureMouseDragDeltaInternal()
             {
+                // Get first left hold.
+                if (this.mIsMouseLmbDown && this.mFirstMouseLeftHoldPos == null) { this.mFirstMouseLeftHoldPos = mMousePos; }
+                if (this.mIsMouseLmb) { this.mFirstMouseLeftHoldPos = null; }
+
                 Vector2? tRes = null;
                 this.mIsMouseDragLeft = ImGui.IsMouseDragging(ImGuiMouseButton.Left);
                 this.mIsMouseDragRight = ImGui.IsMouseDragging(ImGuiMouseButton.Right);
@@ -810,25 +832,44 @@ namespace BozjaBuddy.Utils
                     if (InputPayload.kLastMouseDragDelta == null)
                     {
                         InputPayload.kLastMouseDragDelta = ImGui.GetMouseDragDelta();
-                        return tRes;
+                        // Imgui's MouseDelta does not recognize tiny drag under certain threshold (prob to distinguish click vs drag)
+                        // So this is a compensation which adds an extra distance equal to that threshold if the node is being dragged.
+                        tRes = InputPayload.kLastMouseDragDelta + (this.mMousePos - this.mFirstMouseLeftHoldPos);
                     }
-                    var d = ImGui.GetMouseDragDelta();
-                    if (this.mIsMouseDragLeft)
+                    else
                     {
-                        tRes = (d - InputPayload.kLastMouseDragDelta);
-                        tRes = tRes.Value + tRes.Value * 0.1f;   // dragging loss is around 10% without compensation
+                        var d = ImGui.GetMouseDragDelta();
+                        if (this.mIsMouseDragLeft)
+                        {
+                            tRes = (d - InputPayload.kLastMouseDragDelta);
+                            tRes = tRes.Value + tRes.Value * 0;   // dragging loss is around 16% without compensation
+                        }
+                        InputPayload.kLastMouseDragDelta = d;
                     }
-
-                    InputPayload.kLastMouseDragDelta = d;
                 }
                 else
                 {
                     InputPayload.kLastMouseDragDelta = null;
                 }
-                PluginLog.LogDebug($"> {tRes}");
+
+
+                // distinguishing between a release from click or drag
+                if (this.mIsMouseLmbDown)
+                {
+                    if (tRes.HasValue) InputPayload.kWasLmbDragged = true;
+                }
+                else if (!this.mIsMouseLmb)
+                {
+                    InputPayload.kWasLmbDragged = false;
+                    this.mIsALmbDragRelease = InputPayload.kWasLmbDragged;
+                }
                 return tRes;
             }
-            private float CaptureMouseWheel()
+            public void CaptureMouseDragDelta()
+            {
+                this.mLmbDragDelta = this.CaptureMouseDragDeltaInternal();
+            }
+            private float CaptureMouseWheelInternal()
             {
                 var tRes = ImGui.GetIO().MouseWheel;
                 if (tRes != 0
@@ -837,6 +878,10 @@ namespace BozjaBuddy.Utils
                     InputPayload.kLastWheelWheeled = DateTime.Now;
                 }
                 return ImGui.GetIO().MouseWheel;
+            }
+            public void CaptureMouseWheel()
+            {
+                this.mMouseWheelValue = this.CaptureMouseWheelInternal();
             }
         }
     }

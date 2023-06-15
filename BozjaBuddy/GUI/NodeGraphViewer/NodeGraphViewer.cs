@@ -1,16 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Dynamic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using BozjaBuddy.Data;
-using BozjaBuddy.Interface;
 using BozjaBuddy.Utils;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
-using Microsoft.VisualBasic;
-using NAudio.Dmo;
 using static BozjaBuddy.Data.Location;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
@@ -27,6 +19,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private NodeCanvas mNodeCanvas;
         private float mUnitGridSmall = 10;
         private float mUnitGridLarge = 50;
+
+        private bool _isMouseHoldingViewer = false;
 
         public NodeGraphViewer()
         {
@@ -58,7 +52,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 "nodegraphviewer",
                 pGraphArea.size, 
                 border: true,
-                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMove);
             pDrawList.PushClipRect(pGraphArea.start, pGraphArea.end, true);
 
             DrawGraphBg(pGraphArea);
@@ -71,15 +65,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             ImGui.SetCursorScreenPos(pGraphArea.start);
 
-            // check if mouse within viewer
-            bool tIsWithinViewer = pGraphArea.CheckPosIsWithin(ImGui.GetMousePos());
-
-            // user click once within the viewer, then drag it.
-            // This way it should be valid for measuring mouse drag, even if the mouse is then outside of the viewer
-            ImGui.InvisibleButton("##dummy", pGraphArea.size);
-            bool tIsCapturingDrag = ImGui.IsItemActive();
+            // check if mouse within viewer, and if mouse is holding on viewer.
             UtilsGUI.InputPayload tInputPayload = new();
-            tInputPayload.CaptureInput(pCaptureMouseWheel: tIsWithinViewer, pCaptureMouseDrag: tIsCapturingDrag);
+            tInputPayload.CaptureInput();
+            bool tIsWithinViewer = pGraphArea.CheckPosIsWithin(tInputPayload.mMousePos);
+            this._isMouseHoldingViewer = (tIsWithinViewer || this._isMouseHoldingViewer) && tInputPayload.mIsMouseLmbDown;
+            //PluginLog.LogDebug($"> inView={tIsWithinViewer} holdView={this._isMouseHoldingViewer} lmbDown={tInputPayload.mIsMouseLmbDown}");
+            if (tIsWithinViewer) { tInputPayload.CaptureMouseWheel(); }
+            if (this._isMouseHoldingViewer) { tInputPayload.CaptureMouseDragDelta(); }
 
             this.mNodeCanvas.Draw(
                 pGraphArea.start, 

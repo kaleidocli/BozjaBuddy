@@ -5,6 +5,8 @@ using System.Numerics;
 using System.Text;
 using ImGuiNET;
 using BozjaBuddy.Utils;
+using System.Linq;
+using static BozjaBuddy.Utils.UtilsGUI;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -31,7 +33,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private bool _isMouseDrag = true;
         private Vector2? _lastDragPos = null;
         private DateTime _lastMouseWheelTime = DateTime.Now;
-        private string? _draggingNode = null;
+        private bool _isNodeBeingDragged = false;
+        private bool _isReleaseAfterHold = false;
         private HashSet<string> _selectedNode = new();
 
         public NodeCanvas()
@@ -130,63 +133,68 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             this.mMap.AddBaseOffset(pDelta);
         }
-        private Vector2? CaptureMouseDra()
+        public Tuple<bool, bool> ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
         {
-            Vector2? tRes = null;
-            if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+            bool pIsNodeClicked = false;
+            // Process node delete
+            if (pReadClicks && !pIsNodeClicked && pInputPayload.mIsMouseMid)
             {
-                if (this._lastDragPos == null)
+                if (pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                    this.RemoveNode(pNode.mId);
+            }
+            // Process node select
+            if (pReadClicks && !pIsNodeClicked && pInputPayload.mIsMouseLmb)
+            {
+                if (pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                 {
-                    this._lastDragPos = ImGui.GetMousePos();
-                    return tRes;
+                    // multi-selecting
+                    if (pInputPayload.mIsKeyCtrl)
+                    {
+                        // select
+                        if (!this._selectedNode.Contains(pNode.mId))
+                            this._selectedNode.Add(pNode.mId);
+                        // remove
+                        else
+                            this._selectedNode.Remove(pNode.mId);
+                    }
+                    // single-selecting node
+                    else if (!pInputPayload.mIsALmbDragRelease)
+                    {
+                        pReadClicks = false;
+                        this._selectedNode.Clear();
+                        this._selectedNode.Add(pNode.mId);
+                    }
+                    pIsNodeClicked = true;
                 }
-                var d = ImGui.GetMouseDragDelta();
-                if (this._isMouseDrag)
+            }
+            // Process node holding and dragging
+            if (pInputPayload.mIsMouseLmbDown)          // if mouse is hold, and the holding's first pos is within a selected node
+            {                                           // then mark state as being dragged
+                                                        // as long as the mouse is hold, even if mouse then moving out of node zone
+                if (!this._isNodeBeingDragged
+                    && !pIsNodeClicked
+                    && pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                 {
-                    tRes = d - this._lastDragPos;
+                    this._isNodeBeingDragged = true;
+                    // single-selecting new node
+                    if (!pInputPayload.mIsKeyCtrl && !this._selectedNode.Contains(pNode.mId))
+                    {
+                        pIsNodeClicked = true;
+                        this._selectedNode.Clear();
+                        this._selectedNode.Add(pNode.mId);
+                    }
                 }
-
-                this._isMouseDrag = true;
-                this._lastDragPos = d;
             }
             else
             {
-                this._isMouseDrag = false;
+                this._isNodeBeingDragged = false;
             }
-            return tRes;
+            return new Tuple<bool, bool>(pIsNodeClicked, pReadClicks);
         }
-        public InputFlag Draw(Vector2 pBaseOriginScreenPos, UtilsGUI.InputPayload pInputPayload)
+        public void ProcessInputOnCanvas(UtilsGUI.InputPayload pInputPayload)
         {
-            // Get this canvas' origin' screenPos
-            Vector2 tCanvasOSP = pBaseOriginScreenPos + this.mMap.GetBaseOffset();
-
-            // Draw
-            foreach (var id in this._nodeIds)
-            {
-                // Get NodeOSP
-                Vector2? tNodeOSP = this.mMap.GetNodeScreenPos(id, tCanvasOSP, this.mConfig.scaling);
-                if (tNodeOSP == null) continue;
-                if (!this.mNodes.TryGetValue(id, out var tNode) || tNode == null) continue;
-                // Process node select
-                // Process node holding and dragging
-                if (pInputPayload.mIsMouseLmbDown)      // if mouse is hold, and the holding's first pos is within node
-                {                                       // then mark the node as being dragged
-                    if (this._draggingNode == null      // as long as the mouse is hold, even if mouse then moving out of node zone
-                        && tNode.CheckPosWithin(tNodeOSP.Value, this.mConfig.scaling, pInputPayload.mMousePos))
-                    {
-                        this._draggingNode = tNode.mId;
-                    }
-                }
-                else
-                {
-                    this._draggingNode = null;
-                }
-                // Draw using NodeOSP
-                tNode.Draw(tNodeOSP.Value, this.mConfig.scaling);
-            }
-
             // Mouse drag
-            if (pInputPayload.mMouseDragDelta.HasValue) this.mMap.AddBaseOffset(pInputPayload.mMouseDragDelta.Value);
+            if (pInputPayload.mLmbDragDelta.HasValue) { this.mMap.AddBaseOffset(pInputPayload.mLmbDragDelta.Value); }
             // Mouse wheel zooming
             switch (pInputPayload.mMouseWheelValue)
             {
@@ -203,6 +211,44 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                         this.mConfig.scaling -= NodeCanvas.stepScale;
                     break;
             };
+        }
+        public InputFlag Draw(Vector2 pBaseOriginScreenPos, UtilsGUI.InputPayload pInputPayload)
+        {
+            bool tIsAnyNodeClicked = false;
+            bool tIsReadingClicksOnNode = true;
+            // Get this canvas' origin' screenPos
+            Vector2 tCanvasOSP = pBaseOriginScreenPos + this.mMap.GetBaseOffset();
+
+            // Draw
+            foreach (var id in this._nodeIds)
+            {
+                // Get NodeOSP
+                Vector2? tNodeOSP = this.mMap.GetNodeScreenPos(id, tCanvasOSP, this.mConfig.scaling);
+                if (tNodeOSP == null) continue;
+                if (!this.mNodes.TryGetValue(id, out var tNode) || tNode == null) continue;
+
+                // Process input on node
+                var t = this.ProcessInputOnNode(tNode, tNodeOSP.Value, pInputPayload, tIsReadingClicksOnNode);
+                if (t.Item1) tIsAnyNodeClicked = t.Item1;
+                tIsReadingClicksOnNode = t.Item2;
+
+                // Draw using NodeOSP
+                tNode.Draw(tNodeOSP.Value, this.mConfig.scaling);
+            }
+            PluginLog.LogDebug($"> dMode={this._isNodeBeingDragged} selected={string.Join(", ", this._selectedNode)}");
+            if (pInputPayload.mIsMouseLmb && (!tIsAnyNodeClicked && (pInputPayload.mLmbDragDelta == null))) this._selectedNode.Clear();
+
+            // Drag selected node
+            if (this._isNodeBeingDragged && pInputPayload.mLmbDragDelta.HasValue)
+            {
+                foreach (var id in this._selectedNode)
+                {
+                    this.mMap.MoveNodeRelaPos(id, pInputPayload.mLmbDragDelta.Value, this.mConfig.scaling);
+                }
+            }
+
+            // Process input on canvas
+            if (!this._isNodeBeingDragged) this.ProcessInputOnCanvas(pInputPayload);
             return InputFlag.None;
         }
 
