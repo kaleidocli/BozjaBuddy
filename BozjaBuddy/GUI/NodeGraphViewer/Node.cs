@@ -2,6 +2,7 @@
 using System.Numerics;
 using BozjaBuddy.Utils;
 using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -11,12 +12,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     public abstract class Node : IDisposable
     {
         public static readonly Vector2 nodePadding = new(3.5f, 3.5f);
+        public static readonly Vector2 minHandleSize = new(50, 100);
 
         public abstract string mType { get; }
         public string mId { get; protected set; } = string.Empty;
 
         protected NodeContent mContent = new();
-        protected NodeStyle mStyle = new();
+        protected NodeStyle mStyle = new(Vector2.Zero, Vector2.Zero);
+        protected virtual Vector2 mRecommendedInitSize { get; } = new(100, 200);
 
         /// <summary>
         /// Never init this or its child. Get an instance from NodeCanvas.AddNode()
@@ -24,35 +27,41 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// Fix this smelly thing prob?
         /// </summary>
         public Node() { }
-        public virtual void Init(string pNodeId)
+        public virtual void Init(string pNodeId, string pHeader)
         {
             this.mId = pNodeId;
+            this.SetHeader(pHeader);
+            this.SetSize(this.mRecommendedInitSize);
         }
-        public virtual void SetSize(Vector2 pSize) => this.mStyle.size = pSize;
-        public virtual void SetWidth(float pWidth) => this.mStyle.size.X = pWidth;
-        public virtual void SetHeight(float pHeight) => this.mStyle.size.Y = pHeight;
-        public Vector2 GetSize() => this.mStyle.size;
-        public float GetWidth() => this.mStyle.size.X;
-        public float GetHeight() => this.mStyle.size.Y;
+        public virtual void SetSize(Vector2 pSize) => this.mStyle.SetSize(pSize);
+        public Vector2 GetSize() => this.mStyle.GetSize();
+        public Vector2 GetHandleSize() => this.mStyle.GetHandleSize();
         public virtual void SetHeader(string pText, bool pAutoSizing = true)
         {
             this.mContent.header = pText;
+            this.mStyle.SetMinSize(ImGui.CalcTextSize(this.mContent.header) + Node.nodePadding * 2);
             if (pAutoSizing) this.AdjustSizeToContent();
         }
         public virtual void SetDescription(string pText, bool pAutoSizing = true)
         {
-            this.mContent.description = pText;
+            this.mContent.detail = pText;
             if (pAutoSizing) this.AdjustSizeToContent();
         }
         public virtual string GetHeader() => this.mContent.header;
-        public virtual string GetDescription() => this.mContent.description;
+        public virtual string GetDescription() => this.mContent.detail;
         public virtual void AdjustSizeToContent()
         {
-            this.mStyle.size = new Vector2(20, 20);
+            this.mStyle.SetSize(ImGui.CalcTextSize(this.mContent.header) + Node.nodePadding * 2);
         }
         public bool CheckPosWithin(Vector2 pNodeOSP, float pCanvasScaling, Vector2 pScreenPos)
         {
-            var tNodeSize = this.mStyle.size * pCanvasScaling;
+            var tNodeSize = this.mStyle.GetSize() * pCanvasScaling;
+            Area tArea = new(pNodeOSP, tNodeSize);
+            return tArea.CheckPosIsWithin(pScreenPos);
+        }
+        public bool CheckPosWithinHandle(Vector2 pNodeOSP, float pCanvasScaling, Vector2 pScreenPos)
+        {
+            var tNodeSize = this.mStyle.GetHandleSize() * pCanvasScaling;
             Area tArea = new(pNodeOSP, tNodeSize);
             return tArea.CheckPosIsWithin(pScreenPos);
         }
@@ -61,7 +70,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             ImGui.SetCursorScreenPos(pNodeOSP);
 
-            var tNodeSize = this.mStyle.size * pCanvasScaling;
+            var tNodeSize = this.mStyle.GetSize() * pCanvasScaling;
             var tDrawList = ImGui.GetWindowDrawList();
             var tStyle = ImGui.GetStyle();
             var tEnd = pNodeOSP + tNodeSize;
@@ -83,7 +92,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 border: true,
                 ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoScrollbar
                 );
-            var tRes = this.DrawInternal(pNodeOSP, pCanvasScaling);
+            var tRes = this.DrawHandle(pNodeOSP, pCanvasScaling);
             ImGui.EndChild();
 
             //ImGui.PopStyleVar();
@@ -94,7 +103,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             return tRes;
         }
-        protected abstract InputFlag DrawInternal(Vector2 pNodeOSP, float pCanvasScaling);
+        protected virtual InputFlag DrawHandle(Vector2 pNodeOSP, float pCanvasScaling)
+        {
+            ImGui.
+            ImGui.Text(this.GetHeader());
+
+            return InputFlag.None;
+        }
+        protected abstract InputFlag DrawBody(Vector2 pNodeOSP, float pCanvasScaling);
 
         public abstract void Dispose();
 
@@ -103,15 +119,54 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public struct NodeContent
         {
             public string header = "";
-            public string description = "";
+            public string detail = "";
 
             public NodeContent() { }
         }
-        public struct NodeStyle
+        public class NodeStyle
         {
-            public Vector2 size = Vector2.Zero;
+            private Vector2 size;
+            private Vector2 sizeHandle = Vector2.Zero;
+            private Vector2 sizeBody = Vector2.Zero;
+            private Vector2 minSize;
 
-            public NodeStyle() { }
+            
+
+            public NodeStyle(Vector2 size, Vector2 minSize)
+            {
+                this.SetMinSize(minSize);
+                this.SetSize(size);
+                this.UpdatePartialSizes();
+            }
+
+            public void SetSize(Vector2 size)
+            {
+                this.size.X = size.X < this.minSize.X ? this.minSize.X : size.X;
+                this.size.Y = size.Y < this.minSize.Y ? this.minSize.Y : size.Y;
+                this.UpdatePartialSizes();
+            }
+            public Vector2 GetSize() => this.size;
+            public Vector2 GetHandleSize() => this.sizeHandle;
+            public void SetMinSize(Vector2 minBound)
+            {
+                this.minSize.X = minBound.X < Node.minHandleSize.X ? Node.minHandleSize.X : minBound.X;
+                this.minSize.Y = minBound.Y < Node.minHandleSize.Y ? Node.minHandleSize.Y : minBound.Y;
+            }
+            private void UpdatePartialSizes()
+            {
+                this.UpdateHandleSize();
+                this.UpdateSizeBody();
+            }
+            private void UpdateHandleSize()
+            {
+                this.sizeHandle.X = this.GetSize().X;
+                this.sizeHandle.Y = this.minSize.Y;
+            }
+            private void UpdateSizeBody()
+            {
+                this.sizeBody.X = this.size.X;
+                this.sizeBody.Y = this.size.Y - this.sizeHandle.Y;
+            }
         }
     }
 }

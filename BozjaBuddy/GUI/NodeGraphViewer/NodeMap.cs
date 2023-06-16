@@ -54,7 +54,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         /// <summary>For canvas related info, pick the canvas that this node belongs to.</summary>
         public void SetNodeRelaPos(string nodeId, Vector2 screenPos, Vector2 canvasOrigninScreenPos, float canvasScaling)
-            => this.SetNodeRelaPos(nodeId, (screenPos - canvasOrigninScreenPos) * canvasScaling);
+            => this.SetNodeRelaPos(nodeId, (screenPos - canvasOrigninScreenPos) / canvasScaling);
         /// <summary>
         /// <para>Set a node's relative to an anchor node, by a delta distance from the anchor.</para>
         /// </summary>
@@ -66,7 +66,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         /// <summary>For canvas related info, pick the canvas that this node belongs to.</summary>
         public void SetNodeRelaPos(string nodeId, string anchorNodeId, Vector2 screenDelta, float canvasScaling)
-            => this.SetNodeRelaPos(nodeId, anchorNodeId, screenDelta * canvasScaling);
+            => this.SetNodeRelaPos(nodeId, anchorNodeId, screenDelta / canvasScaling);
 
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// </summary>
         private void MoveNodeRelaPos(string nodeId, Vector2 relaDelta) => this.SetNodeRelaPos(nodeId, nodeId, relaDelta);
         /// <summary>For canvas related info, pick the canvas that this node belongs to.</summary>
-        public void MoveNodeRelaPos(string nodeId, Vector2 screenDelta, float canvasScaling) => this.MoveNodeRelaPos(nodeId, screenDelta * canvasScaling);
+        public void MoveNodeRelaPos(string nodeId, Vector2 screenDelta, float canvasScaling) => this.MoveNodeRelaPos(nodeId, screenDelta / canvasScaling);
 
 
         public void AddNode(string nodeId, Vector2 relaPos)

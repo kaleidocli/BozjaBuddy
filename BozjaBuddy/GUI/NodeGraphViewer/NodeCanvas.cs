@@ -30,12 +30,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private readonly OccupiedRegion mOccuppiedRegion;
         private CanvasConfig mConfig { get; set; } = new();
 
-        private bool _isMouseDrag = true;
-        private Vector2? _lastDragPos = null;
-        private DateTime _lastMouseWheelTime = DateTime.Now;
         private bool _isNodeBeingDragged = false;
-        private bool _isReleaseAfterHold = false;
         private HashSet<string> _selectedNode = new();
+        private Node? _snappingNode = null;
+        private Vector2? _lastSnapDelta = null;
 
         public NodeCanvas()
         {
@@ -53,8 +51,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             int tNewId = this._counter + 1;
             // create node
             T tNode = new();
-            tNode.Init(tNewId.ToString());
-            tNode.SetHeader(pHeader);
+            tNode.Init(tNewId.ToString(), pHeader);
             // add node
             try
             {
@@ -167,15 +164,17 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     pIsNodeClicked = true;
                 }
             }
-            // Process node holding and dragging
+            // Process node holding and dragging, except for when multiselecting
             if (pInputPayload.mIsMouseLmbDown)          // if mouse is hold, and the holding's first pos is within a selected node
             {                                           // then mark state as being dragged
                                                         // as long as the mouse is hold, even if mouse then moving out of node zone
                 if (!this._isNodeBeingDragged
                     && !pIsNodeClicked
+                    && !pInputPayload.mIsKeyCtrl
                     && pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                 {
                     this._isNodeBeingDragged = true;
+                    this._snappingNode = pNode;
                     // single-selecting new node
                     if (!pInputPayload.mIsKeyCtrl && !this._selectedNode.Contains(pNode.mId))
                     {
@@ -188,6 +187,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             else
             {
                 this._isNodeBeingDragged = false;
+                this._snappingNode = null;
             }
             return new Tuple<bool, bool>(pIsNodeClicked, pReadClicks);
         }
@@ -212,12 +212,45 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     break;
             };
         }
-        public InputFlag Draw(Vector2 pBaseOriginScreenPos, UtilsGUI.InputPayload pInputPayload)
+        public InputFlag Draw(Vector2 pBaseOriginScreenPos, UtilsGUI.InputPayload pInputPayload, NodeGraphViewer.GridSnapData? pSnapData = null, bool pInteractable = true)
         {
             bool tIsAnyNodeClicked = false;
             bool tIsReadingClicksOnNode = true;
+            Vector2? tSnapDelta = null;
             // Get this canvas' origin' screenPos
             Vector2 tCanvasOSP = pBaseOriginScreenPos + this.mMap.GetBaseOffset();
+
+            if (!pInteractable)     // clean up stuff in case viewer is involuntarily lose focus, to avoid potential accidents.
+            {
+                this._lastSnapDelta = null;
+                this._snappingNode = null;
+                this._isNodeBeingDragged = false;
+            }
+
+            // Populate snap data
+            if (pInteractable)
+            {
+                foreach (var node in this.mNodes.Values)
+                {
+                    Vector2? tNodeOSP = this.mMap.GetNodeScreenPos(node.mId, tCanvasOSP, this.mConfig.scaling);
+                    if (tNodeOSP == null) continue;
+                    if (this._snappingNode != null && node.mId != this._snappingNode.mId)
+                    {
+                        pSnapData?.AddUsingPos(tNodeOSP.Value);
+                    }
+                }
+                // Get snap delta
+                if (this._snappingNode != null)
+                {
+                    Vector2? tNodeOSP = this.mMap.GetNodeScreenPos(this._snappingNode.mId, tCanvasOSP, this.mConfig.scaling);
+                    Vector2? tSnapOSP = null;
+                    if (tNodeOSP.HasValue)
+                        tSnapOSP = pSnapData?.GetClosestSnapPos(tNodeOSP.Value, NodeGraphViewer.kGridSnapProximity);
+                    if (tSnapOSP.HasValue)
+                        tSnapDelta = tSnapOSP.Value - tNodeOSP;
+                    this._lastSnapDelta = tSnapDelta;
+                }
+            }
 
             // Draw
             foreach (var id in this._nodeIds)
@@ -227,28 +260,58 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (tNodeOSP == null) continue;
                 if (!this.mNodes.TryGetValue(id, out var tNode) || tNode == null) continue;
 
-                // Process input on node
-                var t = this.ProcessInputOnNode(tNode, tNodeOSP.Value, pInputPayload, tIsReadingClicksOnNode);
-                if (t.Item1) tIsAnyNodeClicked = t.Item1;
-                tIsReadingClicksOnNode = t.Item2;
+                if (pInteractable)
+                {
+                    // Process input on node
+                    var t = this.ProcessInputOnNode(tNode, tNodeOSP.Value, pInputPayload, tIsReadingClicksOnNode);
+                    if (t.Item1) tIsAnyNodeClicked = t.Item1;
+                    tIsReadingClicksOnNode = t.Item2;
+                }
 
                 // Draw using NodeOSP
-                tNode.Draw(tNodeOSP.Value, this.mConfig.scaling);
+                tNode.Draw(
+                    tSnapDelta != null && this._selectedNode.Contains(id)
+                        ? tNodeOSP.Value + tSnapDelta.Value
+                        : tNodeOSP.Value, 
+                    this.mConfig.scaling);
             }
-            PluginLog.LogDebug($"> dMode={this._isNodeBeingDragged} selected={string.Join(", ", this._selectedNode)}");
-            if (pInputPayload.mIsMouseLmb && (!tIsAnyNodeClicked && (pInputPayload.mLmbDragDelta == null))) this._selectedNode.Clear();
+            if (pInteractable 
+                && pInputPayload.mIsMouseLmb 
+                && (!tIsAnyNodeClicked && (pInputPayload.mLmbDragDelta == null))
+                && !pInputPayload.mIsALmbDragRelease) this._selectedNode.Clear();
 
-            // Drag selected node
-            if (this._isNodeBeingDragged && pInputPayload.mLmbDragDelta.HasValue)
+            if (pInteractable)
             {
-                foreach (var id in this._selectedNode)
+                // Drag selected node
+                if (this._isNodeBeingDragged && pInputPayload.mLmbDragDelta.HasValue)
                 {
-                    this.mMap.MoveNodeRelaPos(id, pInputPayload.mLmbDragDelta.Value, this.mConfig.scaling);
+                    foreach (var id in this._selectedNode)
+                    {
+                        if (pInputPayload.mLmbDragDelta.Value != Vector2.Zero)
+                            PluginLog.LogDebug($"> 1: d={pInputPayload.mLmbDragDelta.Value} s={this.mConfig.scaling} pos={this.mMap.GetNodeScreenPos(id, tCanvasOSP, this.mConfig.scaling)}");
+                        this.mMap.MoveNodeRelaPos(
+                            id,
+                            pInputPayload.mLmbDragDelta.Value,
+                            this.mConfig.scaling);
+                        if (pInputPayload.mLmbDragDelta.Value != Vector2.Zero)
+                            PluginLog.LogDebug($"> 2: d={pInputPayload.mLmbDragDelta.Value} s={this.mConfig.scaling} pos={this.mMap.GetNodeScreenPos(id, tCanvasOSP, this.mConfig.scaling)}");
+                    }
                 }
+                // Snap if available
+                else if (!this._isNodeBeingDragged && this._lastSnapDelta != null)
+                {
+                    foreach (var id in this._selectedNode)
+                    {
+                        this.mMap.MoveNodeRelaPos(
+                            id,
+                            this._lastSnapDelta.Value,
+                            this.mConfig.scaling);
+                    }
+                    this._lastSnapDelta = null;
+                }
+                // Process input on canvas
+                if (!this._isNodeBeingDragged) this.ProcessInputOnCanvas(pInputPayload);
             }
-
-            // Process input on canvas
-            if (!this._isNodeBeingDragged) this.ProcessInputOnCanvas(pInputPayload);
             return InputFlag.None;
         }
 

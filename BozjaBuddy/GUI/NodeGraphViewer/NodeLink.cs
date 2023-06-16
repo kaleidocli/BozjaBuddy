@@ -13,17 +13,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
         public NodeLink() { }
 
-        protected override InputFlag DrawInternal(Vector2 pNodeOSP, float pCanvasScaling)
+        protected override InputFlag DrawHandle(Vector2 pNodeOSP, float pCanvasScaling)
         {
             ImGui.Text(this.GetHeader());
 
             return InputFlag.None;
         }
-
-        public override void AdjustSizeToContent()
+        protected override InputFlag DrawBody(Vector2 pNodeOSP, float pCanvasScaling)
         {
-            this.mStyle.size = ImGui.CalcTextSize(this.mContent.header) + Node.nodePadding * 2;
-            //PluginLog.LogDebug($"> Size adjusted: {this.mStyle.size.X} {this.mStyle.size.Y} FontSize: {ImGui.GetFontSize()} == {ImGui.GetFont().FontSize}");
+            return InputFlag.None;
         }
 
         public override void Dispose()
