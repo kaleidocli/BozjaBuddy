@@ -21,6 +21,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         protected NodeContent mContent = new();
         protected NodeStyle mStyle = new(Vector2.Zero, Vector2.Zero);
         protected virtual Vector2 mRecommendedInitSize { get; } = new(100, 200);
+        public bool _isBusy = false;
 
         /// <summary>
         /// Never init this or its child. Get an instance from NodeCanvas.AddNode()
@@ -34,7 +35,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.SetHeader(pHeader);
             this.SetSize(this.mRecommendedInitSize);
         }
-        public virtual void SetSize(Vector2 pSize) => this.mStyle.SetSize(pSize);
+        public virtual void SetSize(Vector2 pSize, float pCanvasScaling = 1) => this.mStyle.SetSize(pSize / pCanvasScaling);
         public Vector2 GetSize() => this.mStyle.GetSize();
         public Vector2 GetHandleSize() => this.mStyle.GetHandleSize();
         public virtual void SetHeader(string pText, bool pAutoSizing = true)
@@ -67,7 +68,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             return tArea.CheckPosIsWithin(pScreenPos);
         }
 
-        public InputFlag Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive)
+        public InputFlag Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload)
         {
             ImGui.SetCursorScreenPos(pNodeOSP);
 
@@ -76,14 +77,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             var tStyle = ImGui.GetStyle();
             var tEnd = pNodeOSP + tNodeSize;
 
+            // outline
             tDrawList.AddRect(
                 pNodeOSP,
                 tEnd,
                 ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorFg, pIsActive ? 1f : 0.7f)),
                 1,
                 ImDrawFlags.None,
-                (pIsActive ? 8 : 4f) * pCanvasScaling);
+                (pIsActive ? 6.5f : 4f) * pCanvasScaling);
 
+            // backdrop
             tDrawList.AddRectFilled(
                 pNodeOSP,
                 tEnd,
@@ -91,11 +94,29 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             Utils.PushFontScale(pCanvasScaling);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Node.nodePadding * pCanvasScaling);
-            
+
+            // resize grip
+            Vector2 tGripSize = new(7, 7);
+            tGripSize *= pCanvasScaling * 0.8f;     // making this scale less
+            ImGui.SetCursorScreenPos(tEnd - tGripSize / 2);
+            ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(this.mStyle.colorFg));
+            ImGui.Button($"##{this.mId}", tGripSize);
+            if (ImGui.IsItemHovered()) { ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNWSE); }
+            //else { ImGui.SetMouseCursor(ImGuiMouseCursor.Arrow); }
+            if (ImGui.IsItemActive()) 
+            { 
+                this._isBusy = true;
+                this.SetSize(pInputPayload.mMousePos - pNodeOSP, pCanvasScaling);
+            }
+            if (this._isBusy && !pInputPayload.mIsMouseLmbDown) { this._isBusy = false; }
+            ImGui.PopStyleColor();
+            ImGui.SetCursorScreenPos(pNodeOSP);
+
+            // node content (handle, body)
             ImGui.BeginChild(
                 this.mId,
                 tNodeSize,
-                border: true,
+                border: false,
                 ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoScrollbar
                 );
             var tRes = this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
@@ -112,7 +133,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             pDrawList.AddRectFilled(
                 pNodeOSP, 
                 pNodeOSP + tHandleSize, 
-                ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, pIsActive ? 0.55f : 0.3f)));
+                ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, pIsActive ? 0.55f : 0.25f)));
             ImGui.TextColored(UtilsGUI.Colors.NodeText, this.GetHeader());
 
             return InputFlag.None;

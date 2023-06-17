@@ -284,6 +284,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             // Draw
             FirstClickType tFirstClickScanRes = FirstClickType.None;
+            bool tIsAnyNodeBusy = false;
             foreach (var id in this._nodeIds)
             {
                 // Get NodeOSP
@@ -307,7 +308,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                         ? tNodeOSP.Value + tSnapDelta.Value
                         : tNodeOSP.Value, 
                     this.mConfig.scaling,
-                    this._selectedNode.Contains(id));
+                    this._selectedNode.Contains(id),
+                    pInputPayload);
+                if (tNode._isBusy) tIsAnyNodeBusy = true;
             }
             // Capture drag's first click. State Body or Handle can only be accessed from state None.
             if (pInputPayload.mIsMouseLmb) this._firstClickInDrag = FirstClickType.None;
@@ -316,10 +319,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             if (pInteractable 
                 && pInputPayload.mIsMouseLmb 
+                && !tIsAnyNodeBusy
                 && (!tIsAnyNodeHandleClicked && (pInputPayload.mLmbDragDelta == null))
                 && !pInputPayload.mIsALmbDragRelease) this._selectedNode.Clear();
 
-            if (pInteractable)
+            if (pInteractable && !tIsAnyNodeBusy)
             {
                 // Drag selected node
                 if (this._isNodeBeingDragged && pInputPayload.mLmbDragDelta.HasValue)
