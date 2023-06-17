@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using BozjaBuddy.Utils;
+using Dalamud.Logging;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 
@@ -12,7 +13,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     public abstract class Node : IDisposable
     {
         public static readonly Vector2 nodePadding = new(3.5f, 3.5f);
-        public static readonly Vector2 minHandleSize = new(50, 100);
+        public static readonly Vector2 minHandleSize = new(50, 20);
 
         public abstract string mType { get; }
         public string mId { get; protected set; } = string.Empty;
@@ -55,7 +56,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         public bool CheckPosWithin(Vector2 pNodeOSP, float pCanvasScaling, Vector2 pScreenPos)
         {
-            var tNodeSize = this.mStyle.GetSize() * pCanvasScaling;
+            var tNodeSize = this.mStyle.GetSize(pCanvasScaling);
             Area tArea = new(pNodeOSP, tNodeSize);
             return tArea.CheckPosIsWithin(pScreenPos);
         }
@@ -66,25 +67,30 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             return tArea.CheckPosIsWithin(pScreenPos);
         }
 
-        public InputFlag Draw(Vector2 pNodeOSP, float pCanvasScaling)
+        public InputFlag Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive)
         {
             ImGui.SetCursorScreenPos(pNodeOSP);
 
-            var tNodeSize = this.mStyle.GetSize() * pCanvasScaling;
+            var tNodeSize = this.mStyle.GetSize(pCanvasScaling);
             var tDrawList = ImGui.GetWindowDrawList();
             var tStyle = ImGui.GetStyle();
             var tEnd = pNodeOSP + tNodeSize;
 
+            tDrawList.AddRect(
+                pNodeOSP,
+                tEnd,
+                ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorFg, pIsActive ? 1f : 0.7f)),
+                1,
+                ImDrawFlags.None,
+                (pIsActive ? 8 : 4f) * pCanvasScaling);
+
             tDrawList.AddRectFilled(
                 pNodeOSP,
                 tEnd,
-                ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.Button_Green));
+                ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
 
             Utils.PushFontScale(pCanvasScaling);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Node.nodePadding * pCanvasScaling);
-            //ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, tStyle.FramePadding * pCanvasScaling);
-            //ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, tStyle.ItemSpacing * pCanvasScaling);
-            //ImGui.PushStyleVar(ImGuiStyleVar.IndentSpacing, tStyle.IndentSpacing * pCanvasScaling);
             
             ImGui.BeginChild(
                 this.mId,
@@ -92,21 +98,22 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 border: true,
                 ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoScrollbar
                 );
-            var tRes = this.DrawHandle(pNodeOSP, pCanvasScaling);
+            var tRes = this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
             ImGui.EndChild();
 
-            //ImGui.PopStyleVar();
-            //ImGui.PopStyleVar();
-            //ImGui.PopStyleVar();
             ImGui.PopStyleVar();
             Utils.PopFontScale();
 
             return tRes;
         }
-        protected virtual InputFlag DrawHandle(Vector2 pNodeOSP, float pCanvasScaling)
+        protected virtual InputFlag DrawHandle(Vector2 pNodeOSP, float pCanvasScaling, ImDrawListPtr pDrawList, bool pIsActive)
         {
-            ImGui.
-            ImGui.Text(this.GetHeader());
+            var tHandleSize = this.GetHandleSize() * pCanvasScaling;
+            pDrawList.AddRectFilled(
+                pNodeOSP, 
+                pNodeOSP + tHandleSize, 
+                ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, pIsActive ? 0.55f : 0.3f)));
+            ImGui.TextColored(UtilsGUI.Colors.NodeText, this.GetHeader());
 
             return InputFlag.None;
         }
@@ -130,7 +137,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             private Vector2 sizeBody = Vector2.Zero;
             private Vector2 minSize;
 
-            
+            public Vector4 colorUnique = UtilsGUI.Colors.GenObj_BlueAction;
+            public Vector4 colorBg = UtilsGUI.Colors.NodeBg;
+            public Vector4 colorFg = UtilsGUI.Colors.NodeFg;
 
             public NodeStyle(Vector2 size, Vector2 minSize)
             {
@@ -146,7 +155,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this.UpdatePartialSizes();
             }
             public Vector2 GetSize() => this.size;
+            public Vector2 GetSize(float scaling) => this.GetSize() * scaling;
             public Vector2 GetHandleSize() => this.sizeHandle;
+            public Vector2 GetHandleSize(float scaling) => this.GetHandleSize() * scaling;
             public void SetMinSize(Vector2 minBound)
             {
                 this.minSize.X = minBound.X < Node.minHandleSize.X ? Node.minHandleSize.X : minBound.X;

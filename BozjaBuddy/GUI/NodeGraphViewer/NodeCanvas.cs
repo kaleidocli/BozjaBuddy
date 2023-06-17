@@ -34,6 +34,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private HashSet<string> _selectedNode = new();
         private Node? _snappingNode = null;
         private Vector2? _lastSnapDelta = null;
+        private FirstClickType _firstClickInDrag = FirstClickType.None;
+        private bool _isFirstFrameAfterLmbDown = true;      // specifically for Draw()
 
         public NodeCanvas()
         {
@@ -78,7 +80,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             return this.AddNode<T>(
                     pHeader,
-                    this.mOccuppiedRegion.GetAvailableRelaPos(pCorner, pDirection, pPadding ?? this.mConfig.nodePadding)
+                    this.mOccuppiedRegion.GetAvailableRelaPos(pCorner, pDirection, pPadding ?? this.mConfig.nodeGap)
                 );
         }
         /// <summary>
@@ -130,19 +132,21 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             this.mMap.AddBaseOffset(pDelta);
         }
-        public Tuple<bool, bool> ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
+        public Tuple<bool, bool, bool, FirstClickType> ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
         {
-            bool pIsNodeClicked = false;
+            bool tIsNodeHandleClicked = false;
+            bool tIsNodeClicked = false;
+            FirstClickType tFirstClick = FirstClickType.None;
             // Process node delete
-            if (pReadClicks && !pIsNodeClicked && pInputPayload.mIsMouseMid)
+            if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseMid)
             {
-                if (pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                if (pNode.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                     this.RemoveNode(pNode.mId);
             }
             // Process node select
-            if (pReadClicks && !pIsNodeClicked && pInputPayload.mIsMouseLmb)
+            if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseLmb)
             {
-                if (pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                if (pNode.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                 {
                     // multi-selecting
                     if (pInputPayload.mIsKeyCtrl)
@@ -161,26 +165,50 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                         this._selectedNode.Clear();
                         this._selectedNode.Add(pNode.mId);
                     }
-                    pIsNodeClicked = true;
+                    tIsNodeHandleClicked = true;
+                }
+                else if (pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                {
+                    tIsNodeClicked = true;
                 }
             }
             // Process node holding and dragging, except for when multiselecting
             if (pInputPayload.mIsMouseLmbDown)          // if mouse is hold, and the holding's first pos is within a selected node
             {                                           // then mark state as being dragged
                                                         // as long as the mouse is hold, even if mouse then moving out of node zone
-                if (!this._isNodeBeingDragged
-                    && !pIsNodeClicked
-                    && !pInputPayload.mIsKeyCtrl
-                    && pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                                                        // First click in drag
+                if (!this._isNodeBeingDragged && this._isFirstFrameAfterLmbDown)
                 {
-                    this._isNodeBeingDragged = true;
-                    this._snappingNode = pNode;
-                    // single-selecting new node
-                    if (!pInputPayload.mIsKeyCtrl && !this._selectedNode.Contains(pNode.mId))
+                    if (pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                     {
-                        pIsNodeClicked = true;
-                        this._selectedNode.Clear();
-                        this._selectedNode.Add(pNode.mId);
+                        if (pNode.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                            tFirstClick = FirstClickType.Handle;
+                        else
+                            tFirstClick = FirstClickType.Body;
+                    }
+                }
+
+                if (!this._isNodeBeingDragged
+                    && tFirstClick != FirstClickType.None
+                    && !tIsNodeHandleClicked
+                    && !pInputPayload.mIsKeyCtrl)
+                    
+                {
+                    if (tFirstClick == FirstClickType.Handle)
+                    {
+                        this._isNodeBeingDragged = true;
+                        this._snappingNode = pNode;
+                        // single-selecting new node
+                        if (!pInputPayload.mIsKeyCtrl && !this._selectedNode.Contains(pNode.mId))
+                        {
+                            tIsNodeHandleClicked = true;
+                            this._selectedNode.Clear();
+                            this._selectedNode.Add(pNode.mId);
+                        }
+                    }
+                    else if (tFirstClick == FirstClickType.Body)
+                    {
+                        tIsNodeClicked = true;
                     }
                 }
             }
@@ -189,7 +217,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._isNodeBeingDragged = false;
                 this._snappingNode = null;
             }
-            return new Tuple<bool, bool>(pIsNodeClicked, pReadClicks);
+
+            return new Tuple<bool, bool, bool, FirstClickType>(tIsNodeHandleClicked, pReadClicks, tIsNodeClicked, tFirstClick);
         }
         public void ProcessInputOnCanvas(UtilsGUI.InputPayload pInputPayload)
         {
@@ -214,8 +243,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         public InputFlag Draw(Vector2 pBaseOriginScreenPos, UtilsGUI.InputPayload pInputPayload, NodeGraphViewer.GridSnapData? pSnapData = null, bool pInteractable = true)
         {
-            bool tIsAnyNodeClicked = false;
+            bool tIsAnyNodeHandleClicked = false;
             bool tIsReadingClicksOnNode = true;
+            bool tIsAnyNodeClicked = false;
             Vector2? tSnapDelta = null;
             // Get this canvas' origin' screenPos
             Vector2 tCanvasOSP = pBaseOriginScreenPos + this.mMap.GetBaseOffset();
@@ -253,6 +283,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
 
             // Draw
+            FirstClickType tFirstClickScanRes = FirstClickType.None;
             foreach (var id in this._nodeIds)
             {
                 // Get NodeOSP
@@ -264,8 +295,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     // Process input on node
                     var t = this.ProcessInputOnNode(tNode, tNodeOSP.Value, pInputPayload, tIsReadingClicksOnNode);
-                    if (t.Item1) tIsAnyNodeClicked = t.Item1;
+                    if (t.Item1) tIsAnyNodeHandleClicked = t.Item1;
                     tIsReadingClicksOnNode = t.Item2;
+                    if (t.Item3) tIsAnyNodeClicked = true;
+                    if (t.Item4 != FirstClickType.None) tFirstClickScanRes = t.Item4;
                 }
 
                 // Draw using NodeOSP
@@ -273,11 +306,17 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     tSnapDelta != null && this._selectedNode.Contains(id)
                         ? tNodeOSP.Value + tSnapDelta.Value
                         : tNodeOSP.Value, 
-                    this.mConfig.scaling);
+                    this.mConfig.scaling,
+                    this._selectedNode.Contains(id));
             }
+            // Capture drag's first click. State Body or Handle can only be accessed from state None.
+            if (pInputPayload.mIsMouseLmb) this._firstClickInDrag = FirstClickType.None;
+            else if (this._firstClickInDrag == FirstClickType.None && tFirstClickScanRes != FirstClickType.None)
+                this._firstClickInDrag = tFirstClickScanRes;
+
             if (pInteractable 
                 && pInputPayload.mIsMouseLmb 
-                && (!tIsAnyNodeClicked && (pInputPayload.mLmbDragDelta == null))
+                && (!tIsAnyNodeHandleClicked && (pInputPayload.mLmbDragDelta == null))
                 && !pInputPayload.mIsALmbDragRelease) this._selectedNode.Clear();
 
             if (pInteractable)
@@ -287,14 +326,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     foreach (var id in this._selectedNode)
                     {
-                        if (pInputPayload.mLmbDragDelta.Value != Vector2.Zero)
-                            PluginLog.LogDebug($"> 1: d={pInputPayload.mLmbDragDelta.Value} s={this.mConfig.scaling} pos={this.mMap.GetNodeScreenPos(id, tCanvasOSP, this.mConfig.scaling)}");
                         this.mMap.MoveNodeRelaPos(
                             id,
                             pInputPayload.mLmbDragDelta.Value,
                             this.mConfig.scaling);
-                        if (pInputPayload.mLmbDragDelta.Value != Vector2.Zero)
-                            PluginLog.LogDebug($"> 2: d={pInputPayload.mLmbDragDelta.Value} s={this.mConfig.scaling} pos={this.mMap.GetNodeScreenPos(id, tCanvasOSP, this.mConfig.scaling)}");
                     }
                 }
                 // Snap if available
@@ -310,8 +345,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     this._lastSnapDelta = null;
                 }
                 // Process input on canvas
-                if (!this._isNodeBeingDragged) this.ProcessInputOnCanvas(pInputPayload);
+                if (!this._isNodeBeingDragged && !tIsAnyNodeClicked && this._firstClickInDrag == FirstClickType.None) 
+                    this.ProcessInputOnCanvas(pInputPayload);
             }
+
+            // First frame after lmb down. Leave this at the bottom (end of frame drawing).
+            if (pInputPayload.mIsMouseLmb) this._isFirstFrameAfterLmbDown = true;
+            else if (pInputPayload.mIsMouseLmbDown) this._isFirstFrameAfterLmbDown = false;
+
             return InputFlag.None;
         }
 
@@ -319,13 +360,19 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public class CanvasConfig
         {
             public float scaling;
-            public Vector2 nodePadding;
+            public Vector2 nodeGap;
 
             public CanvasConfig()
             {
                 this.scaling = 1f;
-                this.nodePadding = Vector2.One;
+                this.nodeGap = Vector2.One;
             }
+        }
+        public enum FirstClickType
+        {
+            None = 0,
+            Handle = 1,
+            Body = 2
         }
     }
     public enum Direction
