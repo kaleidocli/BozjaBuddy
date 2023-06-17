@@ -72,7 +72,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             UtilsGUI.InputPayload tInputPayload = new();
             tInputPayload.CaptureInput();
             bool tIsWithinViewer = pGraphArea.CheckPosIsWithin(tInputPayload.mMousePos);
-            this._isMouseHoldingViewer = (tIsWithinViewer || this._isMouseHoldingViewer) && tInputPayload.mIsMouseLmbDown;
+            this._isMouseHoldingViewer = tInputPayload.mIsMouseLmbDown && (tIsWithinViewer || this._isMouseHoldingViewer);
             //PluginLog.LogDebug($"> inView={tIsWithinViewer} holdView={this._isMouseHoldingViewer} lmbDown={tInputPayload.mIsMouseLmbDown}");
             if (tIsWithinViewer) { tInputPayload.CaptureMouseWheel(); }
             if (this._isMouseHoldingViewer) { tInputPayload.CaptureMouseDragDelta(); }
@@ -81,7 +81,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 pGraphArea.start,
                 tInputPayload,
                 pSnapData,
-                pInteractable: ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows)
+                pInteractable: ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows) && (this._isMouseHoldingViewer || tIsWithinViewer)
                 );
         }
         private GridSnapData DrawGraphBg(Area pArea)

@@ -36,6 +36,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private Vector2? _lastSnapDelta = null;
         private FirstClickType _firstClickInDrag = FirstClickType.None;
         private bool _isFirstFrameAfterLmbDown = true;      // specifically for Draw()
+        private Vector2? _selectAreaOSP = null;
 
         public NodeCanvas()
         {
@@ -138,7 +139,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             bool tIsNodeClicked = false;
             FirstClickType tFirstClick = FirstClickType.None;
             // Process node delete
-            if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseMid)
+            if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsKeyShift && pInputPayload.mIsMouseMid)
             {
                 if (pNode.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                     this.RemoveNode(pNode.mId);
@@ -255,6 +256,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._lastSnapDelta = null;
                 this._snappingNode = null;
                 this._isNodeBeingDragged = false;
+            }
+
+            // Capture selectArea
+            if (pInteractable)
+            {
+                
             }
 
             // Populate snap data
