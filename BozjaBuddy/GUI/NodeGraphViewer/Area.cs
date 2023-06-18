@@ -1,5 +1,6 @@
 ﻿using Dalamud.Logging;
 using System.Numerics;
+using System.Drawing;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -10,12 +11,27 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public Vector2 start;
         public Vector2 end;
         public Vector2 size;
+        public RectangleF _rect;
 
         public Area(Vector2 pos, Vector2 size)
         {
             this.size = size;
             start = pos;
             end = pos + size;
+            _rect = new(new PointF(start), new SizeF(size));
+        }
+        public Area(Vector2 start, Vector2 end, bool isUsingStartEnd)
+        {
+            this.start = new(
+                    start.X < end.X ? start.X : end.X,
+                    start.Y < end.Y ? start.Y : end.Y
+                );
+            this.end = new(
+                    start.X < end.X ? end.X : start.X,
+                    start.Y < end.Y ? end.Y : start.Y
+                );
+            this.size = this.end - this.start;
+            _rect = new(new PointF(this.start), new SizeF(this.size));
         }
 
         public bool CheckPosIsWithin(Vector2 pos)
@@ -26,6 +42,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 && (xRev ? (pos.X > end.X) : (pos.X < end.X))
                 && (yRev ? (pos.Y < start.Y) : (pos.Y > start.Y))
                 && (yRev ? (pos.Y > end.Y) : (pos.Y < end.Y));
+        }
+        public bool CheckAreaIntersect(Area area)
+        {
+            //PluginLog.LogDebug($"> s=({_rect.X}, {_rect.Y}):({_rect.X + _rect.Size.Width}, {_rect.Y + _rect.Size.Height}) p=({area._rect.X}, {area._rect.Y}):({area._rect.X + area._rect.Size.Width}, {area._rect.Y + area._rect.Size.Height})");
+            return this._rect.IntersectsWith(area._rect);
         }
     }
 }

@@ -88,6 +88,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             Area tArea = new(pNodeOSP, tNodeSize);
             return tArea.CheckPosIsWithin(pScreenPos);
         }
+        public bool CheckAreaIntersect(Vector2 pNodeOSP, float pCanvasScaling, Area pScreenArea)
+        {
+            var tNodeSize = this.mStyle.GetSizeScaled(pCanvasScaling);
+            Area tArea = new(pNodeOSP, tNodeSize);
+            return tArea.CheckAreaIntersect(pScreenArea);
+        }
 
         public InputFlag Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload)
         {

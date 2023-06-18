@@ -242,11 +242,20 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     break;
             };
         }
-        public InputFlag Draw(Vector2 pBaseOriginScreenPos, UtilsGUI.InputPayload pInputPayload, NodeGraphViewer.GridSnapData? pSnapData = null, bool pInteractable = true)
+        /// <summary>
+        /// Interactable:   Window active. Either cursor within viewer, 
+        ///                 or cursor can be outside of viewer while holding the viewer.
+        /// </summary>
+        public InputFlag Draw(
+            Vector2 pBaseOriginScreenPos, 
+            UtilsGUI.InputPayload pInputPayload,
+            NodeGraphViewer.GridSnapData? pSnapData = null, 
+            bool pInteractable = true)
         {
             bool tIsAnyNodeHandleClicked = false;
             bool tIsReadingClicksOnNode = true;
             bool tIsAnyNodeClicked = false;
+            Area? tSelectScreenArea = null;
             Vector2? tSnapDelta = null;
             // Get this canvas' origin' screenPos
             Vector2 tCanvasOSP = pBaseOriginScreenPos + this.mMap.GetBaseOffset();
@@ -261,7 +270,19 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // Capture selectArea
             if (pInteractable)
             {
-                
+                // Capture selectAreaOSP
+                if (!this._isNodeBeingDragged && pInputPayload.mIsKeyShift && pInputPayload.mIsMouseLmbDown)
+                {
+                    if (!this._selectAreaOSP.HasValue) this._selectAreaOSP = pInputPayload.mMousePos;
+                }
+                else this._selectAreaOSP = null;
+
+                // Capture selectArea
+                if (this._selectAreaOSP != null)
+                {
+                    tSelectScreenArea = new(this._selectAreaOSP.Value, pInputPayload.mMousePos, true);
+                    //PluginLog.LogDebug($"> m={pInputPayload.mMousePos} s={tSelectScreenArea.start} e={tSelectScreenArea.end} sz={tSelectScreenArea.size}");
+                }
             }
 
             // Populate snap data
@@ -307,6 +328,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     tIsReadingClicksOnNode = t.Item2;
                     if (t.Item3) tIsAnyNodeClicked = true;
                     if (t.Item4 != FirstClickType.None) tFirstClickScanRes = t.Item4;
+                    // Select using selectArea
+                    if (tSelectScreenArea != null && !this._isNodeBeingDragged && this._firstClickInDrag == FirstClickType.None)
+                    {
+                        if (tNode.CheckAreaIntersect(tNodeOSP.Value, this.mConfig.scaling, tSelectScreenArea))
+                        {
+                            this._selectedNode.Add(id);
+                        }
+                    }
                 }
 
                 // Draw using NodeOSP
@@ -324,11 +353,21 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             else if (this._firstClickInDrag == FirstClickType.None && tFirstClickScanRes != FirstClickType.None)
                 this._firstClickInDrag = tFirstClickScanRes;
 
-            if (pInteractable 
-                && pInputPayload.mIsMouseLmb 
+            if (pInteractable
+                && pInputPayload.mIsMouseLmb
                 && !tIsAnyNodeBusy
                 && (!tIsAnyNodeHandleClicked && (pInputPayload.mLmbDragDelta == null))
-                && !pInputPayload.mIsALmbDragRelease) this._selectedNode.Clear();
+                && !pInputPayload.mIsALmbDragRelease)
+            {
+                this._selectedNode.Clear();
+            }
+
+
+            // Draw selectArea
+            if (pInteractable && tSelectScreenArea != null)
+            {
+                ImGui.GetWindowDrawList().AddRectFilled(tSelectScreenArea.start, tSelectScreenArea.end, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, 0.5f)));
+            }
 
             if (pInteractable && !tIsAnyNodeBusy)
             {
@@ -356,7 +395,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     this._lastSnapDelta = null;
                 }
                 // Process input on canvas
-                if (!this._isNodeBeingDragged && !tIsAnyNodeClicked && this._firstClickInDrag == FirstClickType.None) 
+                if (!this._isNodeBeingDragged && !tIsAnyNodeClicked && this._firstClickInDrag == FirstClickType.None && this._selectAreaOSP == null) 
                     this.ProcessInputOnCanvas(pInputPayload);
             }
 

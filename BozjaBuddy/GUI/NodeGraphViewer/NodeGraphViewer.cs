@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Numerics;
+using System.Runtime.Versioning;
 using BozjaBuddy.Utils;
 using Dalamud.Logging;
 using ImGuiNET;
@@ -83,6 +84,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 pSnapData,
                 pInteractable: ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows) && (this._isMouseHoldingViewer || tIsWithinViewer)
                 );
+            // Snap lines
+            this.DrawSnapLine(pGraphArea, pSnapData);
         }
         private GridSnapData DrawGraphBg(Area pArea)
         {
@@ -92,7 +95,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // backdrop
             pDrawList.AddRectFilled(pArea.start, pArea.end, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NormalBar_Grey));
             // grid
-            uint tGridColor = ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NormalBar_Grey);
+            uint tGridColor = ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NormalBar_Grey, 0.1f));
             for (var i = 0; i < pArea.size.X / mUnitGridSmall; i++)
             {
                 pDrawList.AddLine(new Vector2(pArea.start.X + i * mUnitGridSmall, pArea.start.Y), new Vector2(pArea.start.X + i * mUnitGridSmall, pArea.end.Y), tGridColor, 1.0f);
@@ -116,11 +119,35 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             return tGridSnap;
         }
+        private void DrawSnapLine(Area pGraphArea, GridSnapData pSnapData)
+        {
+            var pDrawList = ImGui.GetWindowDrawList();
+            // X
+            if (pSnapData.lastClosestSnapX != null)
+            {
+                pDrawList.AddLine(
+                    new Vector2(pSnapData.lastClosestSnapX.Value, pGraphArea.start.Y), 
+                    new Vector2(pSnapData.lastClosestSnapX.Value, pGraphArea.end.Y), 
+                    ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeGraphViewer_SnaplineGold),
+                    1.0f);
+            }
+            // Y
+            if (pSnapData.lastClosestSnapY != null)
+            {
+                pDrawList.AddLine(
+                    new Vector2(pGraphArea.start.X, pSnapData.lastClosestSnapY.Value),
+                    new Vector2(pGraphArea.end.X, pSnapData.lastClosestSnapY.Value),
+                    ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeGraphViewer_SnaplineGold),
+                    1.0f);
+            }
+        }
 
         public class GridSnapData
         {
             public List<float> X = new();
             public List<float> Y = new();
+            public float? lastClosestSnapX = null;
+            public float? lastClosestSnapY = null;
 
             public void AddUsingPos(Vector2 pos)
             {
@@ -130,9 +157,19 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             public Vector2 GetClosestSnapPos(Vector2 currPos, float proximity)
             {
                 var x = Utils.GetClosestItem(currPos.X, this.X);
-                if (Math.Abs(x - currPos.X) > proximity) x = currPos.X;
+                if (Math.Abs(x - currPos.X) > proximity)
+                {
+                    x = currPos.X;
+                    this.lastClosestSnapX = null;
+                }
+                else this.lastClosestSnapX = x;
                 var y = Utils.GetClosestItem(currPos.Y, this.Y);
-                if (Math.Abs(y - currPos.Y) > proximity) y = currPos.Y;
+                if (Math.Abs(y - currPos.Y) > proximity)
+                {
+                    y = currPos.Y;
+                    this.lastClosestSnapY = null;
+                }
+                else this.lastClosestSnapY = y;
                 return new(x, y);
             }
         }
