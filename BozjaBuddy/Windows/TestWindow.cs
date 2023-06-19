@@ -30,6 +30,9 @@ namespace BozjaBuddy.Windows
             this.mGraphViewer.Draw();
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            this.mGraphViewer.Dispose();
+        }
     }
 }

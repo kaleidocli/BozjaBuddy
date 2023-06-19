@@ -13,7 +13,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     /// <summary>
     /// ref material: https://git.anna.lgbt/ascclemens/QuestMap/src/branch/main/QuestMap/PluginUi.cs
     /// </summary>
-    public class NodeGraphViewer
+    public class NodeGraphViewer : IDisposable
     {
         private const float kUnitGridSmall_Default = 10;
         private const float kUnitGridLarge_Default = 50;
@@ -78,14 +78,17 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (tIsWithinViewer) { tInputPayload.CaptureMouseWheel(); }
             if (this._isMouseHoldingViewer) { tInputPayload.CaptureMouseDragDelta(); }
 
-            this.mNodeCanvas.Draw(
-                pGraphArea.start,
-                tInputPayload,
-                pSnapData,
-                pInteractable: ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows) && (this._isMouseHoldingViewer || tIsWithinViewer)
-                );
+            CanvasDrawFlags tRes = this.mNodeCanvas.Draw(
+                                    pGraphArea.center,
+                                    -1 * pGraphArea.size / 2,
+                                    tInputPayload,
+                                    pSnapData,
+                                    pCanvasDrawFlag: (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows) && (this._isMouseHoldingViewer || tIsWithinViewer))
+                                                     ? CanvasDrawFlags.None
+                                                     : CanvasDrawFlags.NoInteract
+                                    );
             // Snap lines
-            this.DrawSnapLine(pGraphArea, pSnapData);
+            if (!tRes.HasFlag(CanvasDrawFlags.NoNodeSnap)) this.DrawSnapLine(pGraphArea, pSnapData);
         }
         private GridSnapData DrawGraphBg(Area pArea)
         {
@@ -128,7 +131,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 pDrawList.AddLine(
                     new Vector2(pSnapData.lastClosestSnapX.Value, pGraphArea.start.Y), 
                     new Vector2(pSnapData.lastClosestSnapX.Value, pGraphArea.end.Y), 
-                    ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeGraphViewer_SnaplineGold),
+                    ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeGraphViewer_SnaplineGold, 0.5f)),
                     1.0f);
             }
             // Y
@@ -137,10 +140,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 pDrawList.AddLine(
                     new Vector2(pGraphArea.start.X, pSnapData.lastClosestSnapY.Value),
                     new Vector2(pGraphArea.end.X, pSnapData.lastClosestSnapY.Value),
-                    ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeGraphViewer_SnaplineGold),
+                    ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeGraphViewer_SnaplineGold, 0.5f)),
                     1.0f);
             }
         }
+
+        public void Dispose()
+        {
+            this.mNodeCanvas.Dispose();
+        }
+
 
         public class GridSnapData
         {

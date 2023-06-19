@@ -11,14 +11,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public Vector2 start;
         public Vector2 end;
         public Vector2 size;
+        public Vector2 center;
         public RectangleF _rect;
 
         public Area(Vector2 pos, Vector2 size)
         {
             this.size = size;
-            start = pos;
-            end = pos + size;
-            _rect = new(new PointF(start), new SizeF(size));
+            this.start = pos;
+            this.end = pos + size;
+            this._rect = new(new PointF(start), new SizeF(size));
+            this.center = this.start + this.size / 2;
         }
         public Area(Vector2 start, Vector2 end, bool isUsingStartEnd)
         {

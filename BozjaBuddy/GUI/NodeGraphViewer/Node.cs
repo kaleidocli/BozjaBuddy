@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
+using Dalamud.Interface;
 using Dalamud.Logging;
 using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
@@ -14,8 +16,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     /// </summary>
     public abstract class Node : IDisposable
     {
-        public static readonly Vector2 nodePadding = new(3.5f, 3.5f);
+        public static readonly Vector2 nodeInsidePadding = new(3.5f, 3.5f);
         public static readonly Vector2 minHandleSize = new(50, 20);
+        public static readonly float handleButtonBoxItemWidth = 20;
 
         public abstract string mType { get; }
         public string mId { get; protected set; } = string.Empty;
@@ -23,8 +26,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         protected NodeContent mContent = new();
         protected NodeStyle mStyle = new(Vector2.Zero, Vector2.Zero);
         protected virtual Vector2 mRecommendedInitSize { get; } = new(100, 200);
+        protected bool mIsMinimized = false;
+        public bool _isMarkedDeleted = false;
         public bool _isBusy = false;
-        private bool _needReinit = false;
+        protected bool _needReinit = false;
+        protected Vector2? _lastUnminimizedSize = null;
 
         /// <summary>
         /// Never init this or its child. Get an instance from NodeCanvas.AddNode()
@@ -39,11 +45,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // Basically SetHeader() and AdjustSizeToContent(),
             // but we need non-ImGui option for loading out of Draw()
             this.mContent.header = pHeader;
-            try
+            if (Plugin._isImGuiSafe)
             {
                 this.mStyle.SetHandleTextSize(ImGui.CalcTextSize(this.mContent.header));
             }
-            catch
+            else
             {
                 this.mStyle.SetHandleTextSize(new Vector2(this.mContent.header.Length * 6, 11));
                 this._needReinit = true;
@@ -74,7 +80,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public virtual string GetDescription() => this.mContent.detail;
         public virtual void AdjustSizeToContent()
         {
-            this.mStyle.SetSize(ImGui.CalcTextSize(this.mContent.header) + Node.nodePadding * 2);
+            this.mStyle.SetSize(ImGui.CalcTextSize(this.mContent.header) + Node.nodeInsidePadding * 2);
         }
         public bool CheckPosWithin(Vector2 pNodeOSP, float pCanvasScaling, Vector2 pScreenPos)
         {
@@ -95,13 +101,24 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             return tArea.CheckAreaIntersect(pScreenArea);
         }
 
-        public InputFlag Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload)
+        public NodeInteractionFlags Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload)
         {
             // Re-calculate ImGui-dependant members, if required.
             if (this._needReinit)
             {
                 this.ReInit();
                 this._needReinit = false;
+            }
+            // Minimize/Unminimize
+            if (this.mIsMinimized && !this._lastUnminimizedSize.HasValue)
+            {
+                this._lastUnminimizedSize = this.GetSize();
+                this.SetSize(new Vector2(this._lastUnminimizedSize.Value.X, 0));
+            }
+            else if (!this.mIsMinimized && this._lastUnminimizedSize.HasValue)
+            {
+                this.SetSize(this._lastUnminimizedSize.Value);
+                this._lastUnminimizedSize = null;
             }
 
             ImGui.SetCursorScreenPos(pNodeOSP);
@@ -110,6 +127,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             var tDrawList = ImGui.GetWindowDrawList();
             var tStyle = ImGui.GetStyle();
             var tEnd = pNodeOSP + tNodeSize;
+            NodeInteractionFlags tRes = NodeInteractionFlags.None;
 
             // outline
             tDrawList.AddRect(
@@ -126,34 +144,38 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 tEnd,
                 ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
 
-            Utils.PushFontScale(pCanvasScaling);
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Node.nodePadding * pCanvasScaling);
-
             // resize grip
-            Vector2 tGripSize = new(7, 7);
-            tGripSize *= pCanvasScaling * 0.8f;     // making this scale less
-            ImGui.SetCursorScreenPos(tEnd - tGripSize / 2);
-            ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(this.mStyle.colorFg));
-            ImGui.Button($"##{this.mId}", tGripSize);
-            if (ImGui.IsItemHovered()) { ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNWSE); }
-            //else { ImGui.SetMouseCursor(ImGuiMouseCursor.Arrow); }
-            if (ImGui.IsItemActive()) 
-            { 
-                this._isBusy = true;
-                this.SetSize(pInputPayload.mMousePos - pNodeOSP, pCanvasScaling);
+            if (!this.mIsMinimized)
+            {
+                Vector2 tGripSize = new(7, 7);
+                tGripSize *= pCanvasScaling * 0.8f;     // making this scale less
+                ImGui.SetCursorScreenPos(tEnd - tGripSize / 2);
+                ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(this.mStyle.colorFg));
+                ImGui.Button($"##{this.mId}", tGripSize);
+                if (ImGui.IsItemHovered()) { ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNWSE); }
+                //else { ImGui.SetMouseCursor(ImGuiMouseCursor.Arrow); }
+                if (ImGui.IsItemActive())
+                {
+                    this._isBusy = true;
+                    this.SetSize(pInputPayload.mMousePos - pNodeOSP, pCanvasScaling);
+                }
+                if (this._isBusy && !pInputPayload.mIsMouseLmbDown) { this._isBusy = false; }
+                ImGui.PopStyleColor();
+                ImGui.SetCursorScreenPos(pNodeOSP);
             }
-            if (this._isBusy && !pInputPayload.mIsMouseLmbDown) { this._isBusy = false; }
-            ImGui.PopStyleColor();
-            ImGui.SetCursorScreenPos(pNodeOSP);
 
             // node content (handle, body)
+            Utils.PushFontScale(pCanvasScaling);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Node.nodeInsidePadding * pCanvasScaling);
+
             ImGui.BeginChild(
                 this.mId,
                 tNodeSize,
                 border: false,
-                ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoScrollbar
+                ImGuiWindowFlags.NoScrollbar
                 );
-            var tRes = this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
+            tRes |= this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
+            tRes |= this.DrawBody(pNodeOSP, pCanvasScaling);
             ImGui.EndChild();
 
             ImGui.PopStyleVar();
@@ -161,7 +183,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             return tRes;
         }
-        protected virtual InputFlag DrawHandle(Vector2 pNodeOSP, float pCanvasScaling, ImDrawListPtr pDrawList, bool pIsActive)
+        protected virtual NodeInteractionFlags DrawHandle(Vector2 pNodeOSP, float pCanvasScaling, ImDrawListPtr pDrawList, bool pIsActive)
         {
             var tHandleSize = this.mStyle.GetHandleSizeScaled(pCanvasScaling);
             pDrawList.AddRectFilled(
@@ -176,9 +198,59 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 );
             ImGui.TextColored(UtilsGUI.Colors.NodeText, this.GetHeader());
 
-            return InputFlag.None;
+            // ButtonBox
+            ImGui.SameLine();
+            Utils.AlignRight(Node.handleButtonBoxItemWidth * 3 * pCanvasScaling, pConsiderImguiPaddings: false);
+            var tRes = this.DrawHandleButtonBox(pNodeOSP, pCanvasScaling, pDrawList);
+
+            return tRes;
         }
-        protected abstract InputFlag DrawBody(Vector2 pNodeOSP, float pCanvasScaling);
+        protected abstract NodeInteractionFlags DrawBody(Vector2 pNodeOSP, float pCanvasScaling);
+        protected NodeInteractionFlags DrawHandleButtonBox(Vector2 pNodeOSP, float pCanvasScaling, ImDrawListPtr pDrawList)
+        {
+            NodeInteractionFlags tRes = NodeInteractionFlags.None;
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
+            ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.NodeText);
+
+            Vector2 tBSize = new(Node.handleButtonBoxItemWidth, this.mStyle.GetHandleSize().Y * 0.8f);
+            tBSize *= pCanvasScaling;
+            if (ImGui.Selectable(this.mIsMinimized ? "  ^" : "  v", false, ImGuiSelectableFlags.DontClosePopups, tBSize))
+            {
+                this.mIsMinimized = !this.mIsMinimized;
+            }
+            if (ImGui.IsItemActive()) tRes |= NodeInteractionFlags.Internal;
+            ImGui.SameLine(); 
+            if (ImGui.Selectable(" …", false, ImGuiSelectableFlags.DontClosePopups, tBSize))
+            {
+                ImGui.OpenPopup($"##hepu{this.mId}");
+            }
+            tRes |= this.DrawHandeExtraOptionPU($"##hepu{this.mId}");
+            if (ImGui.IsItemActive()) tRes |= NodeInteractionFlags.Internal;
+            ImGui.SameLine(); 
+            if (ImGui.Selectable(" ×", false, ImGuiSelectableFlags.DontClosePopups, tBSize))
+            {
+                this._isMarkedDeleted = true;
+            }
+            if (ImGui.IsItemActive()) tRes |= NodeInteractionFlags.Internal;
+
+            ImGui.PopStyleColor();
+            ImGui.PopStyleVar();
+            return tRes;
+        }
+        protected NodeInteractionFlags DrawHandeExtraOptionPU(string pPU_id)
+        {
+            NodeInteractionFlags tRes = NodeInteractionFlags.None;
+            if (ImGui.BeginPopup(pPU_id))
+            {
+                ImGui.Text("Testing 1");
+                ImGui.Text("Testing 22");
+                ImGui.Text("Testing 333");
+                ImGui.EndPopup();
+                tRes |= NodeInteractionFlags.Internal | NodeInteractionFlags.LockSelection;
+            }
+
+            return tRes;
+        }
 
         public abstract void Dispose();
 
@@ -225,7 +297,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             public void SetHandleTextSize(Vector2 handleTextSize)
             {
                 this.handleTextSize = handleTextSize;
-                this.SetMinSize(this.GetHandleTextSize() + Node.nodePadding * 2);
+                this.SetMinSize(this.GetHandleTextSize() + Node.nodeInsidePadding * 2 + new Vector2(Node.handleButtonBoxItemWidth * 3, 0));
             }
             private void SetMinSize(Vector2 handleSize)
             {

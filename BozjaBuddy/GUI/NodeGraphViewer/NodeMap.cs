@@ -7,7 +7,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     /// <summary>
     /// <para>Contains info about node positions (relative/screen)</para>
     /// <para>XY plane, origin O. OO is the origin of the canvas one level upper.</para>
-    /// <para>If this is a map of top-level canvas, then OO is Viewer's origin.</para>
+    /// <para>If this is a map of top-level canvas, then OO is Viewer's origin, 
+    /// and the scaling anchor C will be in the mid of the viewer.</para>
+    /// <para>C is a point with distance ofsBaseScalingAnchor away from OO.</para>
     /// </summary>
     public class NodeMap
     {
@@ -16,9 +18,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         // Key is a 
         private Dictionary<string, Vector2> _nodeMap = new();
         private HashSet<string> _nodeKeys = new();
+        private bool _needInitOfs = true;
 
         public NodeMap() { }
-        /// <summary>XY plane, origin O. Upper-level canvas origin is OO.</summary>
+        /// <summary>
+        /// <para>Contains info about node positions (relative/screen)</para>
+        /// <para>XY plane, origin O. OO is the origin of the canvas one level upper.</para>
+        /// <para>If this is a map of top-level canvas, then OO is Viewer's origin, 
+        /// and the scaling anchor C will be in the mid of the viewer.</para>
+        /// <para>C is a point with distance ofsBaseScalingAnchor away from OO.</para>
+        /// </summary>
         public NodeMap(Vector2 ofsBase)
         {
             this.ofsBase = ofsBase;
@@ -91,5 +100,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             return _nodeMap.Remove(nodeId) & _nodeKeys.Remove(nodeId);
         }
         public bool CheckNodeExist(string nodeId) => _nodeKeys.Contains(nodeId);
+
+        public bool CheckNeedInitOfs() => this._needInitOfs;
+        public void MarkUnneedInitOfs() => this._needInitOfs = false;
     }
 }

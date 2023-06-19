@@ -26,30 +26,32 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// https://stackoverflow.com/questions/5953552/how-to-get-the-closest-number-from-a-listint-with-linq
         public static float GetClosestItem(float itemToCompare, List<float> items)
             => items.Aggregate((x, y) => Math.Abs(x - itemToCompare) < Math.Abs(y - itemToCompare) ? x : y);
-        public static Vector2 SnapToClosestPos(Vector2 currPos, List<float> xVals, List<float> yVals, float proximity)
+        public static void AlignRight(float pTargetItemWidth, bool pConsiderScrollbar = false, bool pConsiderImguiPaddings = true)
         {
-            var x = Utils.GetClosestItem(currPos.X, xVals);
-            if (Math.Abs(x - currPos.X) < proximity) x = currPos.X;
-            var y = Utils.GetClosestItem(currPos.Y, yVals);
-            if (Math.Abs(y - currPos.Y) < proximity) y = currPos.Y;
-            return new(x, y);
+            ImGuiStylePtr tStyle = ImGui.GetStyle();
+            float tPadding = (pConsiderImguiPaddings ? (tStyle.WindowPadding.X + tStyle.FramePadding.X) : 0)
+                             + (pConsiderScrollbar ? tStyle.ScrollbarSize : 0);
+            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - pTargetItemWidth - tPadding);
         }
     }
 
     [Flags]
-    public enum InputFlag
+    public enum NodeInteractionFlags
     {
         None = 0,
-        MouseRight = 1,
-        MouseLeft = 2,
-        MouseMiddle = 3,
-        MouseUp = 4,
-        MouseDown = 5,
-        KeyShift = 6,
-        KeyCtrl = 7,
-        KeyAlt = 8,
-        KeyPlus = 9,
-        KeyMinus = 10,
-        KeyZero = 11
+        Handle = 1,
+        Internal = 2,
+        LockSelection = 4
+    }
+
+    [Flags]
+    public enum CanvasDrawFlags
+    {
+        None = 0,
+        NoInteract = 1,
+        NoCanvasInteraction = 2,
+        NoNodeInteraction = 4,
+        NoNodeDrag = 8,
+        NoNodeSnap = 16
     }
 }

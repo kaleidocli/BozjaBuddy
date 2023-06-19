@@ -12,9 +12,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public override string mType { get; } = "link";
 
         public NodeLink() { }
-        protected override InputFlag DrawBody(Vector2 pNodeOSP, float pCanvasScaling)
+        protected override NodeInteractionFlags DrawBody(Vector2 pNodeOSP, float pCanvasScaling)
         {
-            return InputFlag.None;
+            return NodeInteractionFlags.None;
         }
 
         public override void Dispose()

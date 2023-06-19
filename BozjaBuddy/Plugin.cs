@@ -27,6 +27,7 @@ namespace BozjaBuddy
         private const string CommandName = "/bb";
         public bool mIsMainWindowActive = false;
         private DateTime _mCycle1 = DateTime.Now;
+        public static bool _isImGuiSafe = false;
 
         public float TEXT_BASE_HEIGHT = ImGui.GetTextLineHeightWithSpacing();
         public Dictionary<string, string> DATA_PATHS = new Dictionary<string, string>();
@@ -146,6 +147,7 @@ namespace BozjaBuddy
 
         private void DrawUI()
         {
+            Plugin._isImGuiSafe = true;
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
             this.WindowSystem.Draw();
             this.GUIAssistManager.Draw();
@@ -161,6 +163,7 @@ namespace BozjaBuddy
 
         public void DrawConfigUI()
         {
+            Plugin._isImGuiSafe = true;
             WindowSystem.GetWindow("Config - BozjaBuddy")!.IsOpen = true;
         }
     }
