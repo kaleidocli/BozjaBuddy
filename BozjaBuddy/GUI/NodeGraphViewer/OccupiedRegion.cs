@@ -32,7 +32,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 var tStart = this.mCanvasNodeMap.GetNodeRelaPos(n.mId);
                 if (tStart == null) continue;
-                var tEnd = tStart.Value + n.GetSize();
+                var tEnd = tStart.Value + n.mStyle.GetSize();
                 this.AddRegion(tStart.Value, tEnd);
             }
         }

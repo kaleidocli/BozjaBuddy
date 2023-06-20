@@ -25,8 +25,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private readonly NodeMap mMap = new();
         private readonly Dictionary<string, Node> mNodes = new();
         private readonly HashSet<string> _nodeIds = new();
-        private readonly Dictionary<string, HashSet<Node>> mEdges = new();
-        private readonly Dictionary<string, HashSet<Node>> mEdgesReversed = new();      // readonly is required for OccupiedRegion to update
         private readonly OccupiedRegion mOccuppiedRegion;
         private CanvasConfig mConfig { get; set; } = new();
 
@@ -141,9 +139,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             bool tIsNodeClicked = false;
             FirstClickType tFirstClick = FirstClickType.None;
             // Process node delete
-            if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsKeyShift && pInputPayload.mIsMouseMid)
+            if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseMid)
             {
-                if (pNode.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                if (pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                     this.RemoveNode(pNode.mId);
             }
             else if (pNode._isMarkedDeleted)
@@ -153,7 +151,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // Process node select
             if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseLmb)
             {
-                if (pNode.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                if (pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                 {
                     // multi-selecting
                     if (pInputPayload.mIsKeyCtrl)
@@ -174,7 +172,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     }
                     tIsNodeHandleClicked = true;
                 }
-                else if (pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                else if (pNode.mStyle.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                 {
                     tIsNodeClicked = true;
                 }
@@ -186,9 +184,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                                         // First click in drag
                 if (!this._isNodeBeingDragged && this._isFirstFrameAfterLmbDown)
                 {
-                    if (pNode.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                    if (pNode.mStyle.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                     {
-                        if (pNode.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                        if (pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                             tFirstClick = FirstClickType.Handle;
                         else
                             tFirstClick = FirstClickType.Body;
@@ -345,7 +343,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     // Select using selectArea
                     if (tSelectScreenArea != null && !this._isNodeBeingDragged && this._firstClickInDrag == FirstClickType.None)
                     {
-                        if (tNode.CheckAreaIntersect(tNodeOSP.Value, this.mConfig.scaling, tSelectScreenArea))
+                        if (tNode.mStyle.CheckAreaIntersect(tNodeOSP.Value, this.mConfig.scaling, tSelectScreenArea))
                         {
                             this._selectedNode.Add(id);
                         }

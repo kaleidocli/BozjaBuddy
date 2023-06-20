@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using BozjaBuddy.GUI.Sections;
@@ -8,6 +9,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using QuickGraph;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -19,17 +21,23 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public static readonly Vector2 nodeInsidePadding = new(3.5f, 3.5f);
         public static readonly Vector2 minHandleSize = new(50, 20);
         public static readonly float handleButtonBoxItemWidth = 20;
+        protected bool _needReinit = false;
+        public bool _isMarkedDeleted = false;
 
         public abstract string mType { get; }
         public string mId { get; protected set; } = string.Empty;
 
-        protected NodeContent mContent = new();
-        protected NodeStyle mStyle = new(Vector2.Zero, Vector2.Zero);
+        public Node() { }
+
+
+        // ====================
+        // GUI Related
+        // ====================
+        public NodeContent mContent = new();
+        public NodeStyle mStyle = new(Vector2.Zero, Vector2.Zero);
         protected virtual Vector2 mRecommendedInitSize { get; } = new(100, 200);
         protected bool mIsMinimized = false;
-        public bool _isMarkedDeleted = false;
         public bool _isBusy = false;
-        protected bool _needReinit = false;
         protected Vector2? _lastUnminimizedSize = null;
 
         /// <summary>
@@ -37,68 +45,40 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// Factory is not an option due to AddNode being a generic method.
         /// Fix this smelly thing prob?
         /// </summary>
-        public Node() { }
         public virtual void Init(string pNodeId, string pHeader)
         {
             this.mId = pNodeId;
 
             // Basically SetHeader() and AdjustSizeToContent(),
             // but we need non-ImGui option for loading out of Draw()
-            this.mContent.header = pHeader;
+            this.SetHeader(pHeader);
             if (Plugin._isImGuiSafe)
             {
-                this.mStyle.SetHandleTextSize(ImGui.CalcTextSize(this.mContent.header));
+                this.mStyle.SetHandleTextSize(ImGui.CalcTextSize(this.mContent.GetHeader()));
             }
             else
             {
-                this.mStyle.SetHandleTextSize(new Vector2(this.mContent.header.Length * 6, 11));
+                this.mStyle.SetHandleTextSize(new Vector2(this.mContent.GetHeader().Length * 6, 11));
                 this._needReinit = true;
             }
 
-            this.SetSize(this.mRecommendedInitSize);
+            this.mStyle.SetSize(this.mRecommendedInitSize);
         }
         protected virtual void ReInit()
         {
-            this.SetHeader(this.GetHeader());               // adjust minSize to new header
-            this.SetSize(this.mRecommendedInitSize);        // adjust size to the new minSize
+            this.SetHeader(this.mContent.GetHeader());               // adjust minSize to new header
+            this.mStyle.SetSize(this.mRecommendedInitSize);        // adjust size to the new minSize
         }
-        public virtual void SetSize(Vector2 pSize, float pCanvasScaling = 1) => this.mStyle.SetSize(pSize / pCanvasScaling);
-        public Vector2 GetSize() => this.mStyle.GetSize();
-        public Vector2 GetSizeScaled(float pCanvasScaling) => this.mStyle.GetSize() * pCanvasScaling;
+
         public virtual void SetHeader(string pText, bool pAutoSizing = true)
         {
-            this.mContent.header = pText;
-            this.mStyle.SetHandleTextSize(ImGui.CalcTextSize(this.mContent.header));
-            if (pAutoSizing) this.AdjustSizeToContent();
+            this.mContent._setHeader(pText);
+            this.mStyle.SetHandleTextSize(ImGui.CalcTextSize(this.mContent.GetHeader()));
+            if (pAutoSizing) this.AdjustSizeToHeader();
         }
-        public virtual void SetDescription(string pText, bool pAutoSizing = true)
+        public virtual void AdjustSizeToHeader()
         {
-            this.mContent.detail = pText;
-            if (pAutoSizing) this.AdjustSizeToContent();
-        }
-        public virtual string GetHeader() => this.mContent.header;
-        public virtual string GetDescription() => this.mContent.detail;
-        public virtual void AdjustSizeToContent()
-        {
-            this.mStyle.SetSize(ImGui.CalcTextSize(this.mContent.header) + Node.nodeInsidePadding * 2);
-        }
-        public bool CheckPosWithin(Vector2 pNodeOSP, float pCanvasScaling, Vector2 pScreenPos)
-        {
-            var tNodeSize = this.mStyle.GetSizeScaled(pCanvasScaling);
-            Area tArea = new(pNodeOSP, tNodeSize);
-            return tArea.CheckPosIsWithin(pScreenPos);
-        }
-        public bool CheckPosWithinHandle(Vector2 pNodeOSP, float pCanvasScaling, Vector2 pScreenPos)
-        {
-            var tNodeSize = this.mStyle.GetHandleSize() * pCanvasScaling;
-            Area tArea = new(pNodeOSP, tNodeSize);
-            return tArea.CheckPosIsWithin(pScreenPos);
-        }
-        public bool CheckAreaIntersect(Vector2 pNodeOSP, float pCanvasScaling, Area pScreenArea)
-        {
-            var tNodeSize = this.mStyle.GetSizeScaled(pCanvasScaling);
-            Area tArea = new(pNodeOSP, tNodeSize);
-            return tArea.CheckAreaIntersect(pScreenArea);
+            this.mStyle.SetSize(ImGui.CalcTextSize(this.mContent.GetHeader()) + Node.nodeInsidePadding * 2);
         }
 
         public NodeInteractionFlags Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload)
@@ -112,12 +92,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // Minimize/Unminimize
             if (this.mIsMinimized && !this._lastUnminimizedSize.HasValue)
             {
-                this._lastUnminimizedSize = this.GetSize();
-                this.SetSize(new Vector2(this._lastUnminimizedSize.Value.X, 0));
+                this._lastUnminimizedSize = this.mStyle.GetSize();
+                this.mStyle.SetSize(new Vector2(this._lastUnminimizedSize.Value.X, 0));
             }
             else if (!this.mIsMinimized && this._lastUnminimizedSize.HasValue)
             {
-                this.SetSize(this._lastUnminimizedSize.Value);
+                this.mStyle.SetSize(this._lastUnminimizedSize.Value);
                 this._lastUnminimizedSize = null;
             }
 
@@ -147,9 +127,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // resize grip
             if (!this.mIsMinimized)
             {
-                Vector2 tGripSize = new(7, 7);
+                Vector2 tGripSize = new(10, 10);
                 tGripSize *= pCanvasScaling * 0.8f;     // making this scale less
-                ImGui.SetCursorScreenPos(tEnd - tGripSize / 2);
+                ImGui.SetCursorScreenPos(tEnd - tGripSize * 0.7f);
                 ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(this.mStyle.colorFg));
                 ImGui.Button($"##{this.mId}", tGripSize);
                 if (ImGui.IsItemHovered()) { ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNWSE); }
@@ -157,7 +137,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (ImGui.IsItemActive())
                 {
                     this._isBusy = true;
-                    this.SetSize(pInputPayload.mMousePos - pNodeOSP, pCanvasScaling);
+                    this.mStyle.SetSizeScaled(pInputPayload.mMousePos - pNodeOSP, pCanvasScaling);
                 }
                 if (this._isBusy && !pInputPayload.mIsMouseLmbDown) { this._isBusy = false; }
                 ImGui.PopStyleColor();
@@ -196,7 +176,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                         ((tHandleSize.Y - this.mStyle.GetHandleTextSize().Y * pCanvasScaling) / 2) + this.mStyle.handleTextPadding.Y * pCanvasScaling
                     )
                 );
-            ImGui.TextColored(UtilsGUI.Colors.NodeText, this.GetHeader());
+            ImGui.TextColored(UtilsGUI.Colors.NodeText, this.mContent.GetHeader());
 
             // ButtonBox
             ImGui.SameLine();
@@ -258,10 +238,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
         public struct NodeContent
         {
-            public string header = "";
-            public string detail = "";
+            private string header = "";
+            private string detail = "";
 
             public NodeContent() { }
+
+            public string GetHeader() => this.header;
+            public void _setHeader(string header) => this.header = header;
+            public string GetDetail() => this.detail;
+            public void SetDetail(string detail) => this.detail = detail;
+
         }
         public class NodeStyle
         {
@@ -289,8 +275,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this.size.Y = size.Y < this.minSize.Y ? this.minSize.Y : size.Y;
                 this.UpdatePartialSizes();
             }
+            public void SetSizeScaled(Vector2 size, float canvasScaling = 1) => this.SetSize(size / canvasScaling);
             public Vector2 GetSize() => this.size;
-            public Vector2 GetSizeScaled(float scaling) => this.GetSize() * scaling;
+            public Vector2 GetSizeScaled(float canvasScaling) => this.GetSize() * canvasScaling;
             public Vector2 GetHandleSize() => this.sizeHandle;
             public Vector2 GetHandleSizeScaled(float scaling) => this.GetHandleSize() * scaling;
             public Vector2 GetHandleTextSize() => this.handleTextSize;
@@ -318,6 +305,25 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 this.sizeBody.X = this.size.X;
                 this.sizeBody.Y = this.size.Y - this.sizeHandle.Y;
+            }
+
+            public bool CheckPosWithin(Vector2 nodeOSP, float canvasScaling, Vector2 screenPos)
+            {
+                var tNodeSize = this.GetSizeScaled(canvasScaling);
+                Area tArea = new(nodeOSP, tNodeSize);
+                return tArea.CheckPosIsWithin(screenPos);
+            }
+            public bool CheckPosWithinHandle(Vector2 nodeOSP, float canvasScaling, Vector2 screenPos)
+            {
+                var tNodeSize = this.GetHandleSize() * canvasScaling;
+                Area tArea = new(nodeOSP, tNodeSize);
+                return tArea.CheckPosIsWithin(screenPos);
+            }
+            public bool CheckAreaIntersect(Vector2 nodeOSP, float canvasScaling, Area screenArea)
+            {
+                var tNodeSize = this.GetSizeScaled(canvasScaling);
+                Area tArea = new(nodeOSP, tNodeSize);
+                return tArea.CheckAreaIntersect(screenArea);
             }
         }
     }

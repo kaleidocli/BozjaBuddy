@@ -32,6 +32,12 @@
         "resolved": "13.0.2",
         "contentHash": "R2pZ3B0UjeyHShm9vG+Tu0EBb2lC8b0dFzV9gVn50ofHXh9Smjk6kTn7A/FdAsC8B5cKib1OnGYOXxRBz5XQDg=="
       },
+      "QuickGraph": {
+        "type": "Direct",
+        "requested": "[3.6.61119.7, )",
+        "resolved": "3.6.61119.7",
+        "contentHash": "crtYNiFcYFtYbmbEfdYsdGw5M3923OO5ZZD25K+WeLPgTp/q4oq3U/FVrbaOK5+Jg8UJDmoZ6sqAVion4RgXCA=="
+      },
       "System.Data.SQLite": {
         "type": "Direct",
         "requested": "[1.0.117, )",
