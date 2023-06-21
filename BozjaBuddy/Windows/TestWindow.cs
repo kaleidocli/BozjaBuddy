@@ -11,9 +11,9 @@ namespace BozjaBuddy.Windows
         public static string kHandle = "Testing - Bozja Buddy";
 
         private Plugin mPlugin;
-        private NodeGraphViewer mGraphViewer = new();
+        private NodeGraphViewer mGraphViewer;
 
-        public TestWindow(Plugin plugin) : base("Testing - Bozja Buddy")
+        public TestWindow(Plugin plugin) : base("Testing - Bozja Buddy", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
         {
             this.SizeConstraints = new WindowSizeConstraints
             {
@@ -23,6 +23,7 @@ namespace BozjaBuddy.Windows
             this.SizeCondition = ImGuiCond.Once;
 
             this.mPlugin = plugin;
+            this.mGraphViewer = new(this.mPlugin);
         }
 
         public override void Draw()

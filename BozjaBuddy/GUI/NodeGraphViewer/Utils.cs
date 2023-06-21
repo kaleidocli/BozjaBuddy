@@ -24,8 +24,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.GetFont().Scale = Utils.defaultFontScale;
         }
         /// https://stackoverflow.com/questions/5953552/how-to-get-the-closest-number-from-a-listint-with-linq
-        public static float GetClosestItem(float itemToCompare, List<float> items)
-            => items.Aggregate((x, y) => Math.Abs(x - itemToCompare) < Math.Abs(y - itemToCompare) ? x : y);
+        public static float? GetClosestItem(float itemToCompare, List<float> items)
+            => items.Count == 0
+               ? null
+               : items.Aggregate((x, y) => Math.Abs(x - itemToCompare) < Math.Abs(y - itemToCompare) ? x : y);
         public static void AlignRight(float pTargetItemWidth, bool pConsiderScrollbar = false, bool pConsiderImguiPaddings = true)
         {
             ImGuiStylePtr tStyle = ImGui.GetStyle();

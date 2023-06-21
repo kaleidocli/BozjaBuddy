@@ -7,6 +7,7 @@ using ImGuiNET;
 using BozjaBuddy.Utils;
 using System.Linq;
 using static BozjaBuddy.Utils.UtilsGUI;
+using QuickGraph;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -16,16 +17,20 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     /// </summary>
     public class NodeCanvas : IDisposable
     {
-        public static float minScale = 0.25f;
+        public static float minScale = 0.4f;
         public static float maxScale = 2f;
         public static float stepScale = 0.1f;
 
-        private int _counter { get; set; } = -1;
+        private Plugin mPlugin;
+        public int mId;
+        public string mName;
+        private int _nodeCounter { get; set; } = -1;
 
         private readonly NodeMap mMap = new();
         private readonly Dictionary<string, Node> mNodes = new();
         private readonly HashSet<string> _nodeIds = new();
         private readonly OccupiedRegion mOccuppiedRegion;
+        private readonly AdjacencyGraph<int, SEdge<int>> mGraph;
         private CanvasConfig mConfig { get; set; } = new();
 
         private bool _isNodeBeingDragged = false;
@@ -37,23 +42,30 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private Vector2? _selectAreaOSP = null;
         private bool _isNodeSelectionLocked = false;
 
-        public NodeCanvas()
+        public NodeCanvas(Plugin pPlugin, int pId, string pName = "new canvas")
         {
+            this.mPlugin = pPlugin;
+            this.mId = pId;
+            this.mName = pName;
             this.mOccuppiedRegion = new(this.mNodes, this.mMap);
+            this.mGraph = new();
         }
+        public float GetScaling() => this.mConfig.scaling;
+        public void SetScaling(float pScale) => this.mConfig.scaling = pScale;
+        public Vector2 GetBaseOffset() => this.mMap.GetBaseOffset();
 
         /// <summary>
         /// Add node at pos relative to the canvas's origin.
         /// </summary>
         public string? AddNode<T>(
-                string pHeader,
+                Node.NodeContent pNodeContent,
                 Vector2 pDrawRelaPos
                           ) where T : Node, new()
         {
-            int tNewId = this._counter + 1;
+            int tNewId = this._nodeCounter + 1;
             // create node
             T tNode = new();
-            tNode.Init(tNewId.ToString(), pHeader);
+            tNode.Init(this.mPlugin, tNewId.ToString(), tNewId, pNodeContent);
             // add node
             try
             {
@@ -64,7 +76,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             catch (Exception e) { PluginLog.LogDebug(e.Message); }
 
-            this._counter++;
+            this._nodeCounter++;
             return tNode.mId;
         }
         /// <summary>
@@ -72,14 +84,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <para>Returns added node's ID if succeed, otherwise null.</para>
         /// </summary>
         public string? AddNodeToAvailableCorner<T>(
-                string pHeader,
+                Node.NodeContent pNodeContent,
                 Direction pCorner = Direction.NE,
                 Direction pDirection = Direction.E,
                 Vector2? pPadding = null
                                   ) where T : Node, new()
         {
             return this.AddNode<T>(
-                    pHeader,
+                    pNodeContent,
                     this.mOccuppiedRegion.GetAvailableRelaPos(pCorner, pDirection, pPadding ?? this.mConfig.nodeGap)
                 );
         }
@@ -88,7 +100,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <para>Returns added node's ID if succeed, otherwise null.</para>
         /// </summary>
         public string? AddNodeWithinView<T>(
-                string pHeader,
+                Node.NodeContent pNodeContent,
                 Vector2 pMasterScreenSize
                                   ) where T : Node, new()
         {
@@ -98,7 +110,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     pMasterScreenSize - tOffset
                 );
             return this.AddNode<T>(
-                    pHeader,
+                    pNodeContent,
                     this.mOccuppiedRegion.GetAvailableRelaPos(pRelaAreaToScanForAvailableRegion)
                 ); ;
         }
@@ -233,16 +245,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             switch (pInputPayload.mMouseWheelValue)
             {
                 case 1:
-                    if (this.mConfig.scaling >= NodeCanvas.maxScale)
-                        this.mConfig.scaling = NodeCanvas.maxScale;
-                    else
-                        this.mConfig.scaling += NodeCanvas.stepScale;
+                    this.mConfig.scaling += NodeCanvas.stepScale;
                     break;
                 case -1:
-                    if (this.mConfig.scaling <= NodeCanvas.minScale)
-                        this.mConfig.scaling = NodeCanvas.minScale;
-                    else
-                        this.mConfig.scaling -= NodeCanvas.stepScale;
+                    this.mConfig.scaling -= NodeCanvas.stepScale;
                     break;
             };
         }
@@ -358,6 +364,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                                     this.mConfig.scaling,
                                                     this._selectedNode.Contains(id),
                                                     pInputPayload);
+                // Draw node's coord display
+                var tNodeRelaPos = this.mMap.GetNodeRelaPos(id);
+                if (tNodeRelaPos.HasValue) 
+                    ImGui.GetWindowDrawList().AddText(tNodeOSP.Value + new Vector2(0, -30), ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), $"({tNodeRelaPos.Value.X}, {tNodeRelaPos.Value.Y})");
+
                 if (tNode._isBusy) tIsAnyNodeBusy = true;
                 // Process node's content interaction
                 if (tNodeRes.HasFlag(NodeInteractionFlags.Internal)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasInteraction | CanvasDrawFlags.NoNodeDrag | CanvasDrawFlags.NoNodeSnap;
@@ -449,12 +460,26 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
         public class CanvasConfig
         {
-            public float scaling;
+            private float _scaling;
+            public float scaling
+            {
+                get { return this._scaling; }
+                set
+                {
+                    if (value > NodeCanvas.maxScale)
+                        this._scaling = NodeCanvas.maxScale;
+                    else if (value < NodeCanvas.minScale)
+                        this._scaling = NodeCanvas.minScale;
+                    else
+                        this._scaling = value;
+                }
+            }
             public Vector2 nodeGap;
 
             public CanvasConfig()
             {
                 this.scaling = 1f;
+                this._scaling = 1f;
                 this.nodeGap = Vector2.One;
             }
         }

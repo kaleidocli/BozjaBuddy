@@ -7,11 +7,17 @@ using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
-    internal class NodeLink : Node
+    /// <summary>
+    /// Represents a basic info node with handle and description. 
+    /// </summary>
+    internal class NodeBasic : Node
     {
         public override string mType { get; } = "link";
 
-        public NodeLink() { }
+        public NodeBasic() : base()
+        {
+            this.mStyle.colorUnique = UtilsGUI.Colors.NormalBar_Grey;
+        }
         protected override NodeInteractionFlags DrawBody(Vector2 pNodeOSP, float pCanvasScaling)
         {
             return NodeInteractionFlags.None;
