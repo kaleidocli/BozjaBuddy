@@ -21,7 +21,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public static float maxScale = 2f;
         public static float stepScale = 0.1f;
 
-        private Plugin mPlugin;
         public int mId;
         public string mName;
         private int _nodeCounter { get; set; } = -1;
@@ -42,9 +41,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private Vector2? _selectAreaOSP = null;
         private bool _isNodeSelectionLocked = false;
 
-        public NodeCanvas(Plugin pPlugin, int pId, string pName = "new canvas")
+        public NodeCanvas(int pId, string pName = "new canvas")
         {
-            this.mPlugin = pPlugin;
             this.mId = pId;
             this.mName = pName;
             this.mOccuppiedRegion = new(this.mNodes, this.mMap);
@@ -65,7 +63,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             int tNewId = this._nodeCounter + 1;
             // create node
             T tNode = new();
-            tNode.Init(this.mPlugin, tNewId.ToString(), tNewId, pNodeContent);
+            tNode.Init(tNewId.ToString(), tNewId, pNodeContent);
             // add node
             try
             {

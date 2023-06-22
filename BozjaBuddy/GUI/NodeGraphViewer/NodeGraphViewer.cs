@@ -24,7 +24,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public const float kGridSnapProximity = 3.5f;
         private const float kRulerTextFadePeriod = 2500;
 
-        private Plugin mPlugin;
         private readonly Dictionary<int, NodeCanvas> _canvases = new();
         private readonly List<int> _canvasOrder = new();
         private int _canvasCounter = 0;
@@ -37,16 +36,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private DateTime? _rulerTextLastAppear = null;
         public Vector2? mSize = null;
 
-        public NodeGraphViewer(Plugin pPlugin)
+        public NodeGraphViewer()
         {
-            this.mPlugin = pPlugin;
             this.AddCanvas();
             this.mActiveCanvas = this.GetTopCanvas();
         }
 
         private void AddCanvas()
         {
-            NodeCanvas t = new(this.mPlugin, this._canvasCounter + 1);
+            NodeCanvas t = new(this._canvasCounter + 1);
             this._canvases.Add(t.mId, t);
             this._canvasOrder.Add(t.mId);
             this._canvasCounter++;
@@ -91,7 +89,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
             {
                 Node.NodeContent tContent = new("New node");
-                this.mActiveCanvas.AddNodeWithinView<NodeAuxiliary>(tContent, pViewerSize);
+                this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
             }            
         }
         private void DrawGraph(Area pGraphArea)
