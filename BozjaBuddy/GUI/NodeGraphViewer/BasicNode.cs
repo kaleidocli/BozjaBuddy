@@ -10,11 +10,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     /// <summary>
     /// Represents a basic info node with handle and description. 
     /// </summary>
-    internal class NodeBasic : Node
+    internal class BasicNode : Node
     {
         public override string mType { get; } = "link";
 
-        public NodeBasic() : base()
+        public BasicNode() : base()
         {
             this.mStyle.colorUnique = UtilsGUI.Colors.NormalBar_Grey;
         }

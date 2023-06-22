@@ -46,7 +46,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
         private void AddCanvas()
         {
-            NodeCanvas t = new(this.mPlugin, this._canvasCounter + 1);
+            NodeCanvas t = new(this._canvasCounter + 1);
             this._canvases.Add(t.mId, t);
             this._canvasOrder.Add(t.mId);
             this._canvasCounter++;
@@ -91,7 +91,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
             {
                 Node.NodeContent tContent = new("New node");
-                this.mActiveCanvas.AddNodeWithinView<NodeAuxiliary>(tContent, pViewerSize);
+                this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
             }            
         }
         private void DrawGraph(Area pGraphArea)

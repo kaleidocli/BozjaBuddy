@@ -23,7 +23,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public static readonly float handleButtonBoxItemWidth = 20;
         protected bool _needReinit = false;
         public bool _isMarkedDeleted = false;
-        protected Plugin? mPlugin = null;
 
         public abstract string mType { get; }
         public string mId { get; protected set; } = string.Empty;
@@ -47,9 +46,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// Factory is not an option due to AddNode being a generic method.
         /// Fix this smelly thing prob?
         /// </summary>
-        public virtual void Init(Plugin pPlugin, string pNodeId, int pGraphId, NodeContent pContent)
+        public virtual void Init(string pNodeId, int pGraphId, NodeContent pContent)
         {
-            this.mPlugin = pPlugin;
             this.mId = pNodeId;
             this.mGraphId = pGraphId;
 
@@ -243,24 +241,19 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
 
 
-        public struct NodeContent
+        public class NodeContent
         {
             private string header = "";
             private string description = "";
-            private int? genObjId = null;
 
             public NodeContent() { }
             public NodeContent(string header) { this.header = header; }
             public NodeContent(string header, string description) { this.header = header; this.description = description; }
-            public NodeContent(string header, int genObjId, string description = "")
-                { this.header = header; this.description = description; this.genObjId = genObjId; }
 
             public string GetHeader() => this.header;
             public void _setHeader(string header) => this.header = header;
             public string GetDescription() => this.description;
             public void SetDescription(string description) => this.description = description;
-            public int? GetGenObjId() => this.genObjId;
-            public void SetGenObjId(int id) => this.genObjId = id;
         }
         public class NodeStyle
         {
