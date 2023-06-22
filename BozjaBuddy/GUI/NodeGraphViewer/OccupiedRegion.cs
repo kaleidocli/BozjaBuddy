@@ -14,29 +14,27 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     {
         private readonly Set X = new();
         private readonly Set Y = new();
-        private readonly Dictionary<string, Node> mCanvasNodes;
-        private readonly NodeMap mCanvasNodeMap;
 
         private OccupiedRegion() { }
         public OccupiedRegion(Dictionary<string, Node> pNodes, NodeMap pMap)
         {
-            this.mCanvasNodeMap = pMap;
-            this.mCanvasNodes = pNodes;
-            this.Update();
+            
         }
 
-        public void Update()
+        
+        public void Update(Dictionary<string, Node> pNodes, NodeMap pMap)
         {
             this.ResetRegion();
-            foreach (var n in this.mCanvasNodes.Values)
+            foreach (var n in pNodes.Values)
             {
-                var tStart = this.mCanvasNodeMap.GetNodeRelaPos(n.mId);
+                var tStart = pMap.GetNodeRelaPos(n.mId);
                 if (tStart == null) continue;
                 var tEnd = tStart.Value + n.mStyle.GetSize();
                 this.AddRegion(tStart.Value, tEnd);
+                PluginLog.LogDebug($"> Loading occupied region: {tStart.Value} ---> {tEnd}");
             }
         }
-        public void AddRegion(Vector2 pStart, Vector2 pEnd)
+        private void AddRegion(Vector2 pStart, Vector2 pEnd)
         {
             switch (pStart.X)
             {
@@ -53,7 +51,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     this.Y.AddRange(pEnd.Y, y); break;
             }
         }
-        public void RemoveRegion(Vector2 pStart, Vector2 pEnd)
+        private void RemoveRegion(Vector2 pStart, Vector2 pEnd)
         {
             switch (pStart.X)
             {
@@ -70,7 +68,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     this.Y.RemoveRange(pEnd.Y, y); break;
             }
         }
-        public void ResetRegion()
+        private void ResetRegion()
         {
             this.X.ResetRange();
             this.Y.ResetRange();
@@ -88,8 +86,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             var tAnchor = OccupiedRegion.ToIntercardinal(pCornerAnchor);
             var tDir = OccupiedRegion.ToCardinal(pDir);
             var tPadding = pPadding ?? Vector2.Zero;
-
-            this.Update();
 
             switch (tAnchor)
             {
@@ -140,15 +136,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <summary>
         /// <para>Try to get the free-est relaPos within given relaArea.</para>
         /// <para>relaArea is an Area on the canvas that this OccupiedRegion belongs to.</para>
+        /// <para>Result are padded so that the occupied region aren't clumped up.</para>
         /// </summary>
-        public Vector2 GetAvailableRelaPos(Area pRelaArea)
+        public Vector2 GetAvailableRelaPos(Area pRelaArea, float pPadding = 8)
         {
-            this.Update();
             float? tBestX = this.X.FindTwoFurthestEndpoints(pRelaArea.start.X, pRelaArea.end.X)?.Item1;
             float? tBestY = this.Y.FindTwoFurthestEndpoints(pRelaArea.start.Y, pRelaArea.end.Y)?.Item1;
             if (!tBestX.HasValue) tBestX = pRelaArea.start.X;
             if (!tBestY.HasValue) tBestY = pRelaArea.start.Y;
-            return new(tBestX.Value, tBestY.Value);
+            return new(tBestX.Value + pPadding, tBestY.Value + pPadding);
         }
 
         public static Vector2? GetRecommendedOriginRelaPos(Area pArea, Direction pDir = Direction.E, Vector2? pPadding = null)

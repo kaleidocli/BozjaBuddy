@@ -2,7 +2,7 @@
 using System;
 using System.Numerics;
 
-namespace BozjaBuddy.GUI.NodeGraphViewer
+namespace BozjaBuddy.GUI.NodeGraphViewer.ext
 {
     /// <summary>
     /// Represents a node that display info from a BozjaBuddy's Auxiliary tab.
@@ -13,7 +13,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
         public NodeAuxiliary() : base()
         {
-            this.mStyle.colorUnique = UtilsGUI.Colors.NormalBar_Grey;
+            mStyle.colorUnique = UtilsGUI.Colors.NormalBar_Grey;
         }
         protected override NodeInteractionFlags DrawBody(Vector2 pNodeOSP, float pCanvasScaling)
         {

@@ -4,10 +4,12 @@ using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.Versioning;
+using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
 using ImGuiNET;
+using QuickGraph.Serialization;
 using static BozjaBuddy.Data.Location;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
@@ -20,6 +22,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private const float kUnitGridSmall_Default = 10;
         private const float kUnitGridLarge_Default = 50;
         public const float kGridSnapProximity = 3.5f;
+        private const float kRulerTextFadePeriod = 2500;
 
         private Plugin mPlugin;
         private readonly Dictionary<int, NodeCanvas> _canvases = new();
@@ -30,6 +33,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private float mUnitGridLarge = NodeGraphViewer.kUnitGridLarge_Default;
 
         private bool _isMouseHoldingViewer = false;
+        private bool _isShowingRulerText = false;
+        private DateTime? _rulerTextLastAppear = null;
         public Vector2? mSize = null;
 
         public NodeGraphViewer(Plugin pPlugin)
@@ -108,13 +113,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private void DrawGraphNodes(Area pGraphArea, GridSnapData pSnapData)
         {
             ImGui.SetCursorScreenPos(pGraphArea.start);
-
+            
             // check if mouse within viewer, and if mouse is holding on viewer.
             UtilsGUI.InputPayload tInputPayload = new();
             tInputPayload.CaptureInput();
             bool tIsWithinViewer = pGraphArea.CheckPosIsWithin(tInputPayload.mMousePos);
             this._isMouseHoldingViewer = tInputPayload.mIsMouseLmbDown && (tIsWithinViewer || this._isMouseHoldingViewer);
-            //PluginLog.LogDebug($"> inView={tIsWithinViewer} holdView={this._isMouseHoldingViewer} lmbDown={tInputPayload.mIsMouseLmbDown}");
+            
             if (tIsWithinViewer) { tInputPayload.CaptureMouseWheel(); }
             if (this._isMouseHoldingViewer) { tInputPayload.CaptureMouseDragDelta(); }
 
@@ -127,6 +132,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                                      ? CanvasDrawFlags.None
                                                      : CanvasDrawFlags.NoInteract
                                     );
+            if (tRes.HasFlag(CanvasDrawFlags.StateNodeDrag) || tRes.HasFlag(CanvasDrawFlags.StateCanvasDrag))
+            {
+                this._isShowingRulerText = true;
+                this._rulerTextLastAppear = DateTime.Now;
+            }
             // Snap lines
             if (!tRes.HasFlag(CanvasDrawFlags.NoNodeSnap)) this.DrawSnapLine(pGraphArea, pSnapData);
         }
@@ -138,13 +148,18 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.SetCursorScreenPos(pArea.start);
             var pDrawList = ImGui.GetWindowDrawList();
 
+            // Grid only adjusts to half of viewer size change,
+            // When the viewer's size change, its midpoint only moves a distance of half the size change.
+            // The canvas is anchored/offseted to the midpoint of viewer. Hence the canvas also moves half of size change.
+            // And the grid should move along with the canvas (grid displays canvas's plane afterall, not the viewer),
+            // honestly good luck with this.
             Vector2 tGridStart_S = pArea.start + new Vector2(
-                        (pOffset.X * pCanvasScale % tUGSmall),
-                        (pOffset.Y * pCanvasScale % tUGSmall)
+                        ((pOffset.X * pCanvasScale + (pArea.size.X * 0.5f)) % tUGSmall),      
+                        ((pOffset.Y * pCanvasScale + (pArea.size.Y * 0.5f)) % tUGSmall)       
                     );
             Vector2 tGridStart_L = pArea.start + new Vector2(
-                        (pOffset.X * pCanvasScale % tUGLarge),
-                        (pOffset.Y * pCanvasScale % tUGLarge)
+                        ((pOffset.X * pCanvasScale + (pArea.size.X * 0.5f)) % tUGLarge),
+                        ((pOffset.Y * pCanvasScale + (pArea.size.Y * 0.5f)) % tUGLarge)
                     );
 
             // backdrop
@@ -161,15 +176,49 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 pDrawList.AddLine(new Vector2(pArea.start.X, tGridStart_S.Y + i * tUGSmall), new Vector2(pArea.end.X, tGridStart_S.Y + i * tUGSmall), tGridColor, 1.0f);
             }
 
+            int tXFirstNotation = (int)(-pOffset.X * pCanvasScale - pArea.size.X / 2) / (int)tUGLarge * (int)this.mUnitGridLarge;
+            int tYFirstNotation = (int)(-pOffset.Y * pCanvasScale - pArea.size.Y / 2) / (int)tUGLarge * (int)this.mUnitGridLarge;
             for (var i = 0; i < (pArea.end.X - tGridStart_L.X) / tUGLarge; i++)        // vertical L
             {
                 pDrawList.AddLine(new Vector2(tGridStart_L.X + i * tUGLarge, pArea.start.Y), new Vector2(tGridStart_L.X + i * tUGLarge, pArea.end.Y), tGridColor, 2.0f);
                 tGridSnap.X.Add(tGridStart_L.X + i * tUGLarge);
+                if (this._isShowingRulerText)
+                {
+                    float tTrans = 1;
+                    if (this._rulerTextLastAppear.HasValue)
+                        tTrans = 1 - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / NodeGraphViewer.kRulerTextFadePeriod);
+                    pDrawList.AddText(
+                        new Vector2(tGridStart_L.X + i * tUGLarge, pArea.start.Y),
+                        ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeText, tTrans)),
+                        $"{(tXFirstNotation + (this.mUnitGridLarge * i)) / 10}");
+                    // fade check
+                    if (tTrans < 0.05f)
+                    {
+                        this._rulerTextLastAppear = null;
+                        this._isShowingRulerText = false;
+                    }
+                }
             }
             for (var i = 0; i < (pArea.end.Y - tGridStart_L.Y) / tUGLarge; i++)        // horizontal L
             {
                 pDrawList.AddLine(new Vector2(pArea.start.X, tGridStart_L.Y + i * tUGLarge), new Vector2(pArea.end.X, tGridStart_L.Y + i * tUGLarge), tGridColor, 2.0f);
                 tGridSnap.Y.Add(tGridStart_L.Y + i * tUGLarge);
+                if (this._isShowingRulerText)
+                {
+                    float tTrans = 1;
+                    if (this._rulerTextLastAppear.HasValue)
+                        tTrans = 1 - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / NodeGraphViewer.kRulerTextFadePeriod);
+                    pDrawList.AddText(
+                        new Vector2(pArea.start.X + 6, tGridStart_L.Y + i * tUGLarge),
+                        ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeText, tTrans)),
+                        $"{tYFirstNotation + (this.mUnitGridLarge * i)}");
+                    // fade check
+                    if (tTrans < 0.05f)
+                    {
+                        this._rulerTextLastAppear = null;
+                        this._isShowingRulerText = false;
+                    }
+                }
             }
 
             return tGridSnap;

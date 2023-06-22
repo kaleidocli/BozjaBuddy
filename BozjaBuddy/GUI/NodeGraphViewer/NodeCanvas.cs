@@ -34,7 +34,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private CanvasConfig mConfig { get; set; } = new();
 
         private bool _isNodeBeingDragged = false;
-        private HashSet<string> _selectedNode = new();
+        private HashSet<string> _selectedNodes = new();
         private Node? _snappingNode = null;
         private Vector2? _lastSnapDelta = null;
         private FirstClickType _firstClickInDrag = FirstClickType.None;
@@ -72,10 +72,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (!this.mNodes.TryAdd(tNode.mId, tNode)) return null;
                 if (!this._nodeIds.Add(tNode.mId)) return null;
                 this.mMap.AddNode(tNode.mId, pDrawRelaPos);
-                PluginLog.LogDebug($"> Import mapping for nodeId={tNode.mId} at ({pDrawRelaPos.X}, {pDrawRelaPos.Y})");
             }
             catch (Exception e) { PluginLog.LogDebug(e.Message); }
 
+            this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
             this._nodeCounter++;
             return tNode.mId;
         }
@@ -101,14 +101,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// </summary>
         public string? AddNodeWithinView<T>(
                 Node.NodeContent pNodeContent,
-                Vector2 pMasterScreenSize
+                Vector2 pViewerSize
                                   ) where T : Node, new()
         {
             var tOffset = this.mMap.GetBaseOffset();
             Area pRelaAreaToScanForAvailableRegion = new(
-                    new(0, tOffset.Y),
-                    pMasterScreenSize - tOffset
+                    -tOffset - pViewerSize * 0.5f,
+                    pViewerSize * 0.95f              // only get up until 0.8 of the screen to avoid the new node going out of viewer
                 );
+            PluginLog.LogDebug($"> Scanning: {pRelaAreaToScanForAvailableRegion.start} ---> {pRelaAreaToScanForAvailableRegion.end}");
             return this.AddNode<T>(
                     pNodeContent,
                     this.mOccuppiedRegion.GetAvailableRelaPos(pRelaAreaToScanForAvailableRegion)
@@ -124,7 +125,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (this.mNodes.ContainsKey(pNodeId)) { this.mNodes[pNodeId].Dispose(); }
             if (!this.mNodes.Remove(pNodeId)) tRes = false;
             if (!_nodeIds.Remove(pNodeId)) tRes = false;
-            this.mOccuppiedRegion.Update();
+            this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
             return tRes;
         }
         /// <summary>
@@ -153,7 +154,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // Process node delete
             if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseMid)
             {
-                if (pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                if (this._selectedNodes.Contains(pNode.mId)
+                    && pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
                     this.RemoveNode(pNode.mId);
             }
             else if (pNode._isMarkedDeleted)
@@ -169,18 +171,18 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     if (pInputPayload.mIsKeyCtrl)
                     {
                         // select
-                        if (!this._selectedNode.Contains(pNode.mId))
-                            this._selectedNode.Add(pNode.mId);
+                        if (!this._selectedNodes.Contains(pNode.mId))
+                            this._selectedNodes.Add(pNode.mId);
                         // remove
                         else
-                            this._selectedNode.Remove(pNode.mId);
+                            this._selectedNodes.Remove(pNode.mId);
                     }
                     // single-selecting node
                     else if (!pInputPayload.mIsALmbDragRelease)
                     {
                         pReadClicks = false;
-                        this._selectedNode.Clear();
-                        this._selectedNode.Add(pNode.mId);
+                        this._selectedNodes.Clear();
+                        this._selectedNodes.Add(pNode.mId);
                     }
                     tIsNodeHandleClicked = true;
                 }
@@ -216,11 +218,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                         this._isNodeBeingDragged = true;
                         this._snappingNode = pNode;
                         // single-selecting new node
-                        if (!pInputPayload.mIsKeyCtrl && !this._selectedNode.Contains(pNode.mId))
+                        if (!pInputPayload.mIsKeyCtrl && !this._selectedNodes.Contains(pNode.mId))
                         {
                             tIsNodeHandleClicked = true;
-                            this._selectedNode.Clear();
-                            this._selectedNode.Add(pNode.mId);
+                            this._selectedNodes.Clear();
+                            this._selectedNodes.Add(pNode.mId);
                         }
                     }
                     else if (tFirstClick == FirstClickType.Body)
@@ -237,20 +239,28 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             return new Tuple<bool, bool, bool, FirstClickType>(tIsNodeHandleClicked, pReadClicks, tIsNodeClicked, tFirstClick);
         }
-        public void ProcessInputOnCanvas(UtilsGUI.InputPayload pInputPayload)
+        public CanvasDrawFlags ProcessInputOnCanvas(UtilsGUI.InputPayload pInputPayload)
         {
+            CanvasDrawFlags pCanvasDrawFlags = CanvasDrawFlags.None;
             // Mouse drag
-            if (pInputPayload.mLmbDragDelta.HasValue) { this.mMap.AddBaseOffset(pInputPayload.mLmbDragDelta.Value / this.mConfig.scaling); }
+            if (pInputPayload.mLmbDragDelta.HasValue) 
+            { 
+                this.mMap.AddBaseOffset(pInputPayload.mLmbDragDelta.Value / this.mConfig.scaling);
+                pCanvasDrawFlags |= CanvasDrawFlags.StateCanvasDrag;
+            }
             // Mouse wheel zooming
             switch (pInputPayload.mMouseWheelValue)
             {
                 case 1:
                     this.mConfig.scaling += NodeCanvas.stepScale;
+                    pCanvasDrawFlags |= CanvasDrawFlags.StateCanvasDrag;
                     break;
                 case -1:
                     this.mConfig.scaling -= NodeCanvas.stepScale;
+                    pCanvasDrawFlags |= CanvasDrawFlags.StateCanvasDrag;
                     break;
             };
+            return pCanvasDrawFlags;
         }
         /// <summary>
         /// Interactable:   Window active. Either cursor within viewer, 
@@ -308,7 +318,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     Vector2? tNodeOSP = this.mMap.GetNodeScreenPos(node.mId, tCanvasOSP, this.mConfig.scaling);
                     if (tNodeOSP == null) continue;
-                    if (this._snappingNode != null && node.mId != this._snappingNode.mId && !this._selectedNode.Contains(node.mId))  // avoid snapping itself & selected nodess
+                    if (this._snappingNode != null && node.mId != this._snappingNode.mId && !this._selectedNodes.Contains(node.mId))  // avoid snapping itself & selected nodess
                     {
                         pSnapData?.AddUsingPos(tNodeOSP.Value);
                     }
@@ -351,23 +361,26 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     {
                         if (tNode.mStyle.CheckAreaIntersect(tNodeOSP.Value, this.mConfig.scaling, tSelectScreenArea))
                         {
-                            this._selectedNode.Add(id);
+                            this._selectedNodes.Add(id);
                         }
                     }
                 }
 
                 // Draw using NodeOSP
                 NodeInteractionFlags tNodeRes = tNode.Draw(
-                                                    tSnapDelta != null && this._selectedNode.Contains(id)
+                                                    tSnapDelta != null && this._selectedNodes.Contains(id)
                                                         ? tNodeOSP.Value + tSnapDelta.Value
                                                         : tNodeOSP.Value, 
                                                     this.mConfig.scaling,
-                                                    this._selectedNode.Contains(id),
+                                                    this._selectedNodes.Contains(id),
                                                     pInputPayload);
                 // Draw node's coord display
                 var tNodeRelaPos = this.mMap.GetNodeRelaPos(id);
-                if (tNodeRelaPos.HasValue) 
-                    ImGui.GetWindowDrawList().AddText(tNodeOSP.Value + new Vector2(0, -30), ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), $"({tNodeRelaPos.Value.X}, {tNodeRelaPos.Value.Y})");
+                if (this._isNodeBeingDragged && this._selectedNodes.Contains(tNode.mId) && tNodeRelaPos.HasValue) 
+                    ImGui.GetWindowDrawList().AddText(
+                        tNodeOSP.Value + new Vector2(0, -30) * this.GetScaling()
+                        , ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), 
+                        $"({(tNodeRelaPos.Value.X / 10):F1}, {(tNodeRelaPos.Value.Y / 2):F1})");
 
                 if (tNode._isBusy) tIsAnyNodeBusy = true;
                 // Process node's content interaction
@@ -390,7 +403,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 && (!tIsAnyNodeHandleClicked && (pInputPayload.mLmbDragDelta == null))
                 && !pInputPayload.mIsALmbDragRelease)
             {
-                this._selectedNode.Clear();
+                this._selectedNodes.Clear();
             }
 
 
@@ -407,20 +420,21 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     && pInputPayload.mLmbDragDelta.HasValue
                     && !pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoNodeDrag))
                 {
-                    foreach (var id in this._selectedNode)
+                    foreach (var id in this._selectedNodes)
                     {
                         this.mMap.MoveNodeRelaPos(
                             id,
                             pInputPayload.mLmbDragDelta.Value,
                             this.mConfig.scaling);
                     }
+                    pCanvasDrawFlag |= CanvasDrawFlags.StateNodeDrag;
                 }
                 // Snap if available
                 else if (!this._isNodeBeingDragged 
                          && this._lastSnapDelta != null 
                          && (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoNodeDrag) || !pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoNodeSnap)))
                 {
-                    foreach (var id in this._selectedNode)
+                    foreach (var id in this._selectedNodes)
                     {
                         this.mMap.MoveNodeRelaPos(
                             id,
@@ -428,6 +442,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                             this.mConfig.scaling);
                     }
                     this._lastSnapDelta = null;
+                    pCanvasDrawFlag |= CanvasDrawFlags.StateNodeDrag;
                 }
                 // Process input on canvas
                 if (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoCanvasInteraction)
@@ -436,7 +451,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     && (this._firstClickInDrag == FirstClickType.None || this._firstClickInDrag == FirstClickType.Body)
                     && this._selectAreaOSP == null)
                 {
-                    this.ProcessInputOnCanvas(pInputPayload);
+                    pCanvasDrawFlag |= this.ProcessInputOnCanvas(pInputPayload);
                 }
                     
             }

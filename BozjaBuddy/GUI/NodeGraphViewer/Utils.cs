@@ -54,6 +54,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         NoCanvasInteraction = 2,
         NoNodeInteraction = 4,
         NoNodeDrag = 8,
-        NoNodeSnap = 16
+        NoNodeSnap = 16,
+        StateNodeDrag = 32,
+        StateCanvasDrag = 64
     }
 }

@@ -154,12 +154,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <summary>
         /// <para>Find the two subsets with greatest distance between. Get the endpoints that made the distance, each endpoint from each subset.</para>
         /// <para>upperBound, lowerBound params define the range where the search will be.</para>
+        /// <para>Enabling random will randomly pick a pair of endpoints.</para>
         /// </summary>
-        public Tuple<float, float>? FindTwoFurthestEndpoints(float upperBound, float lowerBound)
+        public Tuple<float, float>? FindTwoFurthestEndpoints(float lowerBound, float upperBound, float minThresholdToTriggerRandom = 10)
         {
+            PluginLog.LogDebug($"> Finding furthest endpoints. Subset count: {this.subSets.Count}");
             List<float> endpoints = new();
             foreach (var s in subSets)
             {
+                PluginLog.LogDebug($"> Checking subset: lb={lowerBound} < ({s.negativeSide}, {s.positiveSide}) < ub={upperBound}");
                 // check if the search range is within a subset
                 if (s.negativeSide < lowerBound && s.positiveSide > upperBound) return null;
                 // update upperBound/lowerBound if it's within a subset
@@ -180,12 +183,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             endpoints.Add(upperBound);
             endpoints.Add(lowerBound);
             endpoints.Sort();
+            PluginLog.LogDebug($">>>>> Endpoints found: {string.Join(", ", endpoints)}");
             float? e1 = null;
             float? e2 = null;
-            for (int i = 0; i < endpoints.Count / 2; i += 2)
+            for (int i = 0; i + 1 < endpoints.Count; i += 2)
             {
-                if (e1 == null) e1 = endpoints[i];
-                if (e2 == null) e2 = endpoints[i + 1];
+                e1 ??= endpoints[i];
+                e2 ??= endpoints[i + 1];
 
                 if (endpoints[i + 1] - endpoints[i] > (e2.Value - e1.Value))
                 {
@@ -194,6 +198,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
             }
             if (!(e1.HasValue && e2.HasValue)) return null;
+            if (e2.Value - e1.Value < minThresholdToTriggerRandom)
+            {
+                int randomEnpointIdx = new Random().Next(0, endpoints.Count / 2);
+                e1 = endpoints[randomEnpointIdx];
+                e2 = endpoints[randomEnpointIdx + 1];
+                PluginLog.LogDebug($"> Random triggered! (endpoint-dist={e2.Value - e1.Value} < {minThresholdToTriggerRandom})");
+            }
+            PluginLog.LogDebug($">>>>> Endpoints chosen: left={e1.Value} right={e2.Value}");
             return new(e1.Value, e2.Value);
         }
 
