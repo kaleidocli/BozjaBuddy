@@ -7,7 +7,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
     /// <summary>
     /// Represents a node that display info from a BozjaBuddy's Auxiliary tab.
     /// </summary>
-    internal class AuxNode : Node
+    internal class AuxNode : BBNode
     {
         public override string mType { get; } = "aux";
 

@@ -8,6 +8,8 @@ using BozjaBuddy.Utils;
 using System.Linq;
 using static BozjaBuddy.Utils.UtilsGUI;
 using QuickGraph;
+using System.Diagnostics.Tracing;
+using BozjaBuddy.GUI.NodeGraphViewer.ext;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -30,6 +32,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private readonly HashSet<string> _nodeIds = new();
         private readonly OccupiedRegion mOccuppiedRegion;
         private readonly AdjacencyGraph<int, SEdge<int>> mGraph;
+        private readonly List<Edge> mEdges = new();
+        
         private CanvasConfig mConfig { get; set; } = new();
 
         private bool _isNodeBeingDragged = false;
@@ -47,6 +51,18 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.mName = pName;
             this.mOccuppiedRegion = new(this.mNodes, this.mMap);
             this.mGraph = new();
+
+            var nid1 = this.AddNodeToAvailableCorner<BasicNode>(new Node.NodeContent("1"));
+            var nid2 = this.AddNodeToAvailableCorner<BasicNode>(new Node.NodeContent("2"));
+            var nid3 = this.AddNodeToAvailableCorner<BasicNode>(new Node.NodeContent("3"));
+            var nid4 = this.AddNodeToAvailableCorner<BasicNode>(new Node.NodeContent("4"));
+            if (nid1 != null && nid2 != null && nid3 != null && nid4 != null)
+            {
+                this.AddEdge(nid1, nid2);
+                this.AddEdge(nid1, nid3);
+                this.AddEdge(nid2, nid4);
+                this.AddEdge(nid3, nid4);
+            }
         }
         public float GetScaling() => this.mConfig.scaling;
         public void SetScaling(float pScale) => this.mConfig.scaling = pScale;
@@ -55,7 +71,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <summary>
         /// Add node at pos relative to the canvas's origin.
         /// </summary>
-        public string? AddNode<T>(
+        protected string? AddNode<T>(
                 Node.NodeContent pNodeContent,
                 Vector2 pDrawRelaPos
                           ) where T : Node, new()
@@ -75,6 +91,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
             this._nodeCounter++;
+            // add node vertex to graph
+            this.mGraph.AddVertex(tNode.mGraphId);
             return tNode.mId;
         }
         /// <summary>
@@ -119,21 +137,83 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public bool RemoveNode(string pNodeId)
         {
             bool tRes = true;
+            int? tNodeGraphId = null;
             if (!this.mMap.RemoveNode(pNodeId)) tRes = false;
-            if (this.mNodes.ContainsKey(pNodeId)) { this.mNodes[pNodeId].Dispose(); }
+            if (this.mNodes.ContainsKey(pNodeId)) 
+            {
+                tNodeGraphId = this.mNodes[pNodeId].mGraphId;
+                this.mNodes[pNodeId].Dispose();
+            }
             if (!this.mNodes.Remove(pNodeId)) tRes = false;
             if (!_nodeIds.Remove(pNodeId)) tRes = false;
             this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
+            // Graph stuff
+            this.RemoveEdgesWithNodeId(pNodeId);
+            if (tNodeGraphId.HasValue) this.mGraph.RemoveVertex(tNodeGraphId.Value);
             return tRes;
         }
         /// <summary>
         /// <para>Create a directional edge connecting two nodes.</para>
-        /// <para>Return false if one of the nodes DNE, otherwise true.</para>
+        /// <para>Return false if any DNE or there's already an edge with the same direction, otherwise true.</para>
         /// </summary>
-        public bool ConnectNodes(string pNodeIdStart, string pNodeIdEnd)
+        public bool AddEdge(string pSourceNodeId, string pTargetNodeId)
         {
-            if (!(this.HasNode(pNodeIdStart) && this.HasNode(pNodeIdEnd))) return false;
+            if (!(this.HasNode(pSourceNodeId) && this.HasNode(pTargetNodeId))
+                || this.GetEdge(pSourceNodeId, pTargetNodeId) != null)
+                return false;
+            Edge tEdge = new(pSourceNodeId, pTargetNodeId, new SEdge<int>(this.mNodes[pSourceNodeId].mGraphId, this.mNodes[pTargetNodeId].mGraphId));
+            this.mEdges.Add(tEdge);
+            this.mGraph.AddEdge(tEdge.GetEdge());
 
+            return true;
+        }
+        /// <summary><para>Options: SOURCE to use edge's source for searching. TARGET for target, and EITHER for either source or target.</para></summary>
+        public List<Edge> GetEdgesWithNodeId(string pNodeId, EdgeEndpointOption pOption = EdgeEndpointOption.Either)
+        {
+            List<Edge> tRes = new();
+            foreach (Edge e in this.mEdges)
+            {
+                if (pOption switch
+                    {
+                        EdgeEndpointOption.Source => e.StartsWith(pNodeId),
+                        EdgeEndpointOption.Target => e.EndsWith(pNodeId),
+                        EdgeEndpointOption.Either => e.EitherWith(pNodeId),
+                        _ => e.EitherWith(pNodeId)
+                    })
+                {
+                    tRes.Add(e);
+                }
+            }
+            return tRes;
+        }
+        /// <summary>Return an edge with the same direction, otherwise null.</summary>
+        public Edge? GetEdge(string pSourceNodeId, string pTargetNodeId)
+        {
+            foreach (Edge e in this.mEdges)
+            {
+                if (e.BothWith(pSourceNodeId, pTargetNodeId)) return e;
+            }
+            return null;
+        }
+        /// <summary>Return false if no edge has the endpoint with given type equal to nodeId, otherwise true.</summary>
+        public bool RemoveEdgesWithNodeId(string pNodeId, EdgeEndpointOption pOption = EdgeEndpointOption.Either)
+        {
+            List<Edge> tEdges = this.GetEdgesWithNodeId(pNodeId, pOption);
+            if (tEdges.Count == 0) return false;
+            foreach (Edge e in tEdges)
+            {
+                this.mGraph.RemoveEdge(e.GetEdge());
+                this.mEdges.Remove(e);
+            }
+            return true;
+        }
+        /// <summary>Return true if an edge is removed, otherwise false.</summary>
+        public bool RemoveEdge(string pSourceNodeId, string pTargetNodeId)
+        {
+            var tEdge = this.GetEdge(pSourceNodeId, pTargetNodeId);
+            if (tEdge == null) return false;
+            this.mGraph.RemoveEdge(tEdge.GetEdge());
+            this.mEdges.Remove(tEdge);
             return true;
         }
         /// <summary>
@@ -334,10 +414,28 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
             }
 
+            // =====================
             // Draw
+            // =====================
             FirstClickType tFirstClickScanRes = FirstClickType.None;
             bool tIsAnyNodeBusy = false;
             bool tIsLockingSelection = false;
+
+            // Draw edges
+            ImDrawListPtr tDrawList = ImGui.GetWindowDrawList();
+            foreach (Edge e in this.mEdges)
+            {
+                if (!this.mNodes.TryGetValue(e.GetSourceNodeId(), out var tSourceNode)
+                    || !this.mNodes.TryGetValue(e.GetTargetNodeId(), out var tTargetNode)) continue;
+                Vector2? tSourceOSP = this.mMap.GetNodeScreenPos(tSourceNode.mId, tCanvasOSP, this.mConfig.scaling);
+                if (!tSourceOSP.HasValue) continue;
+                Vector2? tTargetOSP = this.mMap.GetNodeScreenPos(tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
+                if (!tTargetOSP.HasValue) continue;
+
+                //PluginLog.LogDebug($"> Drawing edge from {tSourceOSP} to {tTargetOSP}!");
+                e.Draw(tDrawList, tSourceOSP.Value, tTargetOSP.Value);
+            }
+            // Draw nodes
             foreach (var id in this._nodeIds)
             {
                 // Get NodeOSP
@@ -514,5 +612,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         W = 6,
         NW = 7,
         None = 8
+    }
+    public enum EdgeEndpointOption
+    {
+        None = 0,
+        Source = 1,
+        Target = 2,
+        Either = 3
     }
 }

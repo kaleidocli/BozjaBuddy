@@ -53,14 +53,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             // Basically SetHeader() and AdjustSizeToContent(),
             // but we need non-ImGui option for loading out of Draw()
-            this.SetHeader(pContent.GetHeader());
             if (Plugin._isImGuiSafe)
             {
-                this.mStyle.SetHandleTextSize(ImGui.CalcTextSize(this.mContent.GetHeader()));
+                this.SetHeader(pContent.GetHeader());
             }
             else
             {
+                this.mContent._setHeader(pContent.GetHeader());
                 this.mStyle.SetHandleTextSize(new Vector2(this.mContent.GetHeader().Length * 6, 11));
+                this.mStyle.SetSize(new Vector2(this.mContent.GetHeader().Length * 6, 11) + Node.nodeInsidePadding * 2);
                 this._needReinit = true;
             }
 

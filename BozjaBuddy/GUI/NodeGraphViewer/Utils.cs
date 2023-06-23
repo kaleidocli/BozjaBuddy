@@ -35,6 +35,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                              + (pConsiderScrollbar ? tStyle.ScrollbarSize : 0);
             ImGui.SetCursorPosX(ImGui.GetWindowWidth() - pTargetItemWidth - tPadding);
         }
+        public static float GetGreaterVal(float v1, float v2) => v1 > v2 ? v1 : v2;
+        public static float GetSmallerVal(float v1, float v2) => v1 < v2 ? v1 : v2;
     }
 
     [Flags]
