@@ -41,15 +41,16 @@ namespace BozjaBuddy.Utils
                 ImGui.TextUnformatted(markerText);
             UtilsGUI.SetTooltipForLastItem(desc);
         }
-        public static void SetTooltipForLastItem(string tDesc, float tSize = 450.0f)
+        public static bool SetTooltipForLastItem(string tDesc, float tSize = 450.0f)
         {
-            if (!ImGui.IsItemHovered()) return;
+            if (!ImGui.IsItemHovered()) return false;
 
             ImGui.BeginTooltip();
             ImGui.PushTextWrapPos(tSize);
             ImGui.TextUnformatted(tDesc);
             ImGui.PopTextWrapPos();
             ImGui.EndTooltip();
+            return true;
         }
         public static void TextWithHelpMarker(string pText, string pHelpMarkerText = "", Vector4? pColor = null)
         {

@@ -1,9 +1,10 @@
 ﻿using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Common.Math;
+using System.Numerics;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -37,6 +38,25 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         public static float GetGreaterVal(float v1, float v2) => v1 > v2 ? v1 : v2;
         public static float GetSmallerVal(float v1, float v2) => v1 < v2 ? v1 : v2;
+
+        /// https://git.anna.lgbt/ascclemens/QuestMap/src/branch/main/QuestMap/PluginUi.cs#L778
+        public static void DrawArrow(ImDrawListPtr drawList, Vector2 start, Vector2 end, Vector4 color, float baseMultiplier = 1.5f)
+        {
+            const float arrowAngle = 30f;
+            var dir = end - start;
+            var h = dir;
+            dir /= dir.Length();
+
+            var s = new Vector2(-dir.Y, dir.X);
+            s *= (float)(h.Length() * Math.Tan(arrowAngle * 0.5f * (Math.PI / 180f)));
+
+            drawList.AddTriangleFilled(
+                start + s * baseMultiplier,
+                end,
+                start - s * baseMultiplier,
+                ImGui.ColorConvertFloat4ToU32(color)
+            );
+        }
     }
 
     [Flags]
@@ -45,7 +65,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         None = 0,
         Handle = 1,
         Internal = 2,
-        LockSelection = 4
+        LockSelection = 4,
+        Edge = 8
     }
 
     [Flags]
@@ -58,6 +79,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         NoNodeDrag = 8,
         NoNodeSnap = 16,
         StateNodeDrag = 32,
-        StateCanvasDrag = 64
+        StateCanvasDrag = 64,
+        NoCanvasDrag = 128
     }
 }

@@ -433,7 +433,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (!tTargetOSP.HasValue) continue;
 
                 //PluginLog.LogDebug($"> Drawing edge from {tSourceOSP} to {tTargetOSP}!");
-                e.Draw(tDrawList, tSourceOSP.Value, tTargetOSP.Value);
+                NodeInteractionFlags tEdgeRes = e.Draw(tDrawList, tSourceOSP.Value, tTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()));
+                if (tEdgeRes.HasFlag(NodeInteractionFlags.Edge)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
             }
             // Draw nodes
             foreach (var id in this._nodeIds)
@@ -542,6 +543,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
                 // Process input on canvas
                 if (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoCanvasInteraction)
+                    && !pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoCanvasDrag)
                     && !this._isNodeBeingDragged 
                     && !tIsAnyNodeClicked
                     && (this._firstClickInDrag == FirstClickType.None || this._firstClickInDrag == FirstClickType.Body)
