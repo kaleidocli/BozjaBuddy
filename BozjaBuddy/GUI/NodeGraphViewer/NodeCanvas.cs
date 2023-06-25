@@ -10,6 +10,7 @@ using static BozjaBuddy.Utils.UtilsGUI;
 using QuickGraph;
 using System.Diagnostics.Tracing;
 using BozjaBuddy.GUI.NodeGraphViewer.ext;
+using QuickGraph.Algorithms;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -44,6 +45,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private bool _isFirstFrameAfterLmbDown = true;      // specifically for Draw()
         private Vector2? _selectAreaOSP = null;
         private bool _isNodeSelectionLocked = false;
+        private EdgeConn? _nodeConnTemp = null;
 
         public NodeCanvas(int pId, string pName = "new canvas")
         {
@@ -154,7 +156,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         /// <summary>
         /// <para>Create a directional edge connecting two nodes.</para>
-        /// <para>Return false if any DNE or there's already an edge with the same direction, otherwise true.</para>
+        /// <para>Return false if any node DNE, or there's already an edge with the same direction, or the new edge would introduce cycle.</para>
         /// </summary>
         public bool AddEdge(string pSourceNodeId, string pTargetNodeId)
         {
@@ -162,8 +164,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 || this.GetEdge(pSourceNodeId, pTargetNodeId) != null)
                 return false;
             Edge tEdge = new(pSourceNodeId, pTargetNodeId, new SEdge<int>(this.mNodes[pSourceNodeId].mGraphId, this.mNodes[pTargetNodeId].mGraphId));
-            this.mEdges.Add(tEdge);
             this.mGraph.AddEdge(tEdge.GetEdge());
+            // check cycle
+            if (!this.mGraph.IsDirectedAcyclicGraph())
+            {
+                this.mGraph.RemoveEdge(tEdge.GetEdge());
+                return false;
+            }
+            this.mEdges.Add(tEdge);
 
             return true;
         }
@@ -420,6 +428,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             FirstClickType tFirstClickScanRes = FirstClickType.None;
             bool tIsAnyNodeBusy = false;
             bool tIsLockingSelection = false;
+            bool tIsRemovingConn = false;        // for outside node drawing loop
 
             // Draw edges
             ImDrawListPtr tDrawList = ImGui.GetWindowDrawList();
@@ -432,7 +441,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 Vector2? tTargetOSP = this.mMap.GetNodeScreenPos(tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
                 if (!tTargetOSP.HasValue) continue;
 
-                //PluginLog.LogDebug($"> Drawing edge from {tSourceOSP} to {tTargetOSP}!");
                 NodeInteractionFlags tEdgeRes = e.Draw(tDrawList, tSourceOSP.Value, tTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()));
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.Edge)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
             }
@@ -467,11 +475,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 NodeInteractionFlags tNodeRes = tNode.Draw(
                                                     tSnapDelta != null && this._selectedNodes.Contains(id)
                                                         ? tNodeOSP.Value + tSnapDelta.Value
-                                                        : tNodeOSP.Value, 
+                                                        : tNodeOSP.Value,
                                                     this.mConfig.scaling,
                                                     this._selectedNodes.Contains(id),
-                                                    pInputPayload);
-                // Draw node's coord display
+                                                    pInputPayload,
+                                                    pIsEstablishingConn: this._nodeConnTemp != null && this._nodeConnTemp.IsSource(tNode.mId));
                 var tNodeRelaPos = this.mMap.GetNodeRelaPos(id);
                 if (this._isNodeBeingDragged && this._selectedNodes.Contains(tNode.mId) && tNodeRelaPos.HasValue) 
                     ImGui.GetWindowDrawList().AddText(
@@ -486,7 +494,55 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     tIsLockingSelection = true;
                 }
+                if (this._nodeConnTemp != null
+                    && pInputPayload.mIsMouseRmb
+                    && this._nodeConnTemp.IsSource(tNode.mId)
+                    && !(tNodeRes.HasFlag(NodeInteractionFlags.RequestingEdgeConn)))
+                {
+                    PluginLog.LogDebug($"> Unreqqing outside...");
+                    tIsRemovingConn = true;             // abort connection establishing if RMB outside of connecting plug
+                }
+                if (this._nodeConnTemp != null
+                    && pInputPayload.mIsMouseRmb
+                    && this._nodeConnTemp.IsSource(tNode.mId))
+                {
+                    PluginLog.LogDebug($"> Test");
+                }
+                // Node connection
+                var tConnRes = this._nodeConnTemp?.GetConn();
+                if (tConnRes != null)                                                     // implement conn
+                {
+                    this.AddEdge(tConnRes.Item1, tConnRes.Item2);
+                    this._nodeConnTemp = null;
+                }
+                else if (tNodeRes.HasFlag(NodeInteractionFlags.UnrequestingEdgeConn))
+                {
+                    PluginLog.LogDebug($"> Unreqqing...");
+                    this._nodeConnTemp = null;
+                }
+                else if (tNodeRes.HasFlag(NodeInteractionFlags.RequestingEdgeConn))       // setup conn
+                {
+                    // establishing new conn
+                    if (this._nodeConnTemp == null)
+                    {
+                        PluginLog.LogDebug($"> Establishing conn...");
+                        this._nodeConnTemp = new(tNode.mId);
+                    }
+                    // connect to existing conn
+                    else
+                    {
+                        PluginLog.LogDebug($"> Conn to a node...");
+                        this._nodeConnTemp.Connect(tNode.mId);
+                    }
+                }
+                // Draw conn tether to cursor
+                if (this._nodeConnTemp != null && this._nodeConnTemp.IsSource(tNode.mId))
+                {
+                    tDrawList.AddLine(tNodeOSP.Value, pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
+                    tDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "Right-click a plug on another node to connect.\nRight-click elsewhere to cancel.");
+                }
             }
+            if (tIsRemovingConn && this._nodeConnTemp?.GetConn() == null) this._nodeConnTemp = null;
             if (tIsLockingSelection) this._isNodeSelectionLocked = true;
             else this._isNodeSelectionLocked = false;
             // Capture drag's first click. State Body or Handle can only be accessed from state None.
@@ -601,6 +657,29 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             None = 0,
             Handle = 1,
             Body = 2
+        }
+        private class EdgeConn
+        {
+            private readonly string source;
+            private string? target;
+
+            private EdgeConn() { }
+            public EdgeConn(string sourceNodeId) => this.source = sourceNodeId;
+            /// <summary>Set the target node. If target is the same as source, return false, otherwise true.</summary>
+            public bool Connect(string targetNodeId)
+            {
+                if (this.source == targetNodeId) return false;
+                this.target = targetNodeId;
+                return true;
+            }
+            private bool IsEstablished() => this.target != null;
+            public bool IsSource(string nodeId) => this.source == nodeId;
+            /// <summary>Get a connection between two nodes. If connection is not established, returns null, otherwise a tuple of (source, target)</summary>
+            public Tuple<string, string>? GetConn()
+            {
+                if (!this.IsEstablished()) return null;
+                return new(this.source, this.target!);
+            }
         }
     }
     public enum Direction

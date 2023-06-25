@@ -47,7 +47,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             // Anchor stuff
             Vector2 tAnchorOSP;
-            Vector2 tAnchorSize = new(10.5f, 10.5f);
+            Vector2 tAnchorSize = new(7.5f, 7.5f);
             float tTrasnsparency = 0.4f;
             Vector2? tClipRectEnd = null;
             if (this.mSquarePathingEnabled)
@@ -95,7 +95,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // Anchor button (behaviour)
             bool tIsHovered = false;
             ImGui.SetCursorScreenPos(tAnchorOSP - tAnchorSize);
-            ImGui.InvisibleButton($"ea{this.mSourceNodeId}{this.mTargetNodeId}", tAnchorSize * 2, ImGuiButtonFlags.MouseButtonLeft);
+            ImGui.InvisibleButton($"ea{this.mSourceNodeId}{this.mTargetNodeId}", tAnchorSize * 3f, ImGuiButtonFlags.MouseButtonLeft);
             if (ImGui.IsItemActive())
             {
                 tRes |= NodeInteractionFlags.Edge;
@@ -172,7 +172,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                             new Vector2(Utils.GetSmallerVal(tAnchorOSP.X, tClipRectEnd.Value.X), Utils.GetSmallerVal(tAnchorOSP.Y, tClipRectEnd.Value.Y)),
                                             new Vector2(Utils.GetGreaterVal(tAnchorOSP.X, tClipRectEnd.Value.X), Utils.GetGreaterVal(tAnchorOSP.Y, tClipRectEnd.Value.Y))
                                             );
-            pDrawList.AddCircleFilled(tAnchorOSP, tAnchorSize.X * 0.75f, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, tIsHovered ? 1 : tTrasnsparency)));
+            pDrawList.AddCircleFilled(tAnchorOSP, tAnchorSize.X * 0.75f, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, (tIsHovered || tClipRectEnd.HasValue) ? 1 : tTrasnsparency)));
             if (tClipRectEnd.HasValue) pDrawList.PopClipRect();
 
             // Line

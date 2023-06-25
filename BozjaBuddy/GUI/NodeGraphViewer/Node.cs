@@ -84,7 +84,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.mStyle.SetSize(ImGui.CalcTextSize(this.mContent.GetHeader()) + Node.nodeInsidePadding * 2);
         }
 
-        public NodeInteractionFlags Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload)
+        public NodeInteractionFlags Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload, bool pIsEstablishingConn = false)
         {
             // Re-calculate ImGui-dependant members, if required.
             if (this._needReinit)
@@ -121,18 +121,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 ImDrawFlags.None,
                 (pIsActive ? 6.5f : 4f) * pCanvasScaling);
 
-            // backdrop
-            tDrawList.AddRectFilled(
-                pNodeOSP,
-                tEnd,
-                ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
-
             // resize grip
             if (!this.mIsMinimized)
             {
                 Vector2 tGripSize = new(10, 10);
                 tGripSize *= pCanvasScaling * 0.8f;     // making this scale less
-                ImGui.SetCursorScreenPos(tEnd - tGripSize * 0.7f);
+                ImGui.SetCursorScreenPos(tEnd - tGripSize * (pIsActive ? 0.425f : 0.57f));
                 ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(this.mStyle.colorFg));
                 ImGui.Button($"##{this.mId}", tGripSize);
                 if (ImGui.IsItemHovered()) { ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNWSE); }
@@ -147,6 +141,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 ImGui.SetCursorScreenPos(pNodeOSP);
             }
 
+            // backdrop
+            tDrawList.AddRectFilled(
+                pNodeOSP,
+                tEnd,
+                ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
+
             // node content (handle, body)
             Utils.PushFontScale(pCanvasScaling);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Node.nodeInsidePadding * pCanvasScaling);
@@ -160,6 +160,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             tRes |= this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
             tRes |= this.DrawBody(pNodeOSP, pCanvasScaling);
             ImGui.EndChild();
+            tRes |= this.DrawEdgePlugButton(tDrawList, pNodeOSP, pIsActive, pIsEstablishingConn: pIsEstablishingConn);
 
             ImGui.PopStyleVar();
             Utils.PopFontScale();
@@ -235,6 +236,29 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 tRes |= NodeInteractionFlags.Internal | NodeInteractionFlags.LockSelection;
             }
 
+            return tRes;
+        }
+        /// <summary>Draw this in NodeCanvas. Drawing it in Node would mask the thing.</summary>
+        public NodeInteractionFlags DrawEdgePlugButton(ImDrawListPtr pDrawList, Vector2 pNodeOSP, bool pIsActive, bool pIsEstablishingConn = false)
+        {
+            NodeInteractionFlags tRes = NodeInteractionFlags.None;
+            Vector2 tSize = new(4f, 4f);
+            bool tIsHovered = false;
+            Vector2 tOriAnchor = ImGui.GetCursorScreenPos();
+            ImGui.SetCursorScreenPos(pNodeOSP - (tSize * 3f));
+            if (ImGui.InvisibleButton($"eb{this.mId}", tSize * 3f, ImGuiButtonFlags.MouseButtonRight))
+            {
+                tRes |= pIsEstablishingConn ? NodeInteractionFlags.UnrequestingEdgeConn : NodeInteractionFlags.RequestingEdgeConn;
+            }
+            else if (UtilsGUI.SetTooltipForLastItem("Right-click this plug to start connecting this node to another node."))
+            {
+                tIsHovered = true;
+            }
+            ImGui.SetCursorScreenPos(tOriAnchor);
+            // Draw
+            pDrawList.AddCircleFilled(pNodeOSP - tSize, tSize.X * ((tIsHovered || pIsEstablishingConn) ? 1.5f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, (pIsActive || tIsHovered || pIsEstablishingConn) ? 1f : 0.7f)));
+            pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.7f) * ((tIsHovered || pIsEstablishingConn) ? 1.5f : 1), ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
+            pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.5f) * ((tIsHovered || pIsEstablishingConn) ? 1.5f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, (pIsActive || pIsEstablishingConn) ? 0.55f : 0.25f)));
             return tRes;
         }
 
