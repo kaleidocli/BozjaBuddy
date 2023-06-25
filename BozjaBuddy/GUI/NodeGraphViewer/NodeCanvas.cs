@@ -432,6 +432,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             // Draw edges
             ImDrawListPtr tDrawList = ImGui.GetWindowDrawList();
+            List<Edge> tEdgeToRemove = new();
             foreach (Edge e in this.mEdges)
             {
                 if (!this.mNodes.TryGetValue(e.GetSourceNodeId(), out var tSourceNode)
@@ -443,7 +444,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
                 NodeInteractionFlags tEdgeRes = e.Draw(tDrawList, tSourceOSP.Value, tTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()));
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.Edge)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
+                if (tEdgeRes.HasFlag(NodeInteractionFlags.RequestEdgeRemoval)) tEdgeToRemove.Add(e);
             }
+            foreach (var e in tEdgeToRemove) this.RemoveEdge(e.GetSourceNodeId(), e.GetTargetNodeId());
             // Draw nodes
             foreach (var id in this._nodeIds)
             {
@@ -499,14 +502,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     && this._nodeConnTemp.IsSource(tNode.mId)
                     && !(tNodeRes.HasFlag(NodeInteractionFlags.RequestingEdgeConn)))
                 {
-                    PluginLog.LogDebug($"> Unreqqing outside...");
                     tIsRemovingConn = true;             // abort connection establishing if RMB outside of connecting plug
-                }
-                if (this._nodeConnTemp != null
-                    && pInputPayload.mIsMouseRmb
-                    && this._nodeConnTemp.IsSource(tNode.mId))
-                {
-                    PluginLog.LogDebug($"> Test");
                 }
                 // Node connection
                 var tConnRes = this._nodeConnTemp?.GetConn();
@@ -517,7 +513,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
                 else if (tNodeRes.HasFlag(NodeInteractionFlags.UnrequestingEdgeConn))
                 {
-                    PluginLog.LogDebug($"> Unreqqing...");
                     this._nodeConnTemp = null;
                 }
                 else if (tNodeRes.HasFlag(NodeInteractionFlags.RequestingEdgeConn))       // setup conn
@@ -525,13 +520,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     // establishing new conn
                     if (this._nodeConnTemp == null)
                     {
-                        PluginLog.LogDebug($"> Establishing conn...");
                         this._nodeConnTemp = new(tNode.mId);
                     }
                     // connect to existing conn
                     else
                     {
-                        PluginLog.LogDebug($"> Conn to a node...");
                         this._nodeConnTemp.Connect(tNode.mId);
                     }
                 }
@@ -539,7 +532,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (this._nodeConnTemp != null && this._nodeConnTemp.IsSource(tNode.mId))
                 {
                     tDrawList.AddLine(tNodeOSP.Value, pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
-                    tDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "Right-click a plug on another node to connect.\nRight-click elsewhere to cancel.");
+                    tDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "[Right-click] another plug to connect.\n[Right-click] elsewhere to cancel.\n\nConnections that cause cycling will not connect. For more info, please hover the question mark on the toolbar.");
                 }
             }
             if (tIsRemovingConn && this._nodeConnTemp?.GetConn() == null) this._nodeConnTemp = null;

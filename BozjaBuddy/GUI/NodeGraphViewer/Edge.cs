@@ -9,6 +9,7 @@ using QuickGraph;
 using ImGuiNET;
 using BozjaBuddy.Utils;
 using Dalamud.Logging;
+using Dalamud.Interface.Components;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -95,10 +96,20 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // Anchor button (behaviour)
             bool tIsHovered = false;
             ImGui.SetCursorScreenPos(tAnchorOSP - tAnchorSize);
-            ImGui.InvisibleButton($"ea{this.mSourceNodeId}{this.mTargetNodeId}", tAnchorSize * 3f, ImGuiButtonFlags.MouseButtonLeft);
+            ImGui.InvisibleButton($"ea{this.mSourceNodeId}{this.mTargetNodeId}", tAnchorSize * 3f, ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
             if (ImGui.IsItemActive())
             {
                 tRes |= NodeInteractionFlags.Edge;
+                // Popup
+                if (ImGui.GetIO().MouseClicked[1] == true)
+                {
+                    ImGui.OpenPopup($"##epu{this.mSourceNodeId}{this.mTargetNodeId}");
+                }
+                // Delete
+                else if (ImGui.GetIO().MouseClicked[2] == true)
+                {
+                    tRes |= NodeInteractionFlags.RequestEdgeRemoval;
+                }
                 // Get original state
                 if (!this._anchorFirstState.HasValue)
                 {
@@ -163,8 +174,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 this._anchorFirstState = null;
                 this._anchorFirstPos = null;
-                tIsHovered = UtilsGUI.SetTooltipForLastItem($"[Left-click + drag] to switch between 3 paths. (Upper squared-edge, Free, Bottom squared-edge)");
+                tIsHovered = UtilsGUI.SetTooltipForLastItem($"[Left-click + drag] to switch between 3 paths. (Upper squared-edge, Free, Bottom squared-edge)\n[Right-click] or [Middle-click] to delete.");
             }
+            // Anchor button PU
+            tRes |= this.DrawPU();
+
             // Anchor button (drawing)
             ImGui.SetCursorScreenPos(tOriginalAnchor);
             pDrawList.AddCircle(tAnchorOSP, tAnchorSize.X * (tIsHovered ? 1.2f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
@@ -195,6 +209,20 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             Utils.DrawArrow(pDrawList, tArrowAnchorStart, tArrowAnchorStart + tArrowHeight * tUnitAnchor, UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, pIsHighlighted ? 1 : tTrasnsparency));
             //Utils.DrawArrow(pDrawList, tArrowTargetStart, tArrowTargetStart + tArrowHeight * tUnitAnchor);
 
+            return tRes;
+        }
+        public NodeInteractionFlags DrawPU()
+        {
+            NodeInteractionFlags tRes = NodeInteractionFlags.None;
+            if (ImGui.BeginPopup($"##epu{this.mSourceNodeId}{this.mTargetNodeId}"))
+            {
+                // Delete button
+                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Trash))
+                {
+                    tRes |= NodeInteractionFlags.RequestEdgeRemoval;
+                }
+                ImGui.EndPopup();
+            }
             return tRes;
         }
 

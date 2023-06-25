@@ -250,7 +250,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 tRes |= pIsEstablishingConn ? NodeInteractionFlags.UnrequestingEdgeConn : NodeInteractionFlags.RequestingEdgeConn;
             }
-            else if (UtilsGUI.SetTooltipForLastItem("Right-click this plug to start connecting this node to another node."))
+            else if (UtilsGUI.SetTooltipForLastItem("Right-click this plug to start connecting."))
             {
                 tIsHovered = true;
             }
