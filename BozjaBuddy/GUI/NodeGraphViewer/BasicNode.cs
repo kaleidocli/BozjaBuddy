@@ -12,7 +12,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     /// </summary>
     internal class BasicNode : Node
     {
-        public override string mType { get; } = "link";
+        public new const string nodeType = "BasicNode";
+        public override string mType { get; } = BasicNode.nodeType;
 
         public BasicNode() : base()
         {

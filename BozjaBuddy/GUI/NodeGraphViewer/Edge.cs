@@ -10,6 +10,7 @@ using ImGuiNET;
 using BozjaBuddy.Utils;
 using Dalamud.Logging;
 using Dalamud.Interface.Components;
+using Newtonsoft.Json;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -18,13 +19,20 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private const float kThickness = 3;
         private const float kArrowPosOffsetMax = 30;
 
+        [JsonProperty]
         private string mSourceNodeId;
+        [JsonProperty]
         private string mTargetNodeId;
+        [JsonProperty]
         private SEdge<int> mQgEdge;
 
+        [JsonProperty]
         private bool mDrawUpright = true;
+        [JsonProperty]
         private bool mSquarePathingEnabled = false;
+        [JsonProperty]
         private AnchorButtonState? _anchorFirstState = null;
+        [JsonProperty]
         private Vector2? _anchorFirstPos = null;
 
         public Edge(string pSourceNodeId, string pTargetNodeId, SEdge<int> pQgEdge)

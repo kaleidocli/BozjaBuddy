@@ -11,6 +11,7 @@ using QuickGraph;
 using System.Diagnostics.Tracing;
 using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using QuickGraph.Algorithms;
+using Newtonsoft.Json;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -26,15 +27,23 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
         public int mId;
         public string mName;
+        [JsonProperty]
         private int _nodeCounter { get; set; } = -1;
 
+        [JsonProperty]
         private readonly NodeMap mMap = new();
+        [JsonProperty]
         private readonly Dictionary<string, Node> mNodes = new();
+        [JsonProperty]
         private readonly HashSet<string> _nodeIds = new();
-        private readonly OccupiedRegion mOccuppiedRegion;
-        private readonly AdjacencyGraph<int, SEdge<int>> mGraph;
+        [JsonProperty]
+        private readonly OccupiedRegion mOccuppiedRegion;       // this shouldn't be serialized, and only initiated using node list and maps.
+        [JsonProperty]
+        private readonly AdjacencyGraph<int, SEdge<int>> mGraph;        // whatever this is
+        [JsonProperty]
         private readonly List<Edge> mEdges = new();
-        
+
+        [JsonProperty]
         private CanvasConfig mConfig { get; set; } = new();
 
         private bool _isNodeBeingDragged = false;
@@ -51,13 +60,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             this.mId = pId;
             this.mName = pName;
-            this.mOccuppiedRegion = new(this.mNodes, this.mMap);
+            this.mOccuppiedRegion = new();
             this.mGraph = new();
 
-            var nid1 = this.AddNodeToAvailableCorner<BasicNode>(new Node.NodeContent("1"));
-            var nid2 = this.AddNodeToAvailableCorner<BasicNode>(new Node.NodeContent("2"));
-            var nid3 = this.AddNodeToAvailableCorner<BasicNode>(new Node.NodeContent("3"));
-            var nid4 = this.AddNodeToAvailableCorner<BasicNode>(new Node.NodeContent("4"));
+            var nid1 = this.AddNodeToAvailableCorner<BasicNode>(new NodeContent.NodeContent("1"));
+            var nid2 = this.AddNodeToAvailableCorner<AuxNode>(new BBNodeContent(null, 0, "2"));
+            var nid3 = this.AddNodeToAvailableCorner<BasicNode>(new NodeContent.NodeContent("3"));
+            var nid4 = this.AddNodeToAvailableCorner<BBNode>(new BBNodeContent(null, 0, "4"));
             if (nid1 != null && nid2 != null && nid3 != null && nid4 != null)
             {
                 this.AddEdge(nid1, nid2);
@@ -74,7 +83,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// Add node at pos relative to the canvas's origin.
         /// </summary>
         protected string? AddNode<T>(
-                Node.NodeContent pNodeContent,
+                NodeContent.NodeContent pNodeContent,
                 Vector2 pDrawRelaPos
                           ) where T : Node, new()
         {
@@ -87,6 +96,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 if (!this.mNodes.TryAdd(tNode.mId, tNode)) return null;
                 if (!this._nodeIds.Add(tNode.mId)) return null;
+                if (!this.mOccuppiedRegion.IsUpdatedOnce()) this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
                 this.mMap.AddNode(tNode.mId, pDrawRelaPos);
             }
             catch (Exception e) { PluginLog.LogDebug(e.Message); }
@@ -102,7 +112,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <para>Returns added node's ID if succeed, otherwise null.</para>
         /// </summary>
         public string? AddNodeToAvailableCorner<T>(
-                Node.NodeContent pNodeContent,
+                NodeContent.NodeContent pNodeContent,
                 Direction pCorner = Direction.NE,
                 Direction pDirection = Direction.E,
                 Vector2? pPadding = null
@@ -118,7 +128,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <para>Returns added node's ID if succeed, otherwise null.</para>
         /// </summary>
         public string? AddNodeWithinView<T>(
-                Node.NodeContent pNodeContent,
+                NodeContent.NodeContent pNodeContent,
                 Vector2 pViewerSize
                                   ) where T : Node, new()
         {

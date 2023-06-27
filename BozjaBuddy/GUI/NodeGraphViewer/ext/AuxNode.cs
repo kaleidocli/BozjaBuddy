@@ -9,7 +9,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
     /// </summary>
     internal class AuxNode : BBNode
     {
-        public override string mType { get; } = "aux";
+        public new const string nodeType = "AuxNode";
+        public override string mType { get; } = AuxNode.nodeType;
 
         public AuxNode() : base()
         {

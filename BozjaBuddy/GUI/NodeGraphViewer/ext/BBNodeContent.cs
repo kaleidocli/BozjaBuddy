@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,12 +7,16 @@ using System.Threading.Tasks;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer.ext
 {
-    public class BBNodeContent : Node.NodeContent
+    public class BBNodeContent : NodeContent.NodeContent
     {
+        public new const string nodeContentType = "nodeContentBB";
+        public override string _contentType => BBNodeContent.nodeContentType;
+        [JsonProperty]
         private int genObjId;
         private Plugin plugin;
 
-        public BBNodeContent(Plugin plugin, int genObjId, string header, string description = "")
+        /// <summary>FIXME: make param plugin not nullable. stuff was for debugging serialization.</summary>
+        public BBNodeContent(Plugin? plugin, int genObjId, string header, string description = "")
             : base(header, description)
         {
             this.plugin = plugin;

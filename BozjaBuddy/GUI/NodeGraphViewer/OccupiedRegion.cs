@@ -1,9 +1,7 @@
 ﻿using System.Numerics;
 using System.Collections.Generic;
 using Dalamud.Logging;
-using System.Data;
-using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using System.Transactions;
+using Newtonsoft.Json;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -14,14 +12,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     {
         private readonly Set X = new();
         private readonly Set Y = new();
+        private bool _isUpdatedOnce = false;
 
-        private OccupiedRegion() { }
-        public OccupiedRegion(Dictionary<string, Node> pNodes, NodeMap pMap)
-        {
-            
-        }
+        public OccupiedRegion() { }
 
-        
+        public bool IsUpdatedOnce() => this._isUpdatedOnce;
         public void Update(Dictionary<string, Node> pNodes, NodeMap pMap)
         {
             this.ResetRegion();
@@ -31,8 +26,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (tStart == null) continue;
                 var tEnd = tStart.Value + n.mStyle.GetSize();
                 this.AddRegion(tStart.Value, tEnd);
-                PluginLog.LogDebug($"> Loading occupied region: {tStart.Value} ---> {tEnd}");
             }
+            this._isUpdatedOnce = true;
         }
         private void AddRegion(Vector2 pStart, Vector2 pEnd)
         {

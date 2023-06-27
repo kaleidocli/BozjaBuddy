@@ -1,6 +1,7 @@
 ﻿using BozjaBuddy.Data;
 using System.Numerics;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -14,10 +15,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     public class NodeMap
     {
         // 2d offset of O to OO.
+        [JsonProperty]
         private Vector2 ofsBase = Vector2.Zero;
         // Key is a 
+        [JsonProperty]
         private Dictionary<string, Vector2> _nodeMap = new();
+        [JsonProperty]
         private HashSet<string> _nodeKeys = new();
+        [JsonProperty]
         private bool _needInitOfs = true;
 
         public NodeMap() { }

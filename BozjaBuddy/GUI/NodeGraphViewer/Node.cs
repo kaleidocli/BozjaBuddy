@@ -10,6 +10,13 @@ using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using QuickGraph;
+using JsonSubTypes;
+using Newtonsoft.Json;
+using BozjaBuddy.GUI.NodeGraphViewer.ext;
+using static Lumina.Data.Files.Pcb.PcbResourceFile;
+using Newtonsoft.Json.Linq;
+using System.Reflection.Metadata.Ecma335;
+using BozjaBuddy.GUI.NodeGraphViewer.NodeContent;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -34,38 +41,45 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         // ====================
         // GUI Related
         // ====================
-        public NodeContent mContent = new();
+        public NodeContent.NodeContent mContent = new();
         public NodeStyle mStyle = new(Vector2.Zero, Vector2.Zero);
         protected virtual Vector2 mRecommendedInitSize { get; } = new(100, 200);
+        [JsonProperty]
         protected bool mIsMinimized = false;
         public bool _isBusy = false;
+        [JsonProperty]
         protected Vector2? _lastUnminimizedSize = null;
 
         /// <summary>
-        /// Never init this or its child. Get an instance from NodeCanvas.AddNode()
+        /// <para>Never init this or its child. Get an instance from NodeCanvas.AddNode()</para>
+        /// <para>param _style is for deserializing</para>
         /// Factory is not an option due to AddNode being a generic method.
         /// Fix this smelly thing prob?
+        /// Used for json.
         /// </summary>
-        public virtual void Init(string pNodeId, int pGraphId, NodeContent pContent)
+        public virtual void Init(string pNodeId, int pGraphId, NodeContent.NodeContent pContent, NodeStyle? _style = null)
         {
             this.mId = pNodeId;
             this.mGraphId = pGraphId;
+            this.mContent = pContent;
+            if (_style != null) this.mStyle = _style;
 
             // Basically SetHeader() and AdjustSizeToContent(),
             // but we need non-ImGui option for loading out of Draw()
             if (Plugin._isImGuiSafe)
             {
-                this.SetHeader(pContent.GetHeader());
+                this.SetHeader(this.mContent.GetHeader());
             }
             else
             {
-                this.mContent._setHeader(pContent.GetHeader());
+                this.mContent._setHeader(this.mContent.GetHeader());
                 this.mStyle.SetHandleTextSize(new Vector2(this.mContent.GetHeader().Length * 6, 11));
                 this.mStyle.SetSize(new Vector2(this.mContent.GetHeader().Length * 6, 11) + Node.nodeInsidePadding * 2);
                 this._needReinit = true;
             }
 
             this.mStyle.SetSize(this.mRecommendedInitSize);
+            PluginLog.LogDebug($"> Node.Init(): type={this.GetType()} id={this.mId} contentType={this.mContent._contentType}");
         }
         protected virtual void ReInit()
         {
@@ -264,29 +278,18 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
         public abstract void Dispose();
 
-
-
-        public class NodeContent
-        {
-            private string header = "";
-            private string description = "";
-
-            public NodeContent() { }
-            public NodeContent(string header) { this.header = header; }
-            public NodeContent(string header, string description) { this.header = header; this.description = description; }
-
-            public string GetHeader() => this.header;
-            public void _setHeader(string header) => this.header = header;
-            public string GetDescription() => this.description;
-            public void SetDescription(string description) => this.description = description;
-        }
         public class NodeStyle
         {
+            [JsonProperty]
             private Vector2 size;
+            [JsonProperty]
             private Vector2 sizeHandle = Vector2.Zero;
+            [JsonProperty]
             private Vector2 sizeBody = Vector2.Zero;
+            [JsonProperty]
             private Vector2 minSize;
             public Vector2 handleTextPadding = new(3, 0);
+            [JsonProperty]
             private Vector2 handleTextSize = Vector2.Zero;
 
             public Vector4 colorUnique = UtilsGUI.Colors.GenObj_BlueAction;

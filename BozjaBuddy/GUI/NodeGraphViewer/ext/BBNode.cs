@@ -2,16 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using BozjaBuddy.GUI.NodeGraphViewer.NodeContent;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer.ext
 {
     public class BBNode : Node
     {
-        public override string mType { get; } = "bb";
-        Plugin? mPlugin = null;
-        int? mGenId = null;
+        public const string nodeType = "BBNode";
+        public override string mType { get; } = BBNode.nodeType;
+        private Plugin? mPlugin = null;
+        private int? mGenId = null;
 
-        public override void Init(string pNodeId, int pGraphId, NodeContent pContent)
+        public override void Init(string pNodeId, int pGraphId, NodeContent.NodeContent pContent, NodeStyle? _style = null)
         {
             base.Init(pNodeId, pGraphId, pContent);
             if (pContent.GetType() == typeof(BBNodeContent))

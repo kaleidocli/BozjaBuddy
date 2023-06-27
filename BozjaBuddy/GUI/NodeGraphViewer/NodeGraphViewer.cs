@@ -9,6 +9,7 @@ using BozjaBuddy.Utils;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
 using ImGuiNET;
+using Newtonsoft.Json;
 using QuickGraph.Serialization;
 using static BozjaBuddy.Data.Location;
 
@@ -24,9 +25,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public const float kGridSnapProximity = 3.5f;
         private const float kRulerTextFadePeriod = 2500;
 
+        [JsonProperty]
         private readonly Dictionary<int, NodeCanvas> _canvases = new();
+        [JsonProperty]
         private readonly List<int> _canvasOrder = new();
+        [JsonProperty]
         private int _canvasCounter = 0;
+        [JsonProperty]
         private NodeCanvas mActiveCanvas;
         private float mUnitGridSmall = NodeGraphViewer.kUnitGridSmall_Default;
         private float mUnitGridLarge = NodeGraphViewer.kUnitGridLarge_Default;
@@ -36,28 +41,69 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private DateTime? _rulerTextLastAppear = null;
         public Vector2? mSize = null;
 
+        private string? _debugViewerJson = null;
+
         public NodeGraphViewer()
         {
-            this.AddCanvas();
-            this.mActiveCanvas = this.GetTopCanvas();
+            this.AddBlankCanvas();
+            this.mActiveCanvas = this.GetTopCanvas()!;
         }
 
-        private void AddCanvas()
+        private void AddBlankCanvas()
         {
             NodeCanvas t = new(this._canvasCounter + 1);
             this._canvases.Add(t.mId, t);
             this._canvasOrder.Add(t.mId);
             this._canvasCounter++;
         }
-        private NodeCanvas GetCanvas(int pId) => this._canvases[pId];
-        private NodeCanvas GetTopCanvas() => this.GetCanvas(this._canvasOrder.First());
+        private bool AddCanvas(string pCanvasJson)
+        {
+            var tCanvas = JsonConvert.DeserializeObject<NodeCanvas>(pCanvasJson, new utils.JsonConverters.NodeJsonConverter());
+            if (tCanvas == null) return false;
+            return this.AddCanvas(tCanvas);
+        }
+        private bool AddCanvas(NodeCanvas pCanvas)
+        {
+            pCanvas.mId = this._canvasCounter + 1;
+            this._canvases.Add(pCanvas.mId, pCanvas);
+            this._canvasOrder.Add(pCanvas.mId);
+            this._canvasCounter++;
+            return true;
+        }
+        private NodeCanvas? GetCanvas(int pId)
+        {
+            if (!this._canvases.TryGetValue(pId, out var tCanvas)) return null;
+            return tCanvas;
+        }
+        private NodeCanvas? GetTopCanvas() => this._canvasOrder.Count == 0 ? null : this.GetCanvas(this._canvasOrder.First());
         private bool RemoveCanvas(int pCanvasId)
         {
             if (this._canvasOrder.Count == 1) return false;
             if (!this._canvases.Remove(pCanvasId)) return false;
             this._canvasOrder.Remove(pCanvasId);
-            if (this.mActiveCanvas.mId == pCanvasId) this.mActiveCanvas = this.GetTopCanvas();
+            var tTopCanvas = this.GetTopCanvas();
+            if (tTopCanvas == null) this.AddBlankCanvas();
+            if (this.mActiveCanvas.mId == pCanvasId) this.mActiveCanvas = tTopCanvas ?? this.GetTopCanvas()!;
             return true;
+        }
+        /// <summary>'Deep-copy' given canvas, and add it to the viewer with a new id.</summary>
+        public bool ImportCanvas(NodeCanvas pCanvas)
+        {
+            return this.ImportCanvas(JsonConvert.SerializeObject(pCanvas));
+        }
+        /// <summary>Add new canvas to viewer using JSON. Return false if the deserialization fails, otherwise true.</summary>
+        public bool ImportCanvas(string pCanvasJson)
+        {
+            return this.AddCanvas(pCanvasJson);
+        }
+        public string? ExportCanvasAsJson(int pCanvasId)
+        {
+            var pCanvas = this.GetCanvas(pCanvasId);
+            return pCanvas == null ? null : JsonConvert.SerializeObject(pCanvas);
+        }
+        public string ExportActiveCanvasAsJson()
+        {
+            return JsonConvert.SerializeObject(this.mActiveCanvas);
         }
 
 
@@ -76,6 +122,26 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         private void DrawUtilsBar(Vector2 pViewerSize)
         {
+            // DEBUG =================================================
+            if (ImGui.Button("Cache viewer"))
+            {
+                var tRes = JsonConvert.SerializeObject(this.mActiveCanvas, Formatting.Indented);
+                if (tRes != null)
+                {
+                    PluginLog.LogDebug(tRes);
+                }
+                this._debugViewerJson = tRes;
+            }
+            ImGui.SameLine();
+            if (this._debugViewerJson == null) ImGui.BeginDisabled();
+            if (ImGui.Button("Load json from cache") && this._debugViewerJson != null)
+            {
+                var tRes = JsonConvert.DeserializeObject<NodeCanvas>(this._debugViewerJson, new utils.JsonConverters.NodeJsonConverter());
+            }
+            if (this._debugViewerJson == null) ImGui.EndDisabled();
+            ImGui.SameLine();
+            // DEBUG =================================================
+
             Utils.AlignRight(ImGui.GetWindowWidth() / 2 + 18 + ImGui.GetStyle().ItemSpacing.X);
             // Button scaling
             float tScaling = this.mActiveCanvas.GetScaling();
@@ -88,7 +154,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
             {
-                Node.NodeContent tContent = new("New node");
+                NodeContent.NodeContent tContent = new("New node");
                 this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
             }            
         }
