@@ -748,6 +748,9 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 NodeText = Utils.RGBAtoVec4(223, 211, 185, 255);
             public readonly static Vector4 NodeGraphViewer_BackdropGrey = Utils.RGBAtoVec4(165, 165, 165, 255);
             public readonly static Vector4 NodeGraphViewer_SnaplineGold = Utils.RGBAtoVec4(148, 121, 74, 255);
+            public readonly static Vector4 NodeNotifInfo = Utils.RGBAtoVec4(223, 211, 185, 255);
+            public readonly static Vector4 NodeNotifWarning = Utils.RGBAtoVec4(240, 160, 19, 255);
+            public readonly static Vector4 NodeNotifError = Utils.RGBAtoVec4(216, 148, 148, 255);
         }
 
         public class InputPayload

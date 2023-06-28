@@ -4,11 +4,14 @@ using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.Versioning;
+using System.Xml.XPath;
 using BozjaBuddy.GUI.NodeGraphViewer.ext;
+using BozjaBuddy.GUI.NodeGraphViewer.utils;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
 using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 using QuickGraph.Serialization;
 using static BozjaBuddy.Data.Location;
@@ -35,6 +38,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private NodeCanvas mActiveCanvas;
         private float mUnitGridSmall = NodeGraphViewer.kUnitGridSmall_Default;
         private float mUnitGridLarge = NodeGraphViewer.kUnitGridLarge_Default;
+        private ViewerNotificationManager mNotificationManager = new();
 
         private bool _isMouseHoldingViewer = false;
         private bool _isShowingRulerText = false;
@@ -125,11 +129,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // DEBUG =================================================
             if (ImGui.Button("Cache viewer"))
             {
-                var tRes = JsonConvert.SerializeObject(this.mActiveCanvas, Formatting.Indented);
-                if (tRes != null)
-                {
-                    PluginLog.LogDebug(tRes);
-                }
+                var tRes = this.ExportActiveCanvasAsJson();
                 this._debugViewerJson = tRes;
             }
             ImGui.SameLine();
@@ -139,6 +139,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 var tRes = JsonConvert.DeserializeObject<NodeCanvas>(this._debugViewerJson, new utils.JsonConverters.NodeJsonConverter());
             }
             if (this._debugViewerJson == null) ImGui.EndDisabled();
+            ImGui.SameLine();
+            if (ImGui.Button("Notify!"))
+            {
+                this.mNotificationManager.Push(new ViewerNotification("viewerNoti", "INFO! viewer's notification button\n... or is it?"));
+                this.mNotificationManager.Push(new ViewerNotification("viewerNoti2", "WARNING! viewer's notification button pressed!aaaaaaaaaa\n... or is it?", ViewerNotificationType.Warning));
+                this.mNotificationManager.Push(new ViewerNotification("viewerNoti3", "ERROR! viewer's notification button\n... or is it?", ViewerNotificationType.Error));
+            }
             ImGui.SameLine();
             // DEBUG =================================================
 
@@ -161,6 +168,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private void DrawGraph(Area pGraphArea)
         {
             var pDrawList = ImGui.GetWindowDrawList();
+            List<ViewerNotification> tNotiListener = new();
             ImGui.BeginChild(
                 "nodegraphviewer",
                 pGraphArea.size, 
@@ -169,12 +177,61 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             pDrawList.PushClipRect(pGraphArea.start, pGraphArea.end, true);
 
             var tSnapData = DrawGraphBg(pGraphArea, this.mActiveCanvas.GetBaseOffset(), this.mActiveCanvas.GetScaling());
-            DrawGraphNodes(pGraphArea, tSnapData);
+            DrawGraphNodes(pGraphArea, tSnapData, pNotiListener: tNotiListener);
+            this.mNotificationManager.Push(tNotiListener);
+            DrawNotifications(pGraphArea);
 
             ImGui.EndChild();
             pDrawList.PopClipRect();
         }
-        private void DrawGraphNodes(Area pGraphArea, GridSnapData pSnapData)
+        private void DrawNotifications(Area pGraphArea)
+        {
+            int tCounter = 1;
+            Vector2 tNotifBoxPadding = new(5, 5);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, tNotifBoxPadding);
+
+            foreach (var n in this.mNotificationManager.GetNotifications())
+            {
+                if (!n.contentImguiSize.HasValue) n.contentImguiSize = ImGui.CalcTextSize(n.content);
+                float tTransparency = (float)n.GetTimeLeft() / n.duration;
+
+                ImGui.SetCursorScreenPos(
+                    new Vector2(
+                        pGraphArea.end.X - (n.contentImguiSize.Value.X + tNotifBoxPadding.X), 
+                        pGraphArea.end.Y - (n.contentImguiSize.Value.Y + tNotifBoxPadding.Y * 1.25f) * tCounter
+                        )
+                    + new Vector2(-10, -5 * tCounter));
+
+                ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.MycItemBoxOverlay_Black, tTransparency)));
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(n.type switch
+                                                                                                    {
+                                                                                                        ViewerNotificationType.Warning => UtilsGUI.Colors.NodeNotifWarning,
+                                                                                                        ViewerNotificationType.Error => UtilsGUI.Colors.NodeNotifError,
+                                                                                                        _ => UtilsGUI.Colors.NodeNotifInfo,
+                                                                                                    },
+                                                                                                    tTransparency)));
+                ImGui.PushStyleColor(ImGuiCol.Border, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(
+                                                                                                    n.type switch { 
+                                                                                                        ViewerNotificationType.Warning => UtilsGUI.Colors.NodeNotifWarning,
+                                                                                                        ViewerNotificationType.Error => UtilsGUI.Colors.NodeNotifError,
+                                                                                                        _ => UtilsGUI.Colors.NodeNotifInfo
+                                                                                                    },
+                                                                                                    tTransparency)));
+                ImGui.BeginChild(n.id, n.contentImguiSize.Value + tNotifBoxPadding * 2, border: true, ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
+
+                ImGui.Text(n.content);
+                // extend expiration on hover
+                if (ImGui.IsItemHovered()) n.Renew();
+
+                ImGui.EndChild();
+                ImGui.PopStyleColor();
+                ImGui.PopStyleColor();
+                ImGui.PopStyleColor();
+                tCounter++;
+            }
+            ImGui.PopStyleVar();
+        }
+        private void DrawGraphNodes(Area pGraphArea, GridSnapData pSnapData, List<ViewerNotification>? pNotiListener = null)
         {
             ImGui.SetCursorScreenPos(pGraphArea.start);
             
@@ -191,10 +248,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                     pGraphArea.center,
                                     -1 * pGraphArea.size / 2,
                                     tInputPayload,
-                                    pSnapData,
+                                    pSnapData: pSnapData,
                                     pCanvasDrawFlag: (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows) && (this._isMouseHoldingViewer || tIsWithinViewer))
                                                      ? CanvasDrawFlags.None
-                                                     : CanvasDrawFlags.NoInteract
+                                                     : CanvasDrawFlags.NoInteract,
+                                    pNotiListener: pNotiListener
                                     );
             if (tRes.HasFlag(CanvasDrawFlags.StateNodeDrag) || tRes.HasFlag(CanvasDrawFlags.StateCanvasDrag))
             {

@@ -12,6 +12,7 @@ using System.Diagnostics.Tracing;
 using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using QuickGraph.Algorithms;
 using Newtonsoft.Json;
+using BozjaBuddy.GUI.NodeGraphViewer.utils;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -367,7 +368,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             Vector2 pInitBaseOffset,
             UtilsGUI.InputPayload pInputPayload,
             NodeGraphViewer.GridSnapData? pSnapData = null, 
-            CanvasDrawFlags pCanvasDrawFlag = CanvasDrawFlags.None)
+            CanvasDrawFlags pCanvasDrawFlag = CanvasDrawFlags.None,
+            List<ViewerNotification>? pNotiListener = null)
         {
             bool tIsAnyNodeHandleClicked = false;
             bool tIsReadingClicksOnNode = true;
@@ -518,7 +520,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 var tConnRes = this._nodeConnTemp?.GetConn();
                 if (tConnRes != null)                                                     // implement conn
                 {
-                    this.AddEdge(tConnRes.Item1, tConnRes.Item2);
+                    if (!this.AddEdge(tConnRes.Item1, tConnRes.Item2) && pNotiListener != null)
+                    {
+                        pNotiListener.Add(new($"NodeCanvasEdgeConnection{this.mId}", "Invalid node connection.\n(Connection is either duplicated, or causing cycles)", ViewerNotificationType.Error));
+                    }
                     this._nodeConnTemp = null;
                 }
                 else if (tNodeRes.HasFlag(NodeInteractionFlags.UnrequestingEdgeConn))

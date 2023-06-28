@@ -1,4 +1,5 @@
-﻿using BozjaBuddy.Utils;
+﻿using BozjaBuddy.GUI.NodeGraphViewer.utils;
+using BozjaBuddy.Utils;
 using System;
 using System.Numerics;
 

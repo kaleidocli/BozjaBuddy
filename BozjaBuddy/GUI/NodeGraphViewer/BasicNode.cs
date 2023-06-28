@@ -1,9 +1,9 @@
 ﻿using System.Numerics;
 using ImGuiNET;
-using BozjaBuddy.GUI.NodeGraphViewer;
 using BozjaBuddy.Utils;
 using Dalamud.Interface;
 using Dalamud.Logging;
+using BozjaBuddy.GUI.NodeGraphViewer.utils;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {

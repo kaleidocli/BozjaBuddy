@@ -17,6 +17,7 @@ using static Lumina.Data.Files.Pcb.PcbResourceFile;
 using Newtonsoft.Json.Linq;
 using System.Reflection.Metadata.Ecma335;
 using BozjaBuddy.GUI.NodeGraphViewer.NodeContent;
+using BozjaBuddy.GUI.NodeGraphViewer.utils;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -200,9 +201,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.SameLine();
             Utils.AlignRight(Node.handleButtonBoxItemWidth * 3 * pCanvasScaling, pConsiderImguiPaddings: false);
             
-            Utils.PopFontScale();
             var tRes = this.DrawHandleButtonBox(pNodeOSP, pCanvasScaling, pDrawList);
-            Utils.PushFontScale(pCanvasScaling);
 
             return tRes;
         }

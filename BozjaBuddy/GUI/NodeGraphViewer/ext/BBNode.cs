@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using BozjaBuddy.GUI.NodeGraphViewer.NodeContent;
+using BozjaBuddy.GUI.NodeGraphViewer.utils;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer.ext
 {

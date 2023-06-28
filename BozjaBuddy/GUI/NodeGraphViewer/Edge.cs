@@ -11,6 +11,7 @@ using BozjaBuddy.Utils;
 using Dalamud.Logging;
 using Dalamud.Interface.Components;
 using Newtonsoft.Json;
+using BozjaBuddy.GUI.NodeGraphViewer.utils;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {

@@ -8,21 +8,26 @@ using BozjaBuddy.Utils;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
-    internal class Utils
+    public class Utils
     {
         public static float defaultFontScale { get; } = 1;
         /// <summary>
+        /// This stuff is super funky.
+        /// Calling the push/pop pair twice (in the same child/main window?) will cause the scaling to be applied twice. Prob even more.
         /// https://github.com/ocornut/imgui/issues/1018#issuecomment-1397768472
+        /// https://forums.x-plane.org/index.php?/forums/topic/174419-imgui-text-size/
         /// </summary>
         public static void PushFontScale(float scale)
         {
-            ImGui.GetFont().Scale *= scale;
-            ImGui.PushFont(ImGui.GetFont());
+            //ImGui.GetFont().Scale *= scale;
+            //ImGui.PushFont(ImGui.GetFont());
+            ImGui.SetWindowFontScale(ImGui.GetFont().Scale * scale);
         }
         public static void PopFontScale()
         {
-            ImGui.PopFont();
-            ImGui.GetFont().Scale = Utils.defaultFontScale;
+            ImGui.SetWindowFontScale(defaultFontScale);
+            //ImGui.PopFont();
+            //ImGui.GetFont().Scale = defaultFontScale;
         }
         /// https://stackoverflow.com/questions/5953552/how-to-get-the-closest-number-from-a-listint-with-linq
         public static float? GetClosestItem(float itemToCompare, List<float> items)
@@ -32,7 +37,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public static void AlignRight(float pTargetItemWidth, bool pConsiderScrollbar = false, bool pConsiderImguiPaddings = true)
         {
             ImGuiStylePtr tStyle = ImGui.GetStyle();
-            float tPadding = (pConsiderImguiPaddings ? (tStyle.WindowPadding.X + tStyle.FramePadding.X) : 0)
+            float tPadding = (pConsiderImguiPaddings ? tStyle.WindowPadding.X + tStyle.FramePadding.X : 0)
                              + (pConsiderScrollbar ? tStyle.ScrollbarSize : 0);
             ImGui.SetCursorPosX(ImGui.GetWindowWidth() - pTargetItemWidth - tPadding);
         }
