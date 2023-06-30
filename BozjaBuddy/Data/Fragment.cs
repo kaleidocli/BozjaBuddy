@@ -25,6 +25,7 @@ namespace BozjaBuddy.Data
             this.mTabColor = UtilsGUI.Colors.GenObj_YellowFragment;
 
             this.SetUpAuxiliary();
+            this.SetUpNodeInfo();
         }
         public override SeString? GetReprItemLink() => SeString.CreateItemLink((uint)mId, false);
         public override string GetReprClipboardTooltip() 
@@ -67,6 +68,13 @@ namespace BozjaBuddy.Data
         {
             this.mDetail = "Detail";
             this.mDescription = "Description";
+        }
+        protected override void SetUpNodeInfo()
+        {
+            this.mDetailPackage = new()
+            {
+                { TextureCollection.StandardIcon.Cluster, this.mIsClusterBuyable ? "Y" : "N" }
+            };
         }
     }
 }

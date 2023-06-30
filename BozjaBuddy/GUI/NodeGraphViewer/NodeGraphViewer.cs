@@ -46,11 +46,17 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public Vector2? mSize = null;
 
         private string? _debugViewerJson = null;
+        private Plugin? _plugin = null;
 
         public NodeGraphViewer()
         {
             this.AddBlankCanvas();
             this.mActiveCanvas = this.GetTopCanvas()!;
+        }
+        /// <summary>For debugging Bozja buddy related stuff only</summary>
+        public NodeGraphViewer(Plugin pPlugin) : this()
+        {
+            this._plugin = pPlugin;
         }
 
         private void AddBlankCanvas()
@@ -126,6 +132,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         private void DrawUtilsBar(Vector2 pViewerSize)
         {
+            // =======================================================
             // DEBUG =================================================
             if (ImGui.Button("Cache viewer"))
             {
@@ -148,6 +155,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             ImGui.SameLine();
             // DEBUG =================================================
+            // =======================================================
 
             Utils.AlignRight(ImGui.GetWindowWidth() / 2 + 18 + ImGui.GetStyle().ItemSpacing.X);
             // Button scaling
@@ -161,7 +169,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
             {
-                NodeContent.NodeContent tContent = new("New node");
+                //NodeContent.NodeContent tContent = new("New node");
+                //this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
+                BBNodeContent tContent = new(this._plugin, 400005, "Lost Banner of Xyz");
                 this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
             }            
         }
@@ -300,6 +310,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             int tXFirstNotation = (int)(-pOffset.X * pCanvasScale - pArea.size.X / 2) / (int)tUGLarge * (int)this.mUnitGridLarge;
             int tYFirstNotation = (int)(-pOffset.Y * pCanvasScale - pArea.size.Y / 2) / (int)tUGLarge * (int)this.mUnitGridLarge;
+            float tTransMax = 0.3f;
             for (var i = 0; i < (pArea.end.X - tGridStart_L.X) / tUGLarge; i++)        // vertical L
             {
                 pDrawList.AddLine(new Vector2(tGridStart_L.X + i * tUGLarge, pArea.start.Y), new Vector2(tGridStart_L.X + i * tUGLarge, pArea.end.Y), tGridColor, 2.0f);
@@ -308,7 +319,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     float tTrans = 1;
                     if (this._rulerTextLastAppear.HasValue)
-                        tTrans = 1 - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / NodeGraphViewer.kRulerTextFadePeriod);
+                        tTrans = tTransMax - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / NodeGraphViewer.kRulerTextFadePeriod) * tTransMax;
                     pDrawList.AddText(
                         new Vector2(tGridStart_L.X + i * tUGLarge, pArea.start.Y),
                         ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeText, tTrans)),
@@ -329,7 +340,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     float tTrans = 1;
                     if (this._rulerTextLastAppear.HasValue)
-                        tTrans = 1 - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / NodeGraphViewer.kRulerTextFadePeriod);
+                        tTrans = tTransMax - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / NodeGraphViewer.kRulerTextFadePeriod) * tTransMax;
                     pDrawList.AddText(
                         new Vector2(pArea.start.X + 6, tGridStart_L.Y + i * tUGLarge),
                         ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeText, tTrans)),

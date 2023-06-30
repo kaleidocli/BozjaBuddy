@@ -38,6 +38,7 @@ namespace BozjaBuddy.Data
             this.mTabColor = UtilsGUI.Colors.GenObj_GreenMob;
 
             this.SetUpAuxiliary();
+            this.SetUpNodeInfo();
         }
         public override string GetReprClipboardTooltip()
         {
@@ -45,7 +46,7 @@ namespace BozjaBuddy.Data
         }
         protected override void SetUpAuxiliary()
         {
-            this.mDetail = $"[{this.mType.ToString()}] • [Rank: {this.mLevel}]";
+            this.mDetail = $"[{this.mType}] • [Rank: {this.mLevel}]";
             this.mDescription = this.mNote;
             this.mIGMarkup = new GUI.IGMarkup.IGMarkup(this.mNote);
         }
@@ -73,6 +74,14 @@ namespace BozjaBuddy.Data
                             + $"\nFrags: \t{tFragDrops}"
                             + $"\nLoc.:\t\t{this.mLocation?.ToString()} x:{this.mLocation?.mMapCoordX} y:{this.mLocation?.mMapCoordY}";
             return this.mUiTooltip;
+        }
+        protected override void SetUpNodeInfo()
+        {
+            this.mDetailPackage = new()
+            {
+                { TextureCollection.StandardIcon.Rarity, $"{this.mLevel}" },
+                { TextureCollection.StandardIcon.None, $"[{this.mType}]" }
+            };
         }
 
         public enum MobType

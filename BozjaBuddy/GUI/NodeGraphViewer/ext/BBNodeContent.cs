@@ -13,7 +13,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
         public override string _contentType => BBNodeContent.nodeContentType;
         [JsonProperty]
         private int genObjId;
-        private Plugin plugin;
+        private Plugin? plugin;
 
         /// <summary>FIXME: make param plugin not nullable. stuff was for debugging serialization.</summary>
         public BBNodeContent(Plugin? plugin, int genObjId, string header, string description = "")

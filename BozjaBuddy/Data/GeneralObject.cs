@@ -1,4 +1,5 @@
 using BozjaBuddy.GUI.IGMarkup;
+using BozjaBuddy.Utils;
 using Dalamud.Game.Text.SeStringHandling;
 using System.Collections.Generic;
 
@@ -26,6 +27,7 @@ namespace BozjaBuddy.Data
         public virtual Location? mLocation { get; set; } = null;
         public virtual System.Numerics.Vector4? mTabColor { get; set; } = null;
         public virtual bool mIsExist { get; set; } = true;
+        public virtual Dictionary<TextureCollection.StandardIcon, string> mDetailPackage { get; set; } = new();
 
         public virtual int GetGenId() => GeneralObject.IdToGenId(this.mId, (int)this.mIdSalt);
         public virtual string GetReprName() => this.mName;
@@ -38,6 +40,7 @@ namespace BozjaBuddy.Data
         public virtual SeString? GetReprItemLink() => null;
 
         protected abstract void SetUpAuxiliary();
+        protected abstract void SetUpNodeInfo();
 
         public virtual GeneralObjectSalt GetSalt() => mIdSalt;
 

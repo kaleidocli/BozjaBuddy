@@ -28,7 +28,7 @@ namespace BozjaBuddy.Utils
     public class UtilsGUI
     {
         private const float FRAME_ROUNDING = 0;
-        private static readonly Vector2 FRAME_PADDING = new(10f, 2f);
+        private static Vector2 FRAME_PADDING { get; } = new(10f, 2f);
         private static DateTime kTimeSinceLastClipboardCopied = DateTime.Now;
         private unsafe static readonly AtkStage* stage = AtkStage.GetSingleton();
 
@@ -209,7 +209,7 @@ namespace BozjaBuddy.Utils
                 return tRes;
             }
             GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
-            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
+            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pTargetGenId}\n{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
 
             ImGui.PushID(pTargetGenId);
             if (!pInputPayload.mIsKeyShift && ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
@@ -314,10 +314,10 @@ namespace BozjaBuddy.Utils
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
-        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false, float pRightAlignOffset = 0f)
+        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false, float pRightAlignOffset = 0f, float pScaling = 1, Vector2? pFramePadding = null)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, UtilsGUI.FRAME_ROUNDING);
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, UtilsGUI.FRAME_PADDING);
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, (pFramePadding ?? UtilsGUI.FRAME_PADDING) * pScaling);
             string tButtonText = pDesc ?? $"{pLocation.mAreaFlag} ({pLocation.mMapCoordX}, {pLocation.mMapCoordY})";
             if (rightAlign)
             {
@@ -327,7 +327,7 @@ namespace BozjaBuddy.Utils
             {
                 ImGui.BeginDisabled();
                 if (pUseIcon)
-                    ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.MapMarkerAlt);
+                    ImGuiComponents.IconButton(FontAwesomeIcon.MapMarkerAlt);
                 else 
                     ImGui.Button(tButtonText);
                 ImGui.EndDisabled();
@@ -336,7 +336,7 @@ namespace BozjaBuddy.Utils
                 return;
             }
             if (pUseIcon
-                ? ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.MapMarkerAlt)
+                ? ImGuiComponents.IconButton(FontAwesomeIcon.MapMarkerAlt)
                 : ImGui.Button(tButtonText)
                 )
             {
@@ -357,7 +357,7 @@ namespace BozjaBuddy.Utils
                 });
                 //PluginLog.LogInformation($"Showing map: {pLocation.mTerritoryID} - {pLocation.mMapID} - {(float)pLocation.mMapCoordX} - {(float)pLocation.mMapCoordY}");
             }
-            UtilsGUI.SetTooltipForLastItem("Mark position on map + Link location to Chat (if available)");
+            UtilsGUI.SetTooltipForLastItem($"Mark position on map + Link location to Chat (if available)\n\nat: {tButtonText}");
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
@@ -625,6 +625,20 @@ namespace BozjaBuddy.Utils
         }
         public static void DrawRoleFlagAsString(RoleFlag pRole) => ImGui.Text(RoleFlag.FlagToString(pRole.mRoleFlagBit));
         public static Vector4 AdjustTransparency(Vector4 pColor, float pTransparency) => new(pColor.X, pColor.Y, pColor.Z, pTransparency);
+        public static bool DrawIcon(TextureCollection.StandardIcon pGameIcon, float pScaling = 1)
+        {
+            var tTex = UtilsGameData.kTextureCollection?.GetStandardTexture(pGameIcon);
+            if (tTex == null) return false;
+            ImGui.Image(tTex.ImGuiHandle, new Vector2(ImGui.GetTextLineHeight() * pScaling));
+            return true;
+        }
+        public static bool DrawIcon(FontAwesomeIcon pFontAwesomeIcon)
+        {
+            ImGui.PushFont(UiBuilder.IconFont);
+            ImGui.Text(pFontAwesomeIcon.ToIconString());
+            ImGui.PopFont();
+            return true;
+        }
 
         public unsafe static AtkResNode* GetNodeByIdPath(AtkUnitBase* pAddonBase, int[] pNoteIdPath)
         {
@@ -763,6 +777,7 @@ namespace BozjaBuddy.Utils
             private const double kKeyClickValidityThreshold = 250;
             private static float kDelayBetweenMouseWheelCapture = 100;
             public static bool kWasLmbDragged = false;
+            private static string kGlobalCaptureId = "";
             private static double DeltaLastMouseClick() => (DateTime.Now - InputPayload.kLastMouseClicked).TotalMilliseconds;
             private static double DeltaLastKeyClick() => (DateTime.Now - InputPayload.kLastKeyClicked).TotalMilliseconds;
             public static bool CheckMouseClickValidity()
@@ -820,8 +835,7 @@ namespace BozjaBuddy.Utils
                     this.CaptureMouseDragDelta();
                 }
                 if (pCaptureMouseWheel) this.CaptureMouseWheel();
-
-                if (!this.mIsMouseLmb)
+                if (!this.mIsMouseLmbDown && !this.mIsMouseLmb)
                 {
                     InputPayload.kWasLmbDragged = false;
                     this.mIsALmbDragRelease = InputPayload.kWasLmbDragged;

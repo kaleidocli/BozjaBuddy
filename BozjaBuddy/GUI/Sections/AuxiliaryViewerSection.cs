@@ -19,7 +19,7 @@ namespace BozjaBuddy.GUI.Sections
         public static List<int> mTabGenIdsToDraw = new List<int>();
         public static LoadoutJson? mTenpLoadout = null;
         public static bool mIsRefreshRequired = false;
-        private static TextureCollection? mTextureCollection = null;
+        public static TextureCollection? mTextureCollection = null;
         public static int _mGenIdToTabFocus = -1;
         private static ImGuiTabBarFlags AUXILIARY_TAB_FLAGS = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
         private static GUIFilter mGUIFilter = new GUIFilter();

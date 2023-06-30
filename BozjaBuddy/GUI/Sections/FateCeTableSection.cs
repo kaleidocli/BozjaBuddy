@@ -189,10 +189,10 @@ namespace BozjaBuddy.GUI.Sections
                         UtilsGUI.LocationLinkButton(this.mPlugin, tFate.mLocation!);
                         break;
                     case 6:
-                        ImGui.Text($"{Utils.Utils.FormatThousand(tFate.mRewardMettleMin)} - {Utils.Utils.FormatThousand(tFate.mRewardMettleMax)}");
+                        ImGui.Text($"{Utils.Utils.FormatNum(tFate.mRewardMettleMin)} - {Utils.Utils.FormatNum(tFate.mRewardMettleMax)}");
                         break;
                     case 7:
-                        ImGui.Text($"{Utils.Utils.FormatThousand(tFate.mRewardExpMin)} - {Utils.Utils.FormatThousand(tFate.mRewardExpMax)}");
+                        ImGui.Text($"{Utils.Utils.FormatNum(tFate.mRewardExpMin)} - {Utils.Utils.FormatNum(tFate.mRewardExpMax)}");
                         break;
                     case 8:
                         ImGui.Text($"{tFate.mRewardTome}");

@@ -36,6 +36,7 @@ namespace BozjaBuddy.Data
             this.mTabColor = UtilsGUI.Colors.GenObj_BrownFieldNote;
 
             this.SetUpAuxiliary();
+            this.SetUpNodeInfo();
         }
         public override SeString? GetReprItemLink() => SeString.CreateItemLink((uint)this.mItemLinkId, false);
         public override string GetReprClipboardTooltip()
@@ -68,6 +69,13 @@ namespace BozjaBuddy.Data
         protected override void SetUpAuxiliary()
         {
             this.mDetail = $"Rarity: {this.mRarity}";
+        }
+        protected override void SetUpNodeInfo()
+        {
+            this.mDetailPackage = new()
+            {
+                { TextureCollection.StandardIcon.Rarity, this.mRarity.ToString() }
+            };
         }
     }
 }

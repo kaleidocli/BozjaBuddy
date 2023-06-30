@@ -41,6 +41,10 @@ namespace BozjaBuddy.Data
             this.mDetail = "Detail";
             this.mDescription = "Description";
         }
+        protected override void SetUpNodeInfo()
+        {
+
+        }
 
         public enum Currency
         {

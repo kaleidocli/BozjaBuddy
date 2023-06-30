@@ -11,8 +11,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
     {
         public const string nodeType = "BBNode";
         public override string mType { get; } = BBNode.nodeType;
-        private Plugin? mPlugin = null;
-        private int? mGenId = null;
+        protected Plugin? mPlugin = null;
+        protected int? mGenId = null;
 
         public override void Init(string pNodeId, int pGraphId, NodeContent.NodeContent pContent, NodeStyle? _style = null)
         {

@@ -35,6 +35,7 @@ namespace BozjaBuddy.Data
 
             this.mPackageJson = pPackageJson;
             this.SetUpAuxiliary();
+            this.SetUpNodeInfo();
         }
         public Loadout DeepCopy()
         {
@@ -71,6 +72,10 @@ namespace BozjaBuddy.Data
         protected override void SetUpAuxiliary()
         {
             this.mDetail = "none";
+        }
+        protected override void SetUpNodeInfo()
+        {
+
         }
     }
 }

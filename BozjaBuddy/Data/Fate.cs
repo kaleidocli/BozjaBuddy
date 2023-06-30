@@ -9,6 +9,7 @@ using BozjaBuddy.Utils;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using System.Linq;
+using System.ComponentModel.Design;
 
 namespace BozjaBuddy.Data
 {
@@ -72,6 +73,7 @@ namespace BozjaBuddy.Data
             this.mTabColor = UtilsGUI.Colors.GenObj_PinkFate;
 
             this.SetUpAuxiliary();
+            this.SetUpNodeInfo();
         }
         public override string GetReprClipboardTooltip()
         {
@@ -146,9 +148,9 @@ namespace BozjaBuddy.Data
             this.mUiTooltip = $"Name: \t\t\t{this.mName}"
                             + $"\nFATE chain:\t{tFateChainText}"
                             + $"\nFrag drops:\t{tFragDrops}"
-                            + $"\nMettle:\t\t\t{Utils.Utils.FormatThousand(this.mRewardMettleMin)} - {Utils.Utils.FormatThousand(this.mRewardMettleMax)}"
-                            + $"\nExp:  \t\t\t\t{Utils.Utils.FormatThousand(this.mRewardExpMin)} - {Utils.Utils.FormatThousand(this.mRewardExpMax)}"
-                            + $"\nTome:  \t\t\t{Utils.Utils.FormatThousand(this.mRewardTome)}"
+                            + $"\nMettle:\t\t\t{Utils.Utils.FormatNum(this.mRewardMettleMin)} - {Utils.Utils.FormatNum(this.mRewardMettleMax)}"
+                            + $"\nExp:  \t\t\t\t{Utils.Utils.FormatNum(this.mRewardExpMin)} - {Utils.Utils.FormatNum(this.mRewardExpMax)}"
+                            + $"\nTome:  \t\t\t{Utils.Utils.FormatNum(this.mRewardTome)}"
                             + $"\nField note:\t  {tFieldNoteDrops}";
             return this.mUiTooltip;
         }
@@ -158,6 +160,15 @@ namespace BozjaBuddy.Data
             this.mDetail = $"[Tome: {this.mRewardTome}] \t•\t[Mettle: {this.mRewardMettleMin} - {this.mRewardMettleMax}]\t•\t[Exp: {this.mRewardExpMin} - {this.mRewardExpMax}]";
             this.mDescription = this.mNote;
             this.mIGMarkup = new GUI.IGMarkup.IGMarkup(this.mNote);
+        }
+        protected override void SetUpNodeInfo()
+        {
+            this.mDetailPackage = new()
+            {
+                { TextureCollection.StandardIcon.Mettle, $"{Utils.Utils.FormatNum(this.mRewardMettleMin, pShorter: true)}-{Utils.Utils.FormatNum(this.mRewardMettleMax, pShorter: true)}" },
+                { TextureCollection.StandardIcon.Exp, $"{Utils.Utils.FormatNum(this.mRewardExpMin, pShorter: true)}-{Utils.Utils.FormatNum(this.mRewardExpMax, pShorter: true)}" },
+                { TextureCollection.StandardIcon.Poetic, $"{Utils.Utils.FormatNum(this.mRewardTome, pShorter: true)}" }
+            };
         }
 
         public enum FateType

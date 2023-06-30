@@ -70,7 +70,7 @@ namespace BozjaBuddy.Windows
             ImGui.BeginGroup();
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, $"Mettle ({tCharStats.proof} proof)");
             ImGui.SameLine(); UtilsGUI.ShowHelpMarker("- 3 proofs of Honor exchanges for ~20 mil mettles.\n- Amount of proof required for a Ray stack: 1/1/2/2/3/3/4/4/5/5 (increase by 1 for every 2 stacks)\n- Recommended priority of ray: Valor (red) > Fortitude (blue) > Succor (green)\n\n- In total, maxing out a ray (10 stacks) costs ~200 mil mettles / 10 trade-ins. Maxing all costs ~600 mil mettles.\n- Max Succor does not negate Profane's 90% healing reduction.");
-            ImGui.TextUnformatted($"{Utils.Utils.FormatThousand(tCharStats.mettle, pThreshold: 99999)} / {(tCharStats.mettleMax == 0 ? "25000k" : Utils.Utils.FormatThousand(tCharStats.mettleMax, pThreshold: 99999))} ({((float)tCharStats.mettle / (tCharStats.mettleMax == 0 ? 25000000 : tCharStats.mettleMax) * 100):0.00}%)");
+            ImGui.TextUnformatted($"{Utils.Utils.FormatNum(tCharStats.mettle, pThreshold: 99999)} / {(tCharStats.mettleMax == 0 ? "25000k" : Utils.Utils.FormatNum(tCharStats.mettleMax, pThreshold: 99999))} ({((float)tCharStats.mettle / (tCharStats.mettleMax == 0 ? 25000000 : tCharStats.mettleMax) * 100):0.00}%)");
             ImGui.EndGroup();
 
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, "Cluster");

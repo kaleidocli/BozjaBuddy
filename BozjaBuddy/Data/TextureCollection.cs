@@ -87,7 +87,7 @@ namespace BozjaBuddy.Data
         {
             return this.mIcons[pSheet][pIconId];
         }
-        public TextureWrap? GetTextureFromItemId(uint pItemId, Sheet pSheet = Sheet.Action)
+        public TextureWrap? GetTextureFromItemId(uint pItemId, Sheet pSheet = Sheet.Action, bool pTryLoadTexIfFailed = false)
         {
             uint? tIconId = this.GetIconId(pItemId, pSheet);
             //PluginLog.LogDebug($"GetTextureFromItemId(): Loading iconId from itemId {pItemId} of from sheet {pSheet.ToString()}: {(tIconId == null ? false : tIconId)}");
@@ -96,6 +96,16 @@ namespace BozjaBuddy.Data
             {
                 //PluginLog.LogDebug($"GetTextureFromItemId(): Texture found for iconId {tIconId} in sheet {pSheet.ToString()}");
                 return this.mIcons[pSheet][tIconId!.Value];
+            }
+            else if (pTryLoadTexIfFailed)
+            {
+                // loading
+                this.AddTextureFromItemId(pItemId, pSheet);
+                // Try getting the texture again
+                if (tIconId != null && this.mIcons[pSheet].ContainsKey(tIconId!.Value))
+                {
+                    return this.mIcons[pSheet][tIconId!.Value];
+                }
             }
             return null;
         }
@@ -113,6 +123,17 @@ namespace BozjaBuddy.Data
         }
         public TextureWrap? GetStandardTexture(uint pIconId)
             => this.mStandardIcons.ContainsKey(pIconId) ? this.mStandardIcons[pIconId] : null;
+        public TextureWrap? GetStandardTexture(StandardIcon pIcon)
+        {
+            this.mStandardIcons.TryGetValue((uint)pIcon, out var pTex);
+            if (pTex == null)
+            {
+                this.mStandardIcons.TryAdd((uint)pIcon, this.LoadTexture((uint)pIcon));
+                this.mStandardIcons.TryGetValue((uint)pIcon, out var pTex2);
+                return pTex2;
+            }
+            return pTex;
+        }
 
         public void RemoveTextureFromItemId(uint pItemId, Sheet pSheet = Sheet.Action)
         {
@@ -202,6 +223,24 @@ namespace BozjaBuddy.Data
             Job = 3,
             Role = 4,
             FieldNote = 5
+        }
+        public enum StandardIcon
+        {
+            None = 0,
+            Uses = 1,
+            Weight = 2,
+            Cast = 3,
+            Recast = 4,
+            Rarity = 5,
+            Gil = 65002,
+            Exp = 65001,
+            Mettle = 65081,
+            Poetic = 65023,
+            Cluster = 65082,
+            Fate = 63914,
+            BozjaCe = 63909,
+            BozjaDuel = 63910,
+            BozjaDungeon = 63912
         }
     }
 }

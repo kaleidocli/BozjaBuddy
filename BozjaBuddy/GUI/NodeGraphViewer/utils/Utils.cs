@@ -11,6 +11,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     public class Utils
     {
         public static float defaultFontScale { get; } = 1;
+        private static float currFontScale = 1;
         /// <summary>
         /// This stuff is super funky.
         /// Calling the push/pop pair twice (in the same child/main window?) will cause the scaling to be applied twice. Prob even more.
@@ -22,13 +23,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             //ImGui.GetFont().Scale *= scale;
             //ImGui.PushFont(ImGui.GetFont());
             ImGui.SetWindowFontScale(ImGui.GetFont().Scale * scale);
+            Utils.currFontScale = ImGui.GetFont().Scale * scale;
         }
         public static void PopFontScale()
         {
-            ImGui.SetWindowFontScale(defaultFontScale);
+            ImGui.SetWindowFontScale(Utils.defaultFontScale);
+            Utils.currFontScale = Utils.defaultFontScale;
             //ImGui.PopFont();
             //ImGui.GetFont().Scale = defaultFontScale;
         }
+        public static float GetCurrFontScale() => Utils.currFontScale;
         /// https://stackoverflow.com/questions/5953552/how-to-get-the-closest-number-from-a-listint-with-linq
         public static float? GetClosestItem(float itemToCompare, List<float> items)
             => items.Count == 0
@@ -88,6 +92,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         NoNodeSnap = 16,
         StateNodeDrag = 32,
         StateCanvasDrag = 64,
-        NoCanvasDrag = 128
+        NoCanvasDrag = 128,
+        NoCanvasZooming = 256
     }
 }

@@ -45,7 +45,12 @@ namespace BozjaBuddy.GUI.IGMarkup
                         ImGui.TableSetColumnIndex(tCol);
                         foreach (IGMarkupBlock tBlock in tRow[tCol])
                         {
+                            var tOriScale = NodeGraphViewer.Utils.GetCurrFontScale();
+                            NodeGraphViewer.Utils.PopFontScale();
+                            NodeGraphViewer.Utils.PushFontScale(tOriScale);
                             tBlock.DrawGUI();
+                            NodeGraphViewer.Utils.PopFontScale();
+                            NodeGraphViewer.Utils.PushFontScale(tOriScale);
                         }
                     }
                 }

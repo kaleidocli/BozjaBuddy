@@ -169,10 +169,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.BeginChild(
                 this.mId,
                 tNodeSize,
-                border: false,
+                border: true,
                 ImGuiWindowFlags.NoScrollbar
                 );
             tRes |= this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
+            ImGui.SetCursorScreenPos(new Vector2(pNodeOSP.X, ImGui.GetCursorScreenPos().Y + 5 * pCanvasScaling));
             tRes |= this.DrawBody(pNodeOSP, pCanvasScaling);
             ImGui.EndChild();
             tRes |= this.DrawEdgePlugButton(tDrawList, pNodeOSP, pIsActive, pIsEstablishingConn: pIsEstablishingConn);

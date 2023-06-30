@@ -20,9 +20,13 @@ namespace BozjaBuddy.Utils
         {
             return Utils.ResizeToIcon(pPlugin, tTexture.Width, tTexture.Height);
         }
-        public static string FormatThousand(int pNum, int pDivisor = 1000, int pThreshold = 999)
+        public static string FormatNum(int pNum, int pDivisor = 1000, int pThreshold = 999, bool pShorter = false)
         {
-            return pNum > pThreshold ? $"{pNum / pDivisor}k" : pNum.ToString();
+            return pNum > (pThreshold * pDivisor + pThreshold)
+                   ? ((float)pNum / (pDivisor * pDivisor)).ToString(pShorter ? "N0" : "N2") + "M"
+                   : pNum > pThreshold 
+                     ? ((float)pNum / pDivisor).ToString(pShorter ? "N0" : "N2") + "K"
+                     : pNum.ToString();
         }
         public static DateTime ProcessToLocalTime(DateTime pDateTime)
         {

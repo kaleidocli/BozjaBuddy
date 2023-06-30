@@ -56,6 +56,10 @@ namespace BozjaBuddy.Data
             this.mDescription = "";
             this.mIGMarkup = new GUI.IGMarkup.IGMarkup("");
         }
+        protected override void SetUpNodeInfo()
+        {
+
+        }
         protected override string GenReprUiTooltip()
         {
             return this.mUiTooltip;

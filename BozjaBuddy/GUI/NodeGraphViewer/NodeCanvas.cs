@@ -336,7 +336,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             return new Tuple<bool, bool, bool, FirstClickType>(tIsNodeHandleClicked, pReadClicks, tIsNodeClicked, tFirstClick);
         }
-        public CanvasDrawFlags ProcessInputOnCanvas(UtilsGUI.InputPayload pInputPayload)
+        public CanvasDrawFlags ProcessInputOnCanvas(UtilsGUI.InputPayload pInputPayload, CanvasDrawFlags pCanvasDrawFlagIn)
         {
             CanvasDrawFlags pCanvasDrawFlags = CanvasDrawFlags.None;
             // Mouse drag
@@ -346,17 +346,20 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 pCanvasDrawFlags |= CanvasDrawFlags.StateCanvasDrag;
             }
             // Mouse wheel zooming
-            switch (pInputPayload.mMouseWheelValue)
+            if (!pCanvasDrawFlagIn.HasFlag(CanvasDrawFlags.NoCanvasZooming))
             {
-                case 1:
-                    this.mConfig.scaling += NodeCanvas.stepScale;
-                    pCanvasDrawFlags |= CanvasDrawFlags.StateCanvasDrag;
-                    break;
-                case -1:
-                    this.mConfig.scaling -= NodeCanvas.stepScale;
-                    pCanvasDrawFlags |= CanvasDrawFlags.StateCanvasDrag;
-                    break;
-            };
+                switch (pInputPayload.mMouseWheelValue)
+                {
+                    case 1:
+                        this.mConfig.scaling += NodeCanvas.stepScale;
+                        pCanvasDrawFlags |= CanvasDrawFlags.StateCanvasDrag;
+                        break;
+                    case -1:
+                        this.mConfig.scaling -= NodeCanvas.stepScale;
+                        pCanvasDrawFlags |= CanvasDrawFlags.StateCanvasDrag;
+                        break;
+                };
+            }
             return pCanvasDrawFlags;
         }
         /// <summary>
@@ -374,6 +377,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             bool tIsAnyNodeHandleClicked = false;
             bool tIsReadingClicksOnNode = true;
             bool tIsAnyNodeClicked = false;
+            bool tIsAnySelectedNodeInteracted = false;
             Area? tSelectScreenArea = null;
             Vector2? tSnapDelta = null;
             // Get this canvas' origin' screenPos   (only scaling for zooming)
@@ -474,8 +478,24 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     var t = this.ProcessInputOnNode(tNode, tNodeOSP.Value, pInputPayload, tIsReadingClicksOnNode);
                     if (t.Item1) tIsAnyNodeHandleClicked = t.Item1;
                     tIsReadingClicksOnNode = t.Item2;
-                    if (t.Item3) tIsAnyNodeClicked = true;
-                    if (t.Item4 != FirstClickType.None) tFirstClickScanRes = t.Item4;
+                    if (t.Item3)
+                    {
+                        tIsAnyNodeClicked = true;
+                        if (this._selectedNodes.Contains(id)) tIsAnySelectedNodeInteracted = true;
+                    }
+                    if (t.Item4 != FirstClickType.None)
+                    {
+                        tFirstClickScanRes = (t.Item4 == FirstClickType.Body && this._selectedNodes.Contains(id))
+                                             ? FirstClickType.BodySelected
+                                             : t.Item4;
+                    }
+                    if (tIsAnySelectedNodeInteracted) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
+                    if (tNode.mStyle.CheckPosWithin(tNodeOSP.Value, this.GetScaling(), pInputPayload.mMousePos)
+                        && pInputPayload.mMouseWheelValue != 0
+                        && this._selectedNodes.Contains(id))
+                    {
+                        pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasZooming;
+                    }
                     // Select using selectArea
                     if (tSelectScreenArea != null && !this._isNodeBeingDragged && this._firstClickInDrag == FirstClickType.None)
                     {
@@ -562,7 +582,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 && pInputPayload.mIsMouseLmb
                 && !tIsAnyNodeBusy
                 && (!tIsAnyNodeHandleClicked && (pInputPayload.mLmbDragDelta == null))
-                && !pInputPayload.mIsALmbDragRelease)
+                && !pInputPayload.mIsALmbDragRelease
+                && !tIsAnySelectedNodeInteracted)
             {
                 this._selectedNodes.Clear();
             }
@@ -613,7 +634,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     && (this._firstClickInDrag == FirstClickType.None || this._firstClickInDrag == FirstClickType.Body)
                     && this._selectAreaOSP == null)
                 {
-                    pCanvasDrawFlag |= this.ProcessInputOnCanvas(pInputPayload);
+                    pCanvasDrawFlag |= this.ProcessInputOnCanvas(pInputPayload, pCanvasDrawFlag);
                 }
                     
             }
@@ -664,7 +685,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             None = 0,
             Handle = 1,
-            Body = 2
+            Body = 2,
+            BodySelected = 3
         }
         private class EdgeConn
         {

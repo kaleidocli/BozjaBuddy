@@ -43,6 +43,7 @@ namespace BozjaBuddy.Data
             this.mTabColor = UtilsGUI.Colors.GenObj_BlueAction;
 
             this.SetUpAuxiliary();
+            this.SetUpNodeInfo();
         }
 
         public override string GetReprClipboardTooltip()
@@ -104,6 +105,16 @@ namespace BozjaBuddy.Data
             this.mDetail = $"[{this.mCharges}/{this.mCharges}]\t•\t[Weight: {this.mWeight}]\t•\t[Cast: {this.mCast}s]\t•\t[Recast: {this.mRecast}]";
             this.mDescription = $"{this.mDescription_full}";
             this.mIGMarkup = new GUI.IGMarkup.IGMarkup(this.mDescription_full);
+        }
+        protected override void SetUpNodeInfo()
+        {
+            this.mDetailPackage = new()
+            {
+                { TextureCollection.StandardIcon.Uses, $"{this.mCharges}/{this.mCharges}" },
+                { TextureCollection.StandardIcon.Weight, $"{this.mWeight}" },
+                { TextureCollection.StandardIcon.Cast, $"{this.mCast}" },
+                { TextureCollection.StandardIcon.Recast, $"{this.mRecast}" }
+            };
         }
     }
 }
