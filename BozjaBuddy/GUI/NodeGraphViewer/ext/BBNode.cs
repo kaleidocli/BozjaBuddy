@@ -22,6 +22,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 BBNodeContent tContent = (BBNodeContent)pContent;
                 this.mPlugin = tContent.GetPlugin();
                 this.mGenId = tContent.GetGenObjId();
+                if (this.mPlugin != null && this.mGenId.HasValue)
+                {
+                    if (this.mPlugin.mBBDataManager.mGeneralObjects.TryGetValue(this.mGenId.Value, out var pObj) && pObj != null)
+                    {
+                        this.mStyle.colorUnique = pObj.mTabColor ?? this.mStyle.colorUnique;
+                    }
+
+                }
             }
         }
         protected override NodeInteractionFlags DrawBody(Vector2 pNodeOSP, float pCanvasScaling)

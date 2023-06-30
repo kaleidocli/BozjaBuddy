@@ -37,12 +37,24 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, tStyle.ItemInnerSpacing * pCanvasScaling);
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, tStyle.FramePadding * pCanvasScaling);
             ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.NodeText);
+            ImGui.PushStyleColor(ImGuiCol.Button, UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, 0.2f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, 0.6f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, 1));
+            ImGui.PushStyleColor(ImGuiCol.Tab, UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, 0.2f));
+            ImGui.PushStyleColor(ImGuiCol.TabHovered, UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, 0.35f));
+            ImGui.PushStyleColor(ImGuiCol.TabActive, UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, 0.45f));
 
             this.DrawInnerHeader(tGenObj, pCanvasScaling);
             tRes |= this._currTab == InnerBodyTab.Overview
                     ? this.DrawInnerContent_Overview(tGenObj, pCanvasScaling)
                     : this.DrawInnerContent_Links(tGenObj, pCanvasScaling);
 
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
             ImGui.PopStyleColor();
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
