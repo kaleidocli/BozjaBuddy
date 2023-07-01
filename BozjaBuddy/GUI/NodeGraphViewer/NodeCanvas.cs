@@ -13,6 +13,7 @@ using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using QuickGraph.Algorithms;
 using Newtonsoft.Json;
 using BozjaBuddy.GUI.NodeGraphViewer.utils;
+using static BozjaBuddy.GUI.NodeGraphViewer.NodeCanvas;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -50,6 +51,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private bool _isNodeBeingDragged = false;
         private HashSet<string> _selectedNodes = new();
         private Node? _snappingNode = null;
+        private Dictionary<int, string> _nodeIdAndNodeGraphId = new();
         private Vector2? _lastSnapDelta = null;
         private FirstClickType _firstClickInDrag = FirstClickType.None;
         private bool _isFirstFrameAfterLmbDown = true;      // specifically for Draw()
@@ -91,7 +93,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             int tNewId = this._nodeCounter + 1;
             // create node
             T tNode = new();
-            tNode.Init(tNewId.ToString(), tNewId, pNodeContent);
+            tNode.Init(tNewId.ToString(), tNewId, pNodeContent, _style: new(Vector2.Zero, Vector2.Zero, tNode.GetType() == typeof(AuxNode) ? AuxNode.minHandleSize : null));
             // add node
             try
             {
@@ -106,6 +108,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this._nodeCounter++;
             // add node vertex to graph
             this.mGraph.AddVertex(tNode.mGraphId);
+            this._nodeIdAndNodeGraphId.TryAdd(tNode.mGraphId, tNode.mId);
             return tNode.mId;
         }
         /// <summary>
@@ -144,6 +147,75 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     this.mOccuppiedRegion.GetAvailableRelaPos(pRelaAreaToScanForAvailableRegion)
                 ); ;
         }
+        public string? AddNodeAdjacent<T>(
+                NodeContent.NodeContent pNodeContent,
+                string pNodeIdToAdjoin,
+                Vector2? pOffset = null
+                ) where T : Node, new()
+        {
+            if (!this.mNodes.TryGetValue(pNodeIdToAdjoin, out var pPrevNode) || pPrevNode == null) return null;
+            Vector2 tRelaPosRes;
+
+            this.mGraph.TryGetOutEdges(pPrevNode.mGraphId, out var edges);
+            // Getting child nodes that is positioned at greatest Y
+            float? tChosenY = null;
+            Node? tChosenNode = null;
+            PluginLog.LogDebug($"> Finding greatest Y from {edges.Count()} edges ===============");
+            foreach (var e in edges)
+            {
+                PluginLog.LogDebug($"> Evaluating child with graphId={e.Target}");
+                string? iChildId = this.GetNodeIdWithNodeGraphId(e.Target);
+                if (iChildId == null) continue;
+                PluginLog.LogDebug($"> A");
+                var iChildRelaPos = this.mMap.GetNodeRelaPos(iChildId);
+                if (!iChildRelaPos.HasValue) continue;
+                PluginLog.LogDebug($"> cY={iChildRelaPos.Value.Y} > chY={tChosenY}");
+                if (!tChosenY.HasValue || iChildRelaPos.Value.Y > tChosenY)
+                {
+                    tChosenY = iChildRelaPos.Value.Y;
+                    this.mNodes.TryGetValue(iChildId, out var val);
+                    tChosenNode = val ?? tChosenNode;
+                }
+            }
+            // Calc final draw pos
+            if (tChosenNode == null) tRelaPosRes = (this.mMap.GetNodeRelaPos(pNodeIdToAdjoin) ?? Vector2.One) + new Vector2(pPrevNode.mStyle.GetSize().X, 0) + (pOffset ?? Vector2.One);
+            else
+            {
+                tRelaPosRes = new(
+                        ((this.mMap.GetNodeRelaPos(pNodeIdToAdjoin) ?? Vector2.One) + new Vector2(pPrevNode.mStyle.GetSize().X, 0) + (pOffset ?? Vector2.One)).X,
+                        (this.mMap.GetNodeRelaPos(tChosenNode.mId) ?? this.mMap.GetNodeRelaPos(pNodeIdToAdjoin) ?? Vector2.One).Y + tChosenNode.mStyle.GetSize().Y + (pOffset ?? Vector2.One).Y
+                    );
+            }
+
+            return this.AddNode<T>(
+                    pNodeContent,
+                    tRelaPosRes
+                );
+        }
+        public string? AddNodeAdjacent(
+                Seed pSeed,
+                string pNodeIdToAdjoin)
+        {
+            var tRes = pSeed.nodeType switch
+            {
+                BasicNode.nodeType => this.AddNodeAdjacent<BasicNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode),
+                BBNode.nodeType => this.AddNodeAdjacent<BBNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode),
+                AuxNode.nodeType => this.AddNodeAdjacent<AuxNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode),
+                _ => this.AddNodeAdjacent<BasicNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode)
+            };
+            // Connect node
+            if (pSeed.isEdgeConnected && tRes != null)
+            {
+                var tResRelaPos = this.mMap.GetNodeRelaPos(tRes);
+                var tAdjRelaPos = this.mMap.GetNodeRelaPos(pNodeIdToAdjoin);
+                bool tIsUpright = (tResRelaPos.HasValue && tAdjRelaPos.HasValue)
+                                  ? (tAdjRelaPos.Value.Y > tResRelaPos.Value.Y)
+                                  : false;
+                this.AddEdge(pNodeIdToAdjoin, tRes, pSquarePathing: true, pUpright: tIsUpright);
+            }
+
+            return tRes;
+        }
         /// <summary>
         /// Return false if the process partially/fully fails.
         /// </summary>
@@ -152,9 +224,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             bool tRes = true;
             int? tNodeGraphId = null;
             if (!this.mMap.RemoveNode(pNodeId)) tRes = false;
-            if (this.mNodes.ContainsKey(pNodeId)) 
+            if (mNodes.TryGetValue(pNodeId, out Node? tNode) && tNode != null) 
             {
-                tNodeGraphId = this.mNodes[pNodeId].mGraphId;
+                tNodeGraphId = tNode.mGraphId;
                 this.mNodes[pNodeId].Dispose();
             }
             if (!this.mNodes.Remove(pNodeId)) tRes = false;
@@ -162,19 +234,30 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
             // Graph stuff
             this.RemoveEdgesWithNodeId(pNodeId);
-            if (tNodeGraphId.HasValue) this.mGraph.RemoveVertex(tNodeGraphId.Value);
+            if (tNodeGraphId.HasValue)
+            {
+                this._nodeIdAndNodeGraphId.Remove(tNodeGraphId.Value);
+                this.mGraph.RemoveVertex(tNodeGraphId.Value);
+            }
+
+
             return tRes;
+        }
+        private string? GetNodeIdWithNodeGraphId(int pNodeGraphId)
+        {
+            this._nodeIdAndNodeGraphId.TryGetValue(pNodeGraphId, out var iChildId);
+            return iChildId;
         }
         /// <summary>
         /// <para>Create a directional edge connecting two nodes.</para>
         /// <para>Return false if any node DNE, or there's already an edge with the same direction, or the new edge would introduce cycle.</para>
         /// </summary>
-        public bool AddEdge(string pSourceNodeId, string pTargetNodeId)
+        public bool AddEdge(string pSourceNodeId, string pTargetNodeId, bool pSquarePathing = false, bool pUpright = true)
         {
             if (!(this.HasNode(pSourceNodeId) && this.HasNode(pTargetNodeId))
                 || this.GetEdge(pSourceNodeId, pTargetNodeId) != null)
                 return false;
-            Edge tEdge = new(pSourceNodeId, pTargetNodeId, new SEdge<int>(this.mNodes[pSourceNodeId].mGraphId, this.mNodes[pTargetNodeId].mGraphId));
+            Edge tEdge = new(pSourceNodeId, pTargetNodeId, new SEdge<int>(this.mNodes[pSourceNodeId].mGraphId, this.mNodes[pTargetNodeId].mGraphId), pSquarePathing: pSquarePathing, pUpright: pUpright);
             this.mGraph.AddEdge(tEdge.GetEdge());
             // check cycle
             if (!this.mGraph.IsDirectedAcyclicGraph())
@@ -214,6 +297,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             return null;
         }
+
         /// <summary>Return false if no edge has the endpoint with given type equal to nodeId, otherwise true.</summary>
         public bool RemoveEdgesWithNodeId(string pNodeId, EdgeEndpointOption pOption = EdgeEndpointOption.Either)
         {
@@ -464,6 +548,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             foreach (var e in tEdgeToRemove) this.RemoveEdge(e.GetSourceNodeId(), e.GetTargetNodeId());
             // Draw nodes
+            List<Tuple<Seed, string>> tSeedToAdd = new();
             foreach (var id in this._nodeIds)
             {
                 // Get NodeOSP
@@ -536,6 +621,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     tIsRemovingConn = true;             // abort connection establishing if RMB outside of connecting plug
                 }
+                // Get seed and grow if possible
+                Seed? tSeed = tNode.GetSeed();
+                if (tSeed != null) tSeedToAdd.Add(new(tSeed, tNode.mId));
                 // Node connection
                 var tConnRes = this._nodeConnTemp?.GetConn();
                 if (tConnRes != null)                                                     // implement conn
@@ -569,6 +657,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     tDrawList.AddLine(tNodeOSP.Value, pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
                     tDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "[Right-click] another plug to connect.\n[Right-click] elsewhere to cancel.\n\nConnections that cause cycling will not connect. For more info, please hover the question mark on the toolbar.");
                 }
+            }
+            foreach (var pair in tSeedToAdd)
+            {
+                this.AddNodeAdjacent(pair.Item1, pair.Item2);
             }
             if (tIsRemovingConn && this._nodeConnTemp?.GetConn() == null) this._nodeConnTemp = null;
             if (tIsLockingSelection) this._isNodeSelectionLocked = true;
@@ -709,6 +801,23 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 if (!this.IsEstablished()) return null;
                 return new(this.source, this.target!);
+            }
+        }
+
+        public class Seed
+        {
+            public string nodeType;
+            public NodeContent.NodeContent nodeContent;
+            public bool isEdgeConnected;
+            public Vector2? ofsToPrevNode;
+
+            private Seed() { }
+            public Seed(string nodeType, NodeContent.NodeContent nodeContent, bool isEdgeConnected = true, Vector2? ofsToPrevNode = null)
+            {
+                this.nodeType = nodeType;
+                this.nodeContent = nodeContent;
+                this.isEdgeConnected = isEdgeConnected;
+                this.ofsToPrevNode = ofsToPrevNode;
             }
         }
     }

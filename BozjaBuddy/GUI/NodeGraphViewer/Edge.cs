@@ -36,11 +36,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         [JsonProperty]
         private Vector2? _anchorFirstPos = null;
 
-        public Edge(string pSourceNodeId, string pTargetNodeId, SEdge<int> pQgEdge)
+        public Edge(string pSourceNodeId, string pTargetNodeId, SEdge<int> pQgEdge, bool pSquarePathing = false, bool pUpright = true)
         {
             this.mSourceNodeId = pSourceNodeId;
             this.mTargetNodeId = pTargetNodeId;
             this.mQgEdge = pQgEdge;
+            this.mSquarePathingEnabled = pSquarePathing;
+            this.mDrawUpright = pUpright;
         }
         public string GetSourceNodeId() => this.mSourceNodeId;
         public string GetTargetNodeId() => this.mTargetNodeId;
@@ -183,7 +185,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 this._anchorFirstState = null;
                 this._anchorFirstPos = null;
-                tIsHovered = UtilsGUI.SetTooltipForLastItem($"[Left-click + drag] to switch between 3 paths. (Upper squared-edge, Free, Bottom squared-edge)\n[Right-click] or [Middle-click] to delete.");
+                tIsHovered = UtilsGUI.SetTooltipForLastItem($"[Left-click + drag] diagonally to switch between 3 paths: Upper or Lower perpendicular, Diagonal.\n[Right-click] or [Middle-click] to delete.");
             }
             // Anchor button PU
             tRes |= this.DrawPU();
@@ -192,9 +194,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.SetCursorScreenPos(tOriginalAnchor);
             if (tClipRectEnd.HasValue) pDrawList.PushClipRect(
                                 new Vector2(Utils.GetSmallerVal(tAnchorOSP.X, tClipRectEnd.Value.X), Utils.GetSmallerVal(tAnchorOSP.Y, tClipRectEnd.Value.Y)),
-                                new Vector2(Utils.GetGreaterVal(tAnchorOSP.X, tClipRectEnd.Value.X), Utils.GetGreaterVal(tAnchorOSP.Y, tClipRectEnd.Value.Y))
+                                new Vector2(Utils.GetGreaterVal(tAnchorOSP.X, tClipRectEnd.Value.X), Utils.GetGreaterVal(tAnchorOSP.Y, tClipRectEnd.Value.Y)),
+                                true
                                 );
-            pDrawList.AddCircle(tAnchorOSP, tAnchorSize.X * (tIsHovered ? (tClipRectEnd.HasValue ? 2.2f : 1.2f) : (tClipRectEnd.HasValue ? 1.65f : 1f)), ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
+            pDrawList.AddCircle(tAnchorOSP, tAnchorSize.X * (tIsHovered ? (tClipRectEnd.HasValue ? 1.9f : 1.2f) : (tClipRectEnd.HasValue ? 1.35f : 1f)), ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
             if (tClipRectEnd.HasValue) pDrawList.PopClipRect();
             pDrawList.AddCircleFilled(tAnchorOSP, tAnchorSize.X * 0.5f, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, (tIsHovered || tClipRectEnd.HasValue) ? tTrasnsparency * 1.25f : tTrasnsparency)));
 

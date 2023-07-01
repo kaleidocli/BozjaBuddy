@@ -35,6 +35,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public abstract string mType { get; }
         public string mId { get; protected set; } = string.Empty;
         public int mGraphId = -1;
+        protected Queue<NodeCanvas.Seed> _seeds = new();
 
         public Node() { }
 
@@ -98,6 +99,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             this.mStyle.SetSize(ImGui.CalcTextSize(this.mContent.GetHeader()) + Node.nodeInsidePadding * 2);
         }
+        public virtual NodeCanvas.Seed? GetSeed() => this._seeds.Count == 0 ? null : this._seeds.Dequeue();
+        protected virtual void SetSeed(NodeCanvas.Seed pSeed) => this._seeds.Enqueue(pSeed);
 
         public NodeInteractionFlags Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload, bool pIsEstablishingConn = false)
         {
@@ -291,13 +294,17 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             public Vector2 handleTextPadding = new(3, 0);
             [JsonProperty]
             private Vector2 handleTextSize = Vector2.Zero;
+            [JsonProperty]
+            private Vector2? minestMinSize = null;
 
             public Vector4 colorUnique = UtilsGUI.Colors.GenObj_BlueAction;
             public Vector4 colorBg = UtilsGUI.Colors.NodeBg;
             public Vector4 colorFg = UtilsGUI.Colors.NodeFg;
 
-            public NodeStyle(Vector2 size, Vector2 minSize)
+            public NodeStyle(Vector2 size, Vector2 minSize, Vector2? minestMinSize = null)
             {
+                this.minestMinSize = minestMinSize;
+                PluginLog.LogDebug($"> Initing NodeStyle...");
                 this.SetMinSize(minSize);
                 this.SetSize(size);
                 this.UpdatePartialSizes();
@@ -318,12 +325,18 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             public void SetHandleTextSize(Vector2 handleTextSize)
             {
                 this.handleTextSize = handleTextSize;
+                PluginLog.LogDebug($"> Setting handleTextSize...");
                 this.SetMinSize(this.GetHandleTextSize() + Node.nodeInsidePadding * 2 + new Vector2(Node.handleButtonBoxItemWidth * 3, 0));
             }
             private void SetMinSize(Vector2 handleSize)
             {
-                this.minSize.X = handleSize.X < Node.minHandleSize.X ? Node.minHandleSize.X : handleSize.X;
-                this.minSize.Y = handleSize.Y < Node.minHandleSize.Y ? Node.minHandleSize.Y : handleSize.Y;
+                this.minSize.X = handleSize.X < (minestMinSize == null ? Node.minHandleSize.X : minestMinSize.Value.X) 
+                                 ? (minestMinSize == null ? Node.minHandleSize.X : minestMinSize.Value.X) 
+                                 : handleSize.X;
+                this.minSize.Y = handleSize.Y < (minestMinSize == null ? Node.minHandleSize.Y : minestMinSize.Value.Y) 
+                                 ? (minestMinSize == null ? Node.minHandleSize.Y : minestMinSize.Value.Y) 
+                                 : handleSize.Y;
+                PluginLog.LogDebug($"> pH={handleSize} M={this.minSize} mM={this.minestMinSize} nM={Node.minHandleSize}");
             }
             private void UpdatePartialSizes()
             {

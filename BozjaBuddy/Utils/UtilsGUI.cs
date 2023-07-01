@@ -2,6 +2,7 @@
 using BozjaBuddy.Data.Alarm;
 using BozjaBuddy.GUI;
 using BozjaBuddy.GUI.NodeGraphViewer;
+using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using BozjaBuddy.GUI.Sections;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
@@ -190,7 +191,8 @@ namespace BozjaBuddy.Utils
             bool pIsShowingLinkIcon = true,
             string pAdditionalHoverText = "",
             bool pIsAuxiLinked = true,
-            InputPayload? pInputPayload = null)
+            InputPayload? pInputPayload = null,
+            AuxNode? pAuxNode = null)
         {
             pInputPayload ??= new InputPayload();
             bool tRes = UtilsGUI.SelectableLink(
@@ -201,7 +203,7 @@ namespace BozjaBuddy.Utils
                 pIsClosingPUOnClick: pIsClosingPUOnClick, 
                 pTextColor: pTextColor,
                 pSize: pSize,
-                pIsAuxiLinked: pIsAuxiLinked,
+                pIsAuxiLinked: pAuxNode == null ? pIsAuxiLinked : false,
                 pInputPayload: pInputPayload);
             if (!pPlugin.mBBDataManager.mGeneralObjects.ContainsKey(pTargetGenId))
             {
@@ -252,7 +254,13 @@ namespace BozjaBuddy.Utils
             }
             else if (tRes)
             {
-                pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
+                if (pAuxNode == null) pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
+                else pAuxNode.SetSeed(
+                        new(
+                            AuxNode.nodeType, 
+                            new BBNodeContent(pPlugin, pTargetGenId, tObj.mName),
+                            ofsToPrevNode: new Vector2(20, 20)
+                            ));
             }
             ImGui.PopID();
             // Lost action's cache amount

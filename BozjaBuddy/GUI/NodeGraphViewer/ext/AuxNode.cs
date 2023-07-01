@@ -16,9 +16,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
     /// <summary>
     /// Represents a node that display info from a BozjaBuddy's Auxiliary tab.
     /// </summary>
-    internal class AuxNode : BBNode
+    public class AuxNode : BBNode
     {
         public new const string nodeType = "AuxNode";
+        public new static Vector2 minHandleSize = new(Node.minHandleSize.X * 4.5f, Node.minHandleSize.Y);
         public override string mType { get; } = AuxNode.nodeType;
         private InnerBodyTab _currTab = InnerBodyTab.Links; 
 
@@ -26,6 +27,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
         {
             mStyle.colorUnique = UtilsGUI.Colors.NormalBar_Grey;
         }
+        public new void SetSeed(NodeCanvas.Seed pSeed) => base.SetSeed(pSeed);
         protected override NodeInteractionFlags DrawBody(Vector2 pNodeOSP, float pCanvasScaling)
         {
             var tRes = NodeInteractionFlags.None;
@@ -81,7 +83,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     break;
                 case GeneralObject.GeneralObjectSalt.FieldNote:
                     tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), TextureCollection.Sheet.FieldNote, true);
-                    if (tIconWrap != null) tExtraScaling = 0.5f;
+                    if (tIconWrap != null) tExtraScaling = 1.24f;
                     break;
                 default:
                     tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), pTryLoadTexIfFailed: true);
@@ -143,11 +145,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     // LOCATION
                     if (tFragment.mLocation != null)
                     {
-                        UtilsGUI.LocationLinkButton(this.mPlugin, tFragment.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tFragment.mLocation, pUseIcon: true);
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"Forgetten Fragment of {tFragment.mName}", tFragment.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"Fragment: {tFragment.mName}", tFragment.GetGenId(), pAuxNode: this);
                     // Display as vendor's stock
                     if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Vendor)
                     {
@@ -166,11 +168,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     // LOCATION
                     if (tFate.mLocation != null)
                     {
-                        UtilsGUI.LocationLinkButton(this.mPlugin, tFate.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tFate.mLocation, pUseIcon: true);
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tFate.mName}", tFate.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tFate.mName}", tFate.GetGenId(), pAuxNode: this);
                     ImGui.Separator();
                 }
             }
@@ -182,11 +184,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     // LOCATION
                     if (tMob.mLocation != null)
                     {
-                        UtilsGUI.LocationLinkButton(this.mPlugin, tMob.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tMob.mLocation, pUseIcon: true);
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tMob.mName}", tMob.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tMob.mName}", tMob.GetGenId(), pAuxNode: this);
                     ImGui.Separator();
                 }
             }
@@ -198,11 +200,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     // LOCATION
                     if (tAction.mLocation != null)
                     {
-                        UtilsGUI.LocationLinkButton(this.mPlugin, tAction.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tAction.mLocation, pUseIcon: true);
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tAction.mName}", tAction.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tAction.mName}", tAction.GetGenId(), pAuxNode: this);
                     ImGui.Separator();
                 }
             }
@@ -214,11 +216,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     // LOCATION
                     if (tVendor.mLocation != null)
                     {
-                        UtilsGUI.LocationLinkButton(this.mPlugin, tVendor.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tVendor.mLocation, pUseIcon: true);
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tVendor.mName}\t({tVendor.GetAmountPriceCurrency(pObj.mId).Item1}) {tVendor.GetAmountPriceCurrency(pObj.mId).Item2} {tVendor.GetAmountPriceCurrency(pObj.mId).Item3.ToString()}", tVendor.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tVendor.mName}\t({tVendor.GetAmountPriceCurrency(pObj.mId).Item1}) {tVendor.GetAmountPriceCurrency(pObj.mId).Item2} {tVendor.GetAmountPriceCurrency(pObj.mId).Item3.ToString()}", tVendor.GetGenId(), pAuxNode: this);
                     ImGui.Separator();
                 }
             }
@@ -230,11 +232,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     // LOCATION
                     if (tFieldNote.mLocation != null)
                     {
-                        UtilsGUI.LocationLinkButton(this.mPlugin, tFieldNote.mLocation);
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tFieldNote.mLocation, pUseIcon: true);
                         ImGui.SameLine();
                     }
                     // NAME
-                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tFieldNote.mName}", tFieldNote.GetGenId());
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tFieldNote.mName}", tFieldNote.GetGenId(), pAuxNode: this);
                     ImGui.Separator();
                 }
             }
