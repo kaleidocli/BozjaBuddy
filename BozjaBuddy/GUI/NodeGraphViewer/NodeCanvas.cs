@@ -50,6 +50,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
         private bool _isNodeBeingDragged = false;
         private HashSet<string> _selectedNodes = new();
+        private LinkedList<string> _nodeRenderZOrder = new();
         private Node? _snappingNode = null;
         private Dictionary<int, string> _nodeIdAndNodeGraphId = new();
         private Vector2? _lastSnapDelta = null;
@@ -100,6 +101,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (!this.mNodes.TryAdd(tNode.mId, tNode)) return null;
                 if (!this._nodeIds.Add(tNode.mId)) return null;
                 if (!this.mOccuppiedRegion.IsUpdatedOnce()) this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
+                this._nodeRenderZOrder.AddLast(tNode.mId);
                 this.mMap.AddNode(tNode.mId, pDrawRelaPos);
             }
             catch (Exception e) { PluginLog.LogDebug(e.Message); }
@@ -109,6 +111,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // add node vertex to graph
             this.mGraph.AddVertex(tNode.mGraphId);
             this._nodeIdAndNodeGraphId.TryAdd(tNode.mGraphId, tNode.mId);
+
             return tNode.mId;
         }
         /// <summary>
@@ -231,6 +234,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             if (!this.mNodes.Remove(pNodeId)) tRes = false;
             if (!_nodeIds.Remove(pNodeId)) tRes = false;
+            this._nodeRenderZOrder.Remove(pNodeId);
             this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
             // Graph stuff
             this.RemoveEdgesWithNodeId(pNodeId);
@@ -549,8 +553,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             foreach (var e in tEdgeToRemove) this.RemoveEdge(e.GetSourceNodeId(), e.GetTargetNodeId());
             // Draw nodes
             List<Tuple<Seed, string>> tSeedToAdd = new();
-            foreach (var id in this._nodeIds)
+            Queue<LinkedListNode<string>> tNodeToFocus = new();
+            for (var znode = this._nodeRenderZOrder.First; znode != null; znode = znode?.Next)
             {
+                if (znode == null) break;
+                var id = znode.Value;
                 // Get NodeOSP
                 Vector2? tNodeOSP = this.mMap.GetNodeScreenPos(id, tCanvasOSP, this.mConfig.scaling);
                 if (tNodeOSP == null) continue;
@@ -559,9 +566,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 // Process input on node
                 if (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoInteract) && !this._isNodeSelectionLocked)
                 {
-                    // Process input on node
+                    // Process input on node    (tIsNodeHandleClicked, pReadClicks, tIsNodeClicked, tFirstClick)
                     var t = this.ProcessInputOnNode(tNode, tNodeOSP.Value, pInputPayload, tIsReadingClicksOnNode);
-                    if (t.Item1) tIsAnyNodeHandleClicked = t.Item1;
+                    if (t.Item1)
+                    {
+                        tIsAnyNodeHandleClicked = t.Item1;
+                        // Queue the focus nodes
+                        if (znode != null) tNodeToFocus.Enqueue(znode);
+                    }
                     tIsReadingClicksOnNode = t.Item2;
                     if (t.Item3)
                     {
@@ -658,6 +670,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     pDrawList.AddLine(tNodeOSP.Value, pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
                     pDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "[Right-click] another plug to connect.\n[Right-click] elsewhere to cancel.\n\nConnections that cause cycling will not connect. For more info, please hover the question mark on the toolbar.");
                 }
+            }
+            // Bring to focus (rendered last)
+            foreach (var znode in tNodeToFocus)
+            {
+                this._nodeRenderZOrder.Remove(znode);
+                this._nodeRenderZOrder.AddLast(znode);
             }
             foreach (var pair in tSeedToAdd)
             {

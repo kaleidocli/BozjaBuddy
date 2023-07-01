@@ -122,8 +122,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._lastUnminimizedSize = null;
             }
 
-            //ImGui.SetCursorScreenPos(pNodeOSP);
-
             var tNodeSize = this.mStyle.GetSizeScaled(pCanvasScaling);
             Vector2 tOuterWindowSizeOfs = new(15 * pCanvasScaling);
             var tStyle = ImGui.GetStyle();
@@ -179,6 +177,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             Utils.PushFontScale(pCanvasScaling);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Node.nodeInsidePadding * pCanvasScaling);
             ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
+            ImGui.PushStyleColor(ImGuiCol.Border, UtilsGUI.AdjustTransparency(this.mStyle.colorFg, pIsActive ? 0.7f : 0.2f));
 
             ImGui.BeginChild(
                 this.mId,
@@ -191,6 +190,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             tRes |= this.DrawBody(pNodeOSP, pCanvasScaling);
             ImGui.EndChild();
 
+            ImGui.PopStyleColor();
             ImGui.PopStyleColor();
             ImGui.PopStyleVar();
             Utils.PopFontScale();
