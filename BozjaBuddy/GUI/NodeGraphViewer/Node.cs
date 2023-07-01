@@ -102,7 +102,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public virtual NodeCanvas.Seed? GetSeed() => this._seeds.Count == 0 ? null : this._seeds.Dequeue();
         protected virtual void SetSeed(NodeCanvas.Seed pSeed) => this._seeds.Enqueue(pSeed);
 
-        public NodeInteractionFlags Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload, bool pIsEstablishingConn = false)
+        public NodeInteractionFlags Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload, ImDrawListPtr pDrawList, bool pIsEstablishingConn = false)
         {
             // Re-calculate ImGui-dependant members, if required.
             if (this._needReinit)
@@ -122,22 +122,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._lastUnminimizedSize = null;
             }
 
-            ImGui.SetCursorScreenPos(pNodeOSP);
+            //ImGui.SetCursorScreenPos(pNodeOSP);
 
             var tNodeSize = this.mStyle.GetSizeScaled(pCanvasScaling);
-            var tDrawList = ImGui.GetWindowDrawList();
+            Vector2 tOuterWindowSizeOfs = new(15 * pCanvasScaling);
             var tStyle = ImGui.GetStyle();
             var tEnd = pNodeOSP + tNodeSize;
             NodeInteractionFlags tRes = NodeInteractionFlags.None;
-
-            // outline
-            tDrawList.AddRect(
-                pNodeOSP,
-                tEnd,
-                ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorFg, pIsActive ? 1f : 0.7f)),
-                1,
-                ImDrawFlags.None,
-                (pIsActive ? 6.5f : 4f) * pCanvasScaling);
 
             // resize grip
             if (!this.mIsMinimized)
@@ -159,30 +150,53 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 ImGui.SetCursorScreenPos(pNodeOSP);
             }
 
+            // Each node drawing have 2 child windows.
+            // One to get this node's drawList so that it would take priority over master drawlist.
+            // One to format the node content.
+            ImGui.SetCursorScreenPos(pNodeOSP - tOuterWindowSizeOfs / 2);
+            ImGui.BeginChild(
+                $"##outer{this.mId}", tNodeSize + tOuterWindowSizeOfs, false,
+                ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoScrollbar);
+            var tDrawList = ImGui.GetWindowDrawList();
+
+            ImGui.SetCursorScreenPos(pNodeOSP);
+            // outline
+            tDrawList.AddRect(
+                pNodeOSP,
+                tEnd,
+                ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorFg, pIsActive ? 0.7f : 0.2f)),
+                1,
+                ImDrawFlags.None,
+                (pIsActive ? 6.5f : 4f) * pCanvasScaling);
+
             // backdrop
             tDrawList.AddRectFilled(
                 pNodeOSP,
                 tEnd,
                 ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
 
-            // node content (handle, body)
+            //node content(handle, body)
             Utils.PushFontScale(pCanvasScaling);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Node.nodeInsidePadding * pCanvasScaling);
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
 
             ImGui.BeginChild(
                 this.mId,
                 tNodeSize,
                 border: true,
-                ImGuiWindowFlags.NoScrollbar
+                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.ChildWindow
                 );
             tRes |= this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
             ImGui.SetCursorScreenPos(new Vector2(pNodeOSP.X, ImGui.GetCursorScreenPos().Y + 5 * pCanvasScaling));
             tRes |= this.DrawBody(pNodeOSP, pCanvasScaling);
             ImGui.EndChild();
-            tRes |= this.DrawEdgePlugButton(tDrawList, pNodeOSP, pIsActive, pIsEstablishingConn: pIsEstablishingConn);
 
+            ImGui.PopStyleColor();
             ImGui.PopStyleVar();
             Utils.PopFontScale();
+
+            ImGui.EndChild();
+            tRes |= this.DrawEdgePlugButton(tDrawList, pNodeOSP, pIsActive, pIsEstablishingConn: pIsEstablishingConn);
 
             return tRes;
         }
@@ -190,9 +204,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             var tHandleSize = this.mStyle.GetHandleSizeScaled(pCanvasScaling);
             pDrawList.AddRectFilled(
-                pNodeOSP, 
-                pNodeOSP + tHandleSize, 
-                ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, pIsActive ? 0.55f : 0.25f)));
+                pNodeOSP,
+                pNodeOSP + tHandleSize,
+                ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, pIsActive ? 0.45f : 0.15f)));
             ImGui.SetCursorScreenPos(
                 pNodeOSP + new Vector2(
                         this.mStyle.handleTextPadding.X, 

@@ -454,6 +454,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             Vector2 pBaseOriginScreenPos,
             Vector2 pInitBaseOffset,
             UtilsGUI.InputPayload pInputPayload,
+            ImDrawListPtr pDrawList,
             NodeGraphViewer.GridSnapData? pSnapData = null, 
             CanvasDrawFlags pCanvasDrawFlag = CanvasDrawFlags.None,
             List<ViewerNotification>? pNotiListener = null)
@@ -531,7 +532,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             bool tIsRemovingConn = false;        // for outside node drawing loop
 
             // Draw edges
-            ImDrawListPtr tDrawList = ImGui.GetWindowDrawList();
             List<Edge> tEdgeToRemove = new();
             foreach (Edge e in this.mEdges)
             {
@@ -542,7 +542,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 Vector2? tTargetOSP = this.mMap.GetNodeScreenPos(tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
                 if (!tTargetOSP.HasValue) continue;
 
-                NodeInteractionFlags tEdgeRes = e.Draw(tDrawList, tSourceOSP.Value, tTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()));
+                NodeInteractionFlags tEdgeRes = e.Draw(pDrawList, tSourceOSP.Value, tTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()));
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.Edge)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.RequestEdgeRemoval)) tEdgeToRemove.Add(e);
             }
@@ -599,6 +599,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                                     this.mConfig.scaling,
                                                     this._selectedNodes.Contains(id),
                                                     pInputPayload,
+                                                    ImGui.GetWindowDrawList(),
                                                     pIsEstablishingConn: this._nodeConnTemp != null && this._nodeConnTemp.IsSource(tNode.mId));
                 var tNodeRelaPos = this.mMap.GetNodeRelaPos(id);
                 if (this._isNodeBeingDragged && this._selectedNodes.Contains(tNode.mId) && tNodeRelaPos.HasValue) 
@@ -654,8 +655,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 // Draw conn tether to cursor
                 if (this._nodeConnTemp != null && this._nodeConnTemp.IsSource(tNode.mId))
                 {
-                    tDrawList.AddLine(tNodeOSP.Value, pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
-                    tDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "[Right-click] another plug to connect.\n[Right-click] elsewhere to cancel.\n\nConnections that cause cycling will not connect. For more info, please hover the question mark on the toolbar.");
+                    pDrawList.AddLine(tNodeOSP.Value, pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
+                    pDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "[Right-click] another plug to connect.\n[Right-click] elsewhere to cancel.\n\nConnections that cause cycling will not connect. For more info, please hover the question mark on the toolbar.");
                 }
             }
             foreach (var pair in tSeedToAdd)

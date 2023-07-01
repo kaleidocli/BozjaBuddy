@@ -125,10 +125,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public void Draw(Vector2 pScreenPos, Vector2? pSize = null)
         {
             Area tGraphArea = new(pScreenPos + new Vector2(0, 30), (pSize ?? ImGui.GetContentRegionAvail()) + new Vector2(0, -30));
+            var tDrawList = ImGui.GetWindowDrawList();
 
             this.DrawUtilsBar(tGraphArea.size);
             ImGui.SetCursorScreenPos(tGraphArea.start);
-            this.DrawGraph(tGraphArea);
+            this.DrawGraph(tGraphArea, tDrawList);
         }
         private void DrawUtilsBar(Vector2 pViewerSize)
         {
@@ -175,9 +176,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
             }            
         }
-        private void DrawGraph(Area pGraphArea)
+        private void DrawGraph(Area pGraphArea, ImDrawListPtr pDrawList)
         {
-            var pDrawList = ImGui.GetWindowDrawList();
             List<ViewerNotification> tNotiListener = new();
             ImGui.BeginChild(
                 "nodegraphviewer",
@@ -187,7 +187,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             pDrawList.PushClipRect(pGraphArea.start, pGraphArea.end, true);
 
             var tSnapData = DrawGraphBg(pGraphArea, this.mActiveCanvas.GetBaseOffset(), this.mActiveCanvas.GetScaling());
-            DrawGraphNodes(pGraphArea, tSnapData, pNotiListener: tNotiListener);
+            DrawGraphNodes(pGraphArea, tSnapData, pDrawList, pNotiListener: tNotiListener);
             this.mNotificationManager.Push(tNotiListener);
             DrawNotifications(pGraphArea);
 
@@ -241,7 +241,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             ImGui.PopStyleVar();
         }
-        private void DrawGraphNodes(Area pGraphArea, GridSnapData pSnapData, List<ViewerNotification>? pNotiListener = null)
+        private void DrawGraphNodes(Area pGraphArea, GridSnapData pSnapData, ImDrawListPtr pDrawList, List<ViewerNotification>? pNotiListener = null)
         {
             ImGui.SetCursorScreenPos(pGraphArea.start);
             
@@ -258,6 +258,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                     pGraphArea.center,
                                     -1 * pGraphArea.size / 2,
                                     tInputPayload,
+                                    pDrawList,
                                     pSnapData: pSnapData,
                                     pCanvasDrawFlag: (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows) && (this._isMouseHoldingViewer || tIsWithinViewer))
                                                      ? CanvasDrawFlags.None
