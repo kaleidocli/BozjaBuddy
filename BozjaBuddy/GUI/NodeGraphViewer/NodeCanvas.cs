@@ -331,16 +331,19 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             this.mMap.AddBaseOffset(pDelta);
         }
-        public Tuple<bool, bool, bool, FirstClickType> ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
+        public Tuple<bool, bool, bool, FirstClickType, CanvasDrawFlags> ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
         {
             bool tIsNodeHandleClicked = false;
             bool tIsNodeClicked = false;
+            bool tIsCursorWithin = pNode.mStyle.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos);
+            bool tIsCursorWithinHandle = pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos);
             FirstClickType tFirstClick = FirstClickType.None;
+            CanvasDrawFlags tCDFRes = CanvasDrawFlags.None;
+
             // Process node delete
             if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseMid)
             {
-                if (this._selectedNodes.Contains(pNode.mId)
-                    && pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                if (this._selectedNodes.Contains(pNode.mId) && tIsCursorWithinHandle)
                     this.RemoveNode(pNode.mId);
             }
             else if (pNode._isMarkedDeleted)
@@ -350,7 +353,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // Process node select
             if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseLmb)
             {
-                if (pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                if (tIsCursorWithinHandle)
                 {
                     // multi-selecting
                     if (pInputPayload.mIsKeyCtrl)
@@ -371,7 +374,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     }
                     tIsNodeHandleClicked = true;
                 }
-                else if (pNode.mStyle.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                else if (tIsCursorWithin)
                 {
                     tIsNodeClicked = true;
                 }
@@ -422,7 +425,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._snappingNode = null;
             }
 
-            return new Tuple<bool, bool, bool, FirstClickType>(tIsNodeHandleClicked, pReadClicks, tIsNodeClicked, tFirstClick);
+            if (tIsCursorWithin) tCDFRes |= CanvasDrawFlags.NoCanvasZooming;
+
+            return new Tuple<bool, bool, bool, FirstClickType, CanvasDrawFlags>(tIsNodeHandleClicked, pReadClicks, tIsNodeClicked, tFirstClick, tCDFRes);
         }
         public CanvasDrawFlags ProcessInputOnCanvas(UtilsGUI.InputPayload pInputPayload, CanvasDrawFlags pCanvasDrawFlagIn)
         {
@@ -586,6 +591,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                              ? FirstClickType.BodySelected
                                              : t.Item4;
                     }
+                    pCanvasDrawFlag |= t.Item5;
+                    
                     if (tIsAnySelectedNodeInteracted) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
                     if (tNode.mStyle.CheckPosWithin(tNodeOSP.Value, this.GetScaling(), pInputPayload.mMousePos)
                         && pInputPayload.mMouseWheelValue != 0

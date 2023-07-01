@@ -176,6 +176,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             //node content(handle, body)
             Utils.PushFontScale(pCanvasScaling);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Node.nodeInsidePadding * pCanvasScaling);
+            ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 1.5f);
             ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
             ImGui.PushStyleColor(ImGuiCol.Border, UtilsGUI.AdjustTransparency(this.mStyle.colorFg, pIsActive ? 0.7f : 0.2f));
 
@@ -183,7 +184,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this.mId,
                 tNodeSize,
                 border: true,
-                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.ChildWindow
+                ImGuiWindowFlags.ChildWindow
                 );
             tRes |= this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
             ImGui.SetCursorScreenPos(new Vector2(pNodeOSP.X, ImGui.GetCursorScreenPos().Y + 5 * pCanvasScaling));
@@ -192,6 +193,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             ImGui.PopStyleColor();
             ImGui.PopStyleColor();
+            ImGui.PopStyleVar();
             ImGui.PopStyleVar();
             Utils.PopFontScale();
 
@@ -207,12 +209,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 pNodeOSP,
                 pNodeOSP + tHandleSize,
                 ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, pIsActive ? 0.45f : 0.15f)));
-            ImGui.SetCursorScreenPos(
-                pNodeOSP + new Vector2(
-                        this.mStyle.handleTextPadding.X, 
-                        ((tHandleSize.Y - this.mStyle.GetHandleTextSize().Y * pCanvasScaling) / 2) + this.mStyle.handleTextPadding.Y * pCanvasScaling
-                    )
-                );
+            //ImGui.SetCursorScreenPos(
+            //    pNodeOSP + new Vector2(
+            //            this.mStyle.handleTextPadding.X, 
+            //            ((tHandleSize.Y - this.mStyle.GetHandleTextSize().Y * pCanvasScaling) / 2) + this.mStyle.handleTextPadding.Y * pCanvasScaling
+            //        )
+            //    );
             ImGui.TextColored(UtilsGUI.Colors.NodeText, this.mContent.GetHeader());
 
             // ButtonBox

@@ -67,13 +67,13 @@ namespace BozjaBuddy.Data
         protected override void SetUpAuxiliary()
         {
             this.mDetail = "Detail";
-            this.mDescription = "Description";
+            this.mDescription = "This is Thancred.";
         }
         protected override void SetUpNodeInfo()
         {
             this.mDetailPackage = new()
             {
-                { TextureCollection.StandardIcon.Cluster, this.mIsClusterBuyable ? "Y" : "N" }
+                { TextureCollection.StandardIcon.Cluster, this.mIsClusterBuyable ? "Yes" : "No" }
             };
         }
     }

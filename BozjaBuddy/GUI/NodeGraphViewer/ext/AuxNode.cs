@@ -266,7 +266,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     UtilsGUI.SelectableLink_WithPopup(this.mPlugin,
                         this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName,
                         this.mPlugin.mBBDataManager.mFates[iCurrFateId].GetGenId(),
-                        true);
+                        true,
+                        pAuxNode: this);
                     iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFateNext;
                 }
                 while (iCurrFateId != -1);

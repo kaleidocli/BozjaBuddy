@@ -91,7 +91,7 @@ namespace BozjaBuddy.Data
         protected override void SetUpAuxiliary()
         {
             this.mDetail = "";
-            this.mDescription = "";
+            this.mDescription = "This is Thancred.";
             this.mIGMarkup = new GUI.IGMarkup.IGMarkup("");
         }
         protected override void SetUpNodeInfo()
