@@ -167,12 +167,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 ImDrawFlags.None,
                 (pIsActive ? 6.5f : 4f) * pCanvasScaling);
 
-            // backdrop
-            tDrawList.AddRectFilled(
-                pNodeOSP,
-                tEnd,
-                ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
-
             //node content(handle, body)
             Utils.PushFontScale(pCanvasScaling);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Node.nodeInsidePadding * pCanvasScaling);
@@ -186,9 +180,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 border: true,
                 ImGuiWindowFlags.ChildWindow
                 );
+            // backdrop (leave this here so the backgrop can overwrite the child's bg)
+            if (!this.mIsMinimized) tDrawList.AddRectFilled(pNodeOSP,tEnd,ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
             tRes |= this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
             ImGui.SetCursorScreenPos(new Vector2(pNodeOSP.X, ImGui.GetCursorScreenPos().Y + 5 * pCanvasScaling));
-            tRes |= this.DrawBody(pNodeOSP, pCanvasScaling);
+            if (!this.mIsMinimized) tRes |= this.DrawBody(pNodeOSP, pCanvasScaling);
             ImGui.EndChild();
 
             ImGui.PopStyleColor();
@@ -279,19 +275,19 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             bool tIsHovered = false;
             Vector2 tOriAnchor = ImGui.GetCursorScreenPos();
             ImGui.SetCursorScreenPos(pNodeOSP - (tSize * 3f));
-            if (ImGui.InvisibleButton($"eb{this.mId}", tSize * 3f, ImGuiButtonFlags.MouseButtonRight))
+            if (ImGui.InvisibleButton($"eb{this.mId}", tSize * 3f, ImGuiButtonFlags.MouseButtonLeft))
             {
                 tRes |= pIsEstablishingConn ? NodeInteractionFlags.UnrequestingEdgeConn : NodeInteractionFlags.RequestingEdgeConn;
             }
-            else if (UtilsGUI.SetTooltipForLastItem("Right-click this plug to start connecting."))
+            else if (UtilsGUI.SetTooltipForLastItem("Left-click to start connecting.\nRight-click to select all child nodes."))
             {
                 tIsHovered = true;
             }
             ImGui.SetCursorScreenPos(tOriAnchor);
             // Draw
-            pDrawList.AddCircleFilled(pNodeOSP - tSize, tSize.X * ((tIsHovered || pIsEstablishingConn) ? 1.5f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, (pIsActive || tIsHovered || pIsEstablishingConn) ? 1f : 0.7f)));
-            pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.7f) * ((tIsHovered || pIsEstablishingConn) ? 1.5f : 1), ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
-            pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.5f) * ((tIsHovered || pIsEstablishingConn) ? 1.5f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, (pIsActive || pIsEstablishingConn) ? 0.55f : 0.25f)));
+            pDrawList.AddCircleFilled(pNodeOSP - tSize, tSize.X * ((tIsHovered || pIsEstablishingConn) ? 2.5f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, (pIsActive || tIsHovered || pIsEstablishingConn) ? 1f : 0.7f)));
+            pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.7f) * ((tIsHovered || pIsEstablishingConn) ? 2.5f : 1), ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
+            pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.5f) * ((tIsHovered || pIsEstablishingConn) ? 2.5f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, (pIsActive || pIsEstablishingConn) ? 0.55f : 0.25f)));
             return tRes;
         }
 
