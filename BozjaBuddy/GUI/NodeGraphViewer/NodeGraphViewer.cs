@@ -256,6 +256,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             CanvasDrawFlags tRes = this.mActiveCanvas.Draw(
                                     pGraphArea.center,
+                                    pGraphArea.start,
+                                    pGraphArea.size,
                                     -1 * pGraphArea.size / 2,
                                     tInputPayload,
                                     pDrawList,

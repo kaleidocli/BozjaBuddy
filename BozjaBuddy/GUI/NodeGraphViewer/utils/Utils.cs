@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BozjaBuddy.Utils;
+using System.Drawing;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -65,6 +66,19 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 start - s * baseMultiplier,
                 ImGui.ColorConvertFloat4ToU32(color)
             );
+        }
+        /// <summary>https://stackoverflow.com/questions/51217546/test-for-rectangle-line-intersection</summary>
+        public static bool IsLineIntersectRect(Vector2 a, Vector2 b, Area area)
+        {
+            if (Math.Min(a.X, b.X) > area.end.X) return false;   // *
+            if (Math.Max(a.X, b.X) < area.start.X) return false;   // *
+            if (Math.Min(a.Y, b.Y) > area.end.Y) return false;   // *
+            if (Math.Max(a.Y, b.Y) < area.start.Y) return false;   // *
+
+            if (area.CheckPosIsWithin(a)) return true;   // **
+            if (area.CheckPosIsWithin(a)) return true;   // **
+
+            return true;
         }
     }
 

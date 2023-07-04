@@ -137,6 +137,37 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             var tRes = NodeInteractionFlags.None;
             if (this.mPlugin == null) return tRes;
 
+            // Fate chains
+            if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate
+                && (this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1
+                    || this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext != -1))
+            {
+                int iCurrFateId = this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1
+                    ? this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev
+                    : this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext;
+                while (this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev != -1)        // Find the starting point of FATE chain
+                    iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev;
+                if (ImGui.BeginMenu("Included in Fate chain:"))
+                {
+                    int tCounter = 1;
+                    do
+                    {
+                        if (tCounter > 1) ImGui.Text(new string('\t', tCounter - 1) + "|__");
+                        ImGui.SameLine();
+                        UtilsGUI.SelectableLink_WithPopup(this.mPlugin,
+                            this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName,
+                            this.mPlugin.mBBDataManager.mFates[iCurrFateId].GetGenId(),
+                            true,
+                            pAuxNode: this);
+                        iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFateNext;
+                        tCounter++;
+                    }
+                    while (iCurrFateId != -1);
+                    ImGui.EndMenu();
+                }
+                ImGui.Separator();
+            }
+
             if (pObj.mLinkFragments.Count != 0 && ImGui.CollapsingHeader($"Fragment ({pObj.mLinkFragments.Count})"))
             {
                 foreach (int iId in pObj.mLinkFragments)
@@ -249,30 +280,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             if (this.mPlugin == null) return tRes;
 
             ImGui.PushTextWrapPos(0);
-            // Fate chains
-            if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate
-                && (this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1
-                    || this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext != -1))
-            {
-                int iCurrFateId = this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev != -1
-                    ? this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFatePrev
-                    : this.mPlugin.mBBDataManager.mFates[pObj.mId].mChainFateNext;
-                while (this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev != -1)        // Find the starting point of FATE chain
-                    iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFatePrev;
-                ImGui.Text("Chain: ");
-                do
-                {
-                    ImGui.SameLine();
-                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin,
-                        this.mPlugin.mBBDataManager.mFates[iCurrFateId].mName,
-                        this.mPlugin.mBBDataManager.mFates[iCurrFateId].GetGenId(),
-                        true,
-                        pAuxNode: this);
-                    iCurrFateId = this.mPlugin.mBBDataManager.mFates[iCurrFateId].mChainFateNext;
-                }
-                while (iCurrFateId != -1);
-                ImGui.Separator();
-            }
             if (pObj.mIGMarkup == null)
                 ImGui.TextUnformatted(pObj.mDescription);
             else

@@ -234,6 +234,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             if (!this.mNodes.Remove(pNodeId)) tRes = false;
             if (!_nodeIds.Remove(pNodeId)) tRes = false;
+            this._selectedNodes.Remove(pNodeId);
             this._nodeRenderZOrder.Remove(pNodeId);
             this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
             // Graph stuff
@@ -331,48 +332,51 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             this.mMap.AddBaseOffset(pDelta);
         }
-        public Tuple<bool, bool, bool, FirstClickType, CanvasDrawFlags> ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
+        public NodeInputProcessResult ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
         {
             bool tIsNodeHandleClicked = false;
             bool tIsNodeClicked = false;
             bool tIsCursorWithin = pNode.mStyle.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos);
             bool tIsCursorWithinHandle = pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos);
+            bool tIsMarkedForDelete = false;
+            bool tIsMarkedForSelect = false;
+            bool tIsMarkedForDeselect = false;
+            bool tIsReqqingClearSelect = false;
+            bool tIsEscapingMultiselect = false;
             FirstClickType tFirstClick = FirstClickType.None;
             CanvasDrawFlags tCDFRes = CanvasDrawFlags.None;
 
-            // Process node delete
+            // Process node delete (we don't delete node in this method, but pass it to Draw())
             if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseMid)
             {
-                if (this._selectedNodes.Contains(pNode.mId) && tIsCursorWithinHandle)
-                    this.RemoveNode(pNode.mId);
+                if (tIsCursorWithinHandle) tIsMarkedForDelete = true;
             }
-            else if (pNode._isMarkedDeleted)
-            {
-                this.RemoveNode(pNode.mId);
-            }
-            // Process node select
+            // Process node select (on lmb release)
             if (pReadClicks && !tIsNodeHandleClicked && pInputPayload.mIsMouseLmb)
             {
                 if (tIsCursorWithinHandle)
                 {
-                    // multi-selecting
-                    if (pInputPayload.mIsKeyCtrl)
-                    {
-                        // select
-                        if (!this._selectedNodes.Contains(pNode.mId))
-                            this._selectedNodes.Add(pNode.mId);
-                        // remove
-                        else
-                            this._selectedNodes.Remove(pNode.mId);
-                    }
-                    // single-selecting node
-                    else if (!pInputPayload.mIsALmbDragRelease)
-                    {
-                        pReadClicks = false;
-                        this._selectedNodes.Clear();
-                        this._selectedNodes.Add(pNode.mId);
-                    }
+                    tIsNodeClicked = true;
                     tIsNodeHandleClicked = true;
+                    // multi-selecting
+                    //if (pInputPayload.mIsKeyCtrl)
+                    //{
+                    //    // select
+                    //    if (!this._selectedNodes.Contains(pNode.mId))
+                    //        tIsMarkedForSelect = true;
+                    //    // remove
+                    //    else
+                    //        tIsMarkedForDeselect = true;
+                    //}
+                    // single-selecting a node and deselect other node (while in multiselecting)
+                    if (!pInputPayload.mIsKeyCtrl && !pInputPayload.mIsALmbDragRelease && this._selectedNodes.Count > 1)
+                    {
+                        tIsEscapingMultiselect = true;
+                        //pReadClicks = false;
+                        tIsReqqingClearSelect = true;
+                        tIsMarkedForSelect = true;
+                        PluginLog.LogDebug($"> reqqingClear as node {pNode.mId}");
+                    }
                 }
                 else if (tIsCursorWithin)
                 {
@@ -386,9 +390,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                                         // First click in drag
                 if (!this._isNodeBeingDragged && this._isFirstFrameAfterLmbDown)
                 {
-                    if (pNode.mStyle.CheckPosWithin(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                    if (tIsCursorWithin)
                     {
-                        if (pNode.mStyle.CheckPosWithinHandle(pNodeOSP, this.mConfig.scaling, pInputPayload.mMousePos))
+                        if (tIsCursorWithinHandle)
                             tFirstClick = FirstClickType.Handle;
                         else
                             tFirstClick = FirstClickType.Body;
@@ -397,25 +401,50 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
                 if (!this._isNodeBeingDragged
                     && tFirstClick != FirstClickType.None
-                    && !tIsNodeHandleClicked
-                    && !pInputPayload.mIsKeyCtrl)
+                    && !tIsNodeHandleClicked)
                     
                 {
                     if (tFirstClick == FirstClickType.Handle)
                     {
-                        this._isNodeBeingDragged = true;
-                        this._snappingNode = pNode;
-                        // single-selecting new node
-                        if (!pInputPayload.mIsKeyCtrl && !this._selectedNodes.Contains(pNode.mId))
+                        tIsNodeHandleClicked = true;
+                        // multi-selecting
+                        if (pInputPayload.mIsKeyCtrl)
                         {
-                            tIsNodeHandleClicked = true;
-                            this._selectedNodes.Clear();
-                            this._selectedNodes.Add(pNode.mId);
+                            //// select
+                            //if (!this._selectedNodes.Contains(pNode.mId))
+                            //    tIsMarkedForSelect = true;
+                            //// remove
+                            //else
+                            //    tIsMarkedForDeselect = true;
+                            // select (should be true, regardless of node's select status)
+                            tIsMarkedForSelect = true;
+                            // remove (process selecting first, then deselecting the node)
+                            if (this._selectedNodes.Contains(pNode.mId))
+                                tIsMarkedForDeselect = true;
+                        }
+                        // single-selecting new node
+                        else if (!pInputPayload.mIsKeyCtrl)     // don't check if node is alrady selected here
+                        {
+                            this._snappingNode = pNode;
+                            if (!this._selectedNodes.Contains(pNode.mId)) tIsReqqingClearSelect = true;
+                            tIsMarkedForSelect = true;
                         }
                     }
                     else if (tFirstClick == FirstClickType.Body)
                     {
                         tIsNodeClicked = true;
+                    }
+                }
+
+                // determine node drag
+                if (!this._isNodeBeingDragged
+                    && this._firstClickInDrag == FirstClickType.Handle
+                    && !pInputPayload.mIsKeyCtrl
+                    && !pInputPayload.mIsKeyShift)
+                {
+                    if (pInputPayload.mLmbDragDelta != null)
+                    {
+                        this._isNodeBeingDragged = true;
                     }
                 }
             }
@@ -427,7 +456,23 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             if (tIsCursorWithin) tCDFRes |= CanvasDrawFlags.NoCanvasZooming;
 
-            return new Tuple<bool, bool, bool, FirstClickType, CanvasDrawFlags>(tIsNodeHandleClicked, pReadClicks, tIsNodeClicked, tFirstClick, tCDFRes);
+            NodeInputProcessResult tRes = new()
+            {
+                isNodeHandleClicked = tIsNodeHandleClicked,
+                readClicks = pReadClicks,
+                isNodeClicked = tIsNodeClicked,
+                firstClick = tFirstClick,
+                CDFRes = tCDFRes,
+                isMarkedForDelete = tIsMarkedForDelete,
+                isWithin = tIsCursorWithin,
+                isWithinHandle = tIsCursorWithinHandle,
+                isMarkedForSelect = tIsMarkedForSelect,
+                isMarkedForDeselect = tIsMarkedForDeselect,
+                isReqqingClearSelect = tIsReqqingClearSelect,
+                isEscapingMultiselect = tIsEscapingMultiselect
+            };
+
+            return tRes;
         }
         public CanvasDrawFlags ProcessInputOnCanvas(UtilsGUI.InputPayload pInputPayload, CanvasDrawFlags pCanvasDrawFlagIn)
         {
@@ -458,9 +503,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <summary>
         /// Interactable:   Window active. Either cursor within viewer, 
         ///                 or cursor can be outside of viewer while holding the viewer.
+        /// <para>Base isn't necessarily Viewer. It is recommended that Base is a point in the center of Viewer.</para>
         /// </summary>
         public CanvasDrawFlags Draw(
-            Vector2 pBaseOriginScreenPos,
+            Vector2 pBaseOSP,               // Base isn't necessarily Viewer. In this case, Base is a point in the center of Viewer.
+            Vector2 pViewerOSP,         // Viewer OSP.
+            Vector2 pViewerSize,
             Vector2 pInitBaseOffset,
             UtilsGUI.InputPayload pInputPayload,
             ImDrawListPtr pDrawList,
@@ -480,7 +528,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this.mMap.AddBaseOffset(pInitBaseOffset);
                 this.mMap.MarkUnneedInitOfs();
             }
-            Vector2 tCanvasOSP = pBaseOriginScreenPos + this.mMap.GetBaseOffset() * this.mConfig.scaling;
+            Vector2 tCanvasOSP = pBaseOSP + this.mMap.GetBaseOffset() * this.mConfig.scaling;
 
             if (pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoInteract))     // clean up stuff in case viewer is involuntarily lose focus, to avoid potential accidents.
             {
@@ -503,7 +551,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (this._selectAreaOSP != null)
                 {
                     tSelectScreenArea = new(this._selectAreaOSP.Value, pInputPayload.mMousePos, true);
-                    //PluginLog.LogDebug($"> m={pInputPayload.mMousePos} s={tSelectScreenArea.start} e={tSelectScreenArea.end} sz={tSelectScreenArea.size}");
                 }
             }
 
@@ -551,6 +598,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 Vector2? tTargetOSP = this.mMap.GetNodeScreenPos(tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
                 if (!tTargetOSP.HasValue) continue;
 
+                // Skip rendering if both ends of an edge is out of view
+                Vector2 tMid = new((tSourceOSP.Value.X + tTargetOSP.Value.X) / 2, (tSourceOSP.Value.Y + tTargetOSP.Value.Y) / 2);
+                if (!Utils.IsLineIntersectRect(tSourceOSP.Value, tTargetOSP.Value, new(pViewerOSP, pViewerSize)))
+                {
+                    continue;
+                }
+
                 NodeInteractionFlags tEdgeRes = e.Draw(pDrawList, tSourceOSP.Value, tTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()));
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.Edge)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.RequestEdgeRemoval)) tEdgeToRemove.Add(e);
@@ -558,7 +612,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             foreach (var e in tEdgeToRemove) this.RemoveEdge(e.GetSourceNodeId(), e.GetTargetNodeId());
             // Draw nodes
             List<Tuple<Seed, string>> tSeedToAdd = new();
-            Queue<LinkedListNode<string>> tNodeToFocus = new();
+            Stack<LinkedListNode<string>> tNodeToFocus = new();
+            Stack<string> tNodeToSelect = new();
+            List<string> tNodeToDeselect = new();
+            string? tNodeToDelete = null;
+            HashSet<string> tNodesReqqingClearSelect = new();
+            bool tIsEscapingMultiselect = false;
             for (var znode = this._nodeRenderZOrder.First; znode != null; znode = znode?.Next)
             {
                 if (znode == null) break;
@@ -568,32 +627,90 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (tNodeOSP == null) continue;
                 if (!this.mNodes.TryGetValue(id, out var tNode) || tNode == null) continue;
 
+                // Skip rendering if node is out of view
+                if (((tNodeOSP.Value.X + tNode.mStyle.GetSizeScaled(this.GetScaling()).X) < pViewerOSP.X || tNodeOSP.Value.X > pViewerOSP.X + pViewerOSP.X)
+                    || ((tNodeOSP.Value.Y + tNode.mStyle.GetSizeScaled(this.GetScaling()).Y) < pViewerOSP.Y || tNodeOSP.Value.Y > pViewerOSP.Y + pViewerOSP.Y))
+                {
+                    continue;
+                }
+
                 // Process input on node
                 if (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoInteract) && !this._isNodeSelectionLocked)
                 {
                     // Process input on node    (tIsNodeHandleClicked, pReadClicks, tIsNodeClicked, tFirstClick)
                     var t = this.ProcessInputOnNode(tNode, tNodeOSP.Value, pInputPayload, tIsReadingClicksOnNode);
-                    if (t.Item1)
                     {
-                        tIsAnyNodeHandleClicked = t.Item1;
-                        // Queue the focus nodes
-                        if (znode != null) tNodeToFocus.Enqueue(znode);
+                        if (t.firstClick != FirstClickType.None)
+                        {
+                            tFirstClickScanRes = (t.firstClick == FirstClickType.Body && this._selectedNodes.Contains(id))
+                                                 ? FirstClickType.BodySelected
+                                                 : t.firstClick;
+                        }
+                        if (t.isEscapingMultiselect) tIsEscapingMultiselect = true;
+                        if (t.isNodeHandleClicked)
+                        {
+                            tIsAnyNodeHandleClicked = t.isNodeHandleClicked;
+                            PluginLog.LogDebug($"> node {znode.Value} hdC={t.isNodeHandleClicked}");
+                        }
+                        if (t.isNodeHandleClicked && pInputPayload.mIsMouseLmbDown)
+                        {
+                            // Queue the focus nodes
+                            if (znode != null)
+                            {
+                                PluginLog.LogDebug($"> focusing on {znode.Value}");
+                                tNodeToFocus.Push(znode);
+                            }
+                        }
+                        else if (pInputPayload.mIsMouseLmbDown && t.isWithin && !t.isWithinHandle)     // if an upper node's body covers the previously chosen nodes, discard the focus/selection queue.
+                        {
+                            tNodeToFocus.Clear();
+                            tNodeToSelect.Clear();
+                            tFirstClickScanRes = FirstClickType.Body;
+                        }
+                        tIsReadingClicksOnNode = t.readClicks;
+                        if (t.isNodeClicked)
+                        {
+                            tIsAnyNodeClicked = true;
+                            if (this._selectedNodes.Contains(id)) tIsAnySelectedNodeInteracted = true;
+                        }
+                        pCanvasDrawFlag |= t.CDFRes;
+                        if (t.isMarkedForDelete)       // proc node delete, only one node deletion allowed per button interaction.
+                                                       // If the interaction picks up multiple nodes, choose the highest one in the z-order (last one rendered)
+                        {
+                            tNodeToDelete = tNode.mId;      // the upper node will override the lower chosen node
+                        }
+                        else if (t.isNodeClicked && !t.isNodeHandleClicked)     // if an upper node's body covers a lower node that was chosen, nullify the deletion call.
+                        {
+                            tNodeToDelete = null;
+                        }
+                        if (t.isMarkedForSelect)                                       // Process node adding
+                                                                                       // prevent marking multiple handles with a single lmbDown. Get the uppest node.
+                        {
+                            if (pInputPayload.mIsMouseLmbDown)      // this one is for lmbDown. General use.
+                            {
+                                if (pInputPayload.mIsKeyCtrl || tNodeToSelect.Count == 0) tNodeToSelect.Push(tNode.mId);
+                                else if (tNodeToSelect.Count != 0)
+                                {
+                                    tNodeToSelect.Pop(); 
+                                    tNodeToSelect.Push(tNode.mId);
+                                }
+                            }
+                            else if (pInputPayload.mIsMouseLmb && t.isEscapingMultiselect)     // this one is for lmbClick. Used for when the node is marked at lmb is lift up.
+                            {
+                                tNodeToSelect.TryPop(out var _);
+                                tNodeToSelect.Push(tNode.mId);
+                            }
+                            PluginLog.LogDebug($"> Marked for select node {tNode.mId}");
+                        }
+                        if (t.isMarkedForDeselect)
+                        {
+                            tNodeToDeselect.Add(tNode.mId);
+                            PluginLog.LogDebug($"> Marked for DEselect node {tNode.mId}");
+                        }
+                        if (t.isReqqingClearSelect) tNodesReqqingClearSelect.Add(tNode.mId);
                     }
-                    tIsReadingClicksOnNode = t.Item2;
-                    if (t.Item3)
-                    {
-                        tIsAnyNodeClicked = true;
-                        if (this._selectedNodes.Contains(id)) tIsAnySelectedNodeInteracted = true;
-                    }
-                    if (t.Item4 != FirstClickType.None)
-                    {
-                        tFirstClickScanRes = (t.Item4 == FirstClickType.Body && this._selectedNodes.Contains(id))
-                                             ? FirstClickType.BodySelected
-                                             : t.Item4;
-                    }
-                    pCanvasDrawFlag |= t.Item5;
                     
-                    if (tIsAnySelectedNodeInteracted) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
+                    //if (tIsAnySelectedNodeInteracted) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
                     if (tNode.mStyle.CheckPosWithin(tNodeOSP.Value, this.GetScaling(), pInputPayload.mMousePos)
                         && pInputPayload.mMouseWheelValue != 0
                         && this._selectedNodes.Contains(id))
@@ -601,11 +718,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                         pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasZooming;
                     }
                     // Select using selectArea
-                    if (tSelectScreenArea != null && !this._isNodeBeingDragged && this._firstClickInDrag == FirstClickType.None)
+                    if (tSelectScreenArea != null && !this._isNodeBeingDragged && this._firstClickInDrag != FirstClickType.Handle)
                     {
                         if (tNode.mStyle.CheckAreaIntersect(tNodeOSP.Value, this.mConfig.scaling, tSelectScreenArea))
                         {
-                            this._selectedNodes.Add(id);
+                            if (this._selectedNodes.Add(id) && znode != null) 
+                                tNodeToFocus.Push(znode);
                         }
                     }
                 }
@@ -678,11 +796,28 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     pDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "[Right-click] another plug to connect.\n[Right-click] elsewhere to cancel.\n\nConnections that cause cycling will not connect. For more info, please hover the question mark on the toolbar.");
                 }
             }
-            // Bring to focus (rendered last)
-            foreach (var znode in tNodeToFocus)
+            // Node interaction process (order of op: clearing > selecting > deselecting)
+            if (tNodeToSelect.Count != 0) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
+            tNodeToFocus.TryPeek(out var topFF);
+            if (tNodesReqqingClearSelect.Count != 0) PluginLog.LogDebug($"> clear-reqers: {string.Join(",", tNodesReqqingClearSelect)} ---- topF={topFF?.Value}");
+            if (tNodeToFocus.TryPeek(out var topF) && tNodesReqqingClearSelect.Contains(topF.Value)
+                || tIsEscapingMultiselect)      // only accept a clear-select-req from a node that is on top of the focus queue
+            { 
+                this._selectedNodes.Clear(); PluginLog.LogDebug($"> Clear!"); 
+            }
+            if (tNodeToSelect.Count != 0) { PluginLog.LogDebug($"> Amount to addSelect: {tNodeToSelect.Count}"); }
+            foreach (var tId in tNodeToSelect) this._selectedNodes.Add(tId);
+            foreach (var tId in tNodeToDeselect) this._selectedNodes.Remove(tId);
+            if (tNodeToDelete != null) this.RemoveNode(tNodeToDelete);
+            // Bring to focus (only get the top node)
+            if (tNodeToFocus.Count != 0)
             {
-                this._nodeRenderZOrder.Remove(znode);
-                this._nodeRenderZOrder.AddLast(znode);
+                var zFocusNode = tNodeToFocus.Pop();
+                if (zFocusNode != null)
+                {
+                    this._nodeRenderZOrder.Remove(zFocusNode);
+                    this._nodeRenderZOrder.AddLast(zFocusNode);
+                }
             }
             foreach (var pair in tSeedToAdd)
             {
@@ -693,7 +828,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             else this._isNodeSelectionLocked = false;
             // Capture drag's first click. State Body or Handle can only be accessed from state None.
             if (pInputPayload.mIsMouseLmb) this._firstClickInDrag = FirstClickType.None;
-            else if (this._firstClickInDrag == FirstClickType.None && tFirstClickScanRes != FirstClickType.None)
+            else if (pInputPayload.mIsMouseLmbDown && this._firstClickInDrag == FirstClickType.None && tFirstClickScanRes != FirstClickType.None)
                 this._firstClickInDrag = tFirstClickScanRes;
 
             if (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoInteract)
@@ -710,7 +845,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // Draw selectArea
             if (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoInteract) && tSelectScreenArea != null)
             {
-                ImGui.GetWindowDrawList().AddRectFilled(tSelectScreenArea.start, tSelectScreenArea.end, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, 0.5f)));
+                ImGui.GetForegroundDrawList().AddRectFilled(tSelectScreenArea.start, tSelectScreenArea.end, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, 0.5f)));
             }
 
             if (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoInteract) && !tIsAnyNodeBusy)
@@ -747,7 +882,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 // Process input on canvas
                 if (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoCanvasInteraction)
                     && !pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoCanvasDrag)
-                    && !this._isNodeBeingDragged 
+                    && (!this._isNodeBeingDragged || (this._isNodeBeingDragged && this._firstClickInDrag != FirstClickType.Handle))
                     && !tIsAnyNodeClicked
                     && (this._firstClickInDrag == FirstClickType.None || this._firstClickInDrag == FirstClickType.Body)
                     && this._selectAreaOSP == null)
@@ -828,6 +963,22 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (!this.IsEstablished()) return null;
                 return new(this.source, this.target!);
             }
+        }
+        public struct NodeInputProcessResult
+        {
+            public bool isNodeHandleClicked = false;
+            public bool isNodeClicked = false;
+            public bool isWithin = false;
+            public bool isWithinHandle = false;
+            public bool isMarkedForDelete = false;
+            public bool isMarkedForSelect = false;
+            public bool isMarkedForDeselect = false;
+            public bool isReqqingClearSelect = false;
+            public bool isEscapingMultiselect = false;
+            public FirstClickType firstClick = FirstClickType.None;
+            public CanvasDrawFlags CDFRes = CanvasDrawFlags.None;
+            public bool readClicks = false;
+            public NodeInputProcessResult() { }
         }
 
         public class Seed
