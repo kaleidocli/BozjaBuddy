@@ -14,6 +14,8 @@ using QuickGraph.Algorithms;
 using Newtonsoft.Json;
 using BozjaBuddy.GUI.NodeGraphViewer.utils;
 using static BozjaBuddy.GUI.NodeGraphViewer.NodeCanvas;
+using QuickGraph.Algorithms.Search;
+using System.Runtime.CompilerServices;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -332,6 +334,73 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             this.mMap.AddBaseOffset(pDelta);
         }
+        public void MinimizeSelectedNodes()
+        {
+            foreach (var nid in this._selectedNodes)
+            {
+                if (this.mNodes.TryGetValue(nid, out var n) && n != null)
+                {
+                    n.Minimize();
+                }
+            }
+        }
+        public void UnminimizeSelectedNodes()
+        {
+            foreach (var nid in this._selectedNodes)
+            {
+                if (this.mNodes.TryGetValue(nid, out var n) && n != null)
+                {
+                    n.Unminimize();
+                }
+            }
+        }
+        public void RemoveSelectedNodes()
+        {
+            foreach (var nid in this._selectedNodes)
+            {
+                this.RemoveNode(nid);
+            }
+        }
+        /// <summary>Might be useful for caller to detect changes in selected nodes of on this canvas.</summary>
+        public int GetSelectedCount() => this._selectedNodes.Count;
+        /// <summary>Will not pack if node does not have PackingUnderway status</summary>
+        private void PackNode(Node pPacker)
+        {
+            if (pPacker.mPackingStatus != Node.PackingStatus.PackingUnderway) return;
+            if (!this.mGraph.TryGetOutEdges(pPacker.mGraphId, out var tEdges) || tEdges == null) return;
+            this._packNodeWalker(pPacker.mGraphId, ref pPacker.mPack, pPacker.mId);
+            pPacker.mPackingStatus = Node.PackingStatus.PackingDone;
+        }
+        private void _packNodeWalker(int pId, ref HashSet<string> pNodeIds, string pPackerNodeId)
+        {
+            if (!this.mGraph.TryGetOutEdges(pId, out var tEdges) || tEdges == null) return;
+            foreach (var outEdge in tEdges)
+            {
+                var tTargetNodeId = this.GetNodeIdWithNodeGraphId(outEdge.Target);
+                if (tTargetNodeId == null) continue;
+                if (!this.mNodes.TryGetValue(tTargetNodeId, out var n) || n == null) continue;
+                n.mIsPacked = true;
+                n.mPackers.Add(pPackerNodeId);
+                pNodeIds.Add(tTargetNodeId);
+                this._packNodeWalker(outEdge.Target, ref pNodeIds, pPackerNodeId);
+            }
+        }
+        /// <summary>
+        /// Will unpack if node's status is None and its pack still not empty.
+        /// <para>A node will only be fully unpacked (mIsPacked=false) when all of its packers are cleared.</para>
+        /// </summary>
+        private void UnpackNode(Node pPacker)
+        {
+            if (pPacker.mPackingStatus != Node.PackingStatus.UnpackingUnderway || pPacker.mPack.Count == 0) return;
+            foreach (string packedNodeId in pPacker.mPack)
+            {
+                if (!this.mNodes.TryGetValue(packedNodeId, out var n) || n == null) continue;
+                n.mPackers.Remove(pPacker.mId);
+                if (n.mPackers.Count == 0) n.mIsPacked = false;
+            }
+            pPacker.mPack.Clear();
+            pPacker.mPackingStatus = Node.PackingStatus.None;
+        }
         public NodeInputProcessResult ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
         {
             bool tIsNodeHandleClicked = false;
@@ -596,6 +665,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 if (!this.mNodes.TryGetValue(e.GetSourceNodeId(), out var tSourceNode)
                     || !this.mNodes.TryGetValue(e.GetTargetNodeId(), out var tTargetNode)) continue;
+
+                // Check pack
+                if (tSourceNode.mIsPacked || tTargetNode.mIsPacked) continue;
+
                 Vector2? tSourceOSP = this.mMap.GetNodeScreenPos(tSourceNode.mId, tCanvasOSP, this.mConfig.scaling);
                 if (!tSourceOSP.HasValue) continue;
                 Vector2? tTargetOSP = this.mMap.GetNodeScreenPos(tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
@@ -630,6 +703,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (tNodeOSP == null) continue;
                 if (!this.mNodes.TryGetValue(id, out var tNode) || tNode == null) continue;
 
+                // Packing / Check pack
+                if (tNode.mIsPacked) continue;
+                switch (tNode.mPackingStatus)
+                {
+                    case Node.PackingStatus.PackingUnderway: this.PackNode(tNode); break;
+                    case Node.PackingStatus.UnpackingUnderway: this.UnpackNode(tNode); break;
+                }
                 // Skip rendering if node is out of view
                 if (((tNodeOSP.Value.X + tNode.mStyle.GetSizeScaled(this.GetScaling()).X) < pViewerOSP.X || tNodeOSP.Value.X > pViewerOSP.X + pViewerOSP.X)
                     || ((tNodeOSP.Value.Y + tNode.mStyle.GetSizeScaled(this.GetScaling()).Y) < pViewerOSP.Y || tNodeOSP.Value.Y > pViewerOSP.Y + pViewerOSP.Y))
@@ -666,7 +746,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                         {
                             tNodeToFocus.Clear();
                             tNodeToSelect.Clear();
-                            tFirstClickScanRes = FirstClickType.Body;
+                            tFirstClickScanRes = tFirstClickScanRes == FirstClickType.BodySelected 
+                                                 ? FirstClickType.BodySelected 
+                                                 : FirstClickType.Body;
                         }
                         tIsReadingClicksOnNode = t.readClicks;
                         if (t.isNodeClicked)
@@ -792,7 +874,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 if (this._nodeConnTemp != null && this._nodeConnTemp.IsSource(tNode.mId))
                 {
                     pDrawList.AddLine(tNodeOSP.Value, pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeFg));
-                    pDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "[Left-click] another plug to connect, elsewhere to cancel.\n\nConnections will fail if it causes cycling or repeated graph.");
+                    pDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "[Right-click] another plug to connect, elsewhere to cancel.\n\nConnection will fail if it causes cycling or repeated graph.");
                 }
             }
             // Node interaction process (order of op: clearing > selecting > deselecting)

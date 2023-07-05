@@ -88,7 +88,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         None = 0,
         Handle = 1,
         Internal = 2,
-        LockSelection = 4,
+        LockSelection = 4,      // requesting canvas to stop capture ALL nodes select/deselect/remove
         Edge = 8,
         RequestingEdgeConn = 16,
         UnrequestingEdgeConn = 32,

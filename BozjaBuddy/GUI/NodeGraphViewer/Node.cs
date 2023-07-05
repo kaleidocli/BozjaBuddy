@@ -32,6 +32,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         protected bool _needReinit = false;
         public bool _isMarkedDeleted = false;
 
+        public HashSet<string> mPack = new();           // represents the nodes that this node packs
+        public HashSet<string> mPackers = new();        // represents the nodes which pack this node (the master packer, not just the parent node)
+        public bool mIsPacked = false;
+        public PackingStatus mPackingStatus = PackingStatus.None;
+
         public abstract string mType { get; }
         public string mId { get; protected set; } = string.Empty;
         public int mGraphId = -1;
@@ -101,6 +106,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         public virtual NodeCanvas.Seed? GetSeed() => this._seeds.Count == 0 ? null : this._seeds.Dequeue();
         protected virtual void SetSeed(NodeCanvas.Seed pSeed) => this._seeds.Enqueue(pSeed);
+        public void Minimize() => this.mIsMinimized = true;
+        public void Unminimize() => this.mIsMinimized = false;
 
         public NodeInteractionFlags Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload, ImDrawListPtr pDrawList, bool pIsEstablishingConn = false)
         {
@@ -258,9 +265,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             NodeInteractionFlags tRes = NodeInteractionFlags.None;
             if (ImGui.BeginPopup(pPU_id))
             {
-                ImGui.Text("Testing 1");
-                ImGui.Text("Testing 22");
-                ImGui.Text("Testing 333");
+                ImGui.Selectable("Select all child");
+                ImGui.Selectable("Pack up all child");
+                ImGui.Separator();
+                ImGui.Selectable("Edit node");
+
                 ImGui.EndPopup();
                 tRes |= NodeInteractionFlags.Internal | NodeInteractionFlags.LockSelection;
             }
@@ -275,18 +284,37 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             bool tIsHovered = false;
             Vector2 tOriAnchor = ImGui.GetCursorScreenPos();
             ImGui.SetCursorScreenPos(pNodeOSP - (tSize * 3f));
-            if (ImGui.InvisibleButton($"eb{this.mId}", tSize * 3f, ImGuiButtonFlags.MouseButtonLeft))
+            if (ImGui.InvisibleButton($"eb{this.mId}", tSize * 3f, ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonLeft))
             {
-                tRes |= pIsEstablishingConn ? NodeInteractionFlags.UnrequestingEdgeConn : NodeInteractionFlags.RequestingEdgeConn;
+                // LMB: Collapse child nodes
+                if (ImGui.GetIO().MouseReleased[0])
+                {
+                    this.mPackingStatus = this.mPackingStatus switch
+                    {
+                        PackingStatus.PackingDone => PackingStatus.UnpackingUnderway,
+                        PackingStatus.None => PackingStatus.PackingUnderway,
+                        _ => this.mPackingStatus
+                    };
+                }
+                // RMB: Node conn
+                else if (ImGui.GetIO().MouseReleased[1])
+                {
+                    tRes |= pIsEstablishingConn ? NodeInteractionFlags.UnrequestingEdgeConn : NodeInteractionFlags.RequestingEdgeConn;
+                }
+
             }
-            else if (UtilsGUI.SetTooltipForLastItem("Left-click to start connecting.\nRight-click to select all child nodes."))
+            else if (UtilsGUI.SetTooltipForLastItem("[Left-click] to select all child nodes.\n[Right-click] to start connecting."))
             {
                 tIsHovered = true;
             }
             ImGui.SetCursorScreenPos(tOriAnchor);
             // Draw
-            pDrawList.AddCircleFilled(pNodeOSP - tSize, tSize.X * ((tIsHovered || pIsEstablishingConn) ? 2.5f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeFg, (pIsActive || tIsHovered || pIsEstablishingConn) ? 1f : 0.7f)));
-            pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.7f) * ((tIsHovered || pIsEstablishingConn) ? 2.5f : 1), ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
+            pDrawList.AddCircleFilled(
+                pNodeOSP - tSize, tSize.X * ((tIsHovered || pIsEstablishingConn || (this.mPackingStatus != PackingStatus.None)) ? 2.5f : 1), 
+                ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(
+                    this.mPackingStatus == PackingStatus.None ? UtilsGUI.Colors.NodeFg : UtilsGUI.Colors.BackgroundText_Green, 
+                    (pIsActive || tIsHovered || pIsEstablishingConn) ? 1f : 0.7f)));
+            pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.7f) * ((tIsHovered || pIsEstablishingConn || (this.mPackingStatus != PackingStatus.None)) ? 2.5f : 1), ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
             pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.5f) * ((tIsHovered || pIsEstablishingConn) ? 2.5f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, (pIsActive || pIsEstablishingConn) ? 0.55f : 0.25f)));
             return tRes;
         }
@@ -384,6 +412,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 Area tArea = new(nodeOSP, tNodeSize);
                 return tArea.CheckAreaIntersect(screenArea);
             }
+        }
+
+        public enum PackingStatus
+        {
+            None = 0,       // synonamous with UnpackingDone
+            PackingUnderway = 1,
+            PackingDone = 2,
+            UnpackingUnderway = 3
         }
     }
 }

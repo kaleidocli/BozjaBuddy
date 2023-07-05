@@ -15,6 +15,8 @@ using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 using QuickGraph.Serialization;
 using static BozjaBuddy.Data.Location;
+using Dalamud.Interface;
+using System.Linq.Expressions;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -43,6 +45,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private bool _isMouseHoldingViewer = false;
         private bool _isShowingRulerText = false;
         private DateTime? _rulerTextLastAppear = null;
+        private int _lastSelectedCount = 0;    // is shared between canvases of this viewer
+        private bool _minimizeFuncState = false;
         public Vector2? mSize = null;
 
         private string? _debugViewerJson = null;
@@ -135,40 +139,60 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             // =======================================================
             // DEBUG =================================================
-            if (ImGui.Button("Cache viewer"))
-            {
-                var tRes = this.ExportActiveCanvasAsJson();
-                this._debugViewerJson = tRes;
-            }
-            ImGui.SameLine();
-            if (this._debugViewerJson == null) ImGui.BeginDisabled();
-            if (ImGui.Button("Load json from cache") && this._debugViewerJson != null)
-            {
-                var tRes = JsonConvert.DeserializeObject<NodeCanvas>(this._debugViewerJson, new utils.JsonConverters.NodeJsonConverter());
-            }
-            if (this._debugViewerJson == null) ImGui.EndDisabled();
-            ImGui.SameLine();
-            if (ImGui.Button("Notify!"))
-            {
-                this.mNotificationManager.Push(new ViewerNotification("viewerNoti", "INFO! viewer's notification button\n... or is it?"));
-                this.mNotificationManager.Push(new ViewerNotification("viewerNoti2", "WARNING! viewer's notification button pressed!aaaaaaaaaa\n... or is it?", ViewerNotificationType.Warning));
-                this.mNotificationManager.Push(new ViewerNotification("viewerNoti3", "ERROR! viewer's notification button\n... or is it?", ViewerNotificationType.Error));
-            }
-            ImGui.SameLine();
+            //if (ImGui.Button("Cache viewer"))
+            //{
+            //    var tRes = this.ExportActiveCanvasAsJson();
+            //    this._debugViewerJson = tRes;
+            //}
+            //ImGui.SameLine();
+            //if (this._debugViewerJson == null) ImGui.BeginDisabled();
+            //if (ImGui.Button("Load json from cache") && this._debugViewerJson != null)
+            //{
+            //    var tRes = JsonConvert.DeserializeObject<NodeCanvas>(this._debugViewerJson, new utils.JsonConverters.NodeJsonConverter());
+            //}
+            //if (this._debugViewerJson == null) ImGui.EndDisabled();
+            //ImGui.SameLine();
+            //if (ImGui.Button("Notify!"))
+            //{
+            //    this.mNotificationManager.Push(new ViewerNotification("viewerNoti", "INFO! viewer's notification button\n... or is it?"));
+            //    this.mNotificationManager.Push(new ViewerNotification("viewerNoti2", "WARNING! viewer's notification button pressed!aaaaaaaaaa\n... or is it?", ViewerNotificationType.Warning));
+            //    this.mNotificationManager.Push(new ViewerNotification("viewerNoti3", "ERROR! viewer's notification button\n... or is it?", ViewerNotificationType.Error));
+            //}
+            //ImGui.SameLine();
             // DEBUG =================================================
             // =======================================================
 
-            Utils.AlignRight(ImGui.GetWindowWidth() / 2 + 18 + ImGui.GetStyle().ItemSpacing.X);
-            // Button scaling
+            Utils.AlignRight(ImGui.GetWindowWidth() / 4 * 3 + 18 + ImGui.GetStyle().ItemSpacing.X);
+            // Slider: Scaling
             float tScaling = this.mActiveCanvas.GetScaling();
-            ImGui.SetNextItemWidth(ImGui.GetWindowWidth() / 2);
+            ImGui.SetNextItemWidth(ImGui.GetWindowWidth() / 4);
             if (ImGui.InputFloat("##sliderScale", ref tScaling, NodeCanvas.stepScale, NodeCanvas.stepScale * 2))
             {
                 this.mActiveCanvas.SetScaling(tScaling);
             }
-            // Button add node (within view)
+            // Button: Minimize/Unminimize selected
             ImGui.SameLine();
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
+            if (this.mActiveCanvas.GetSelectedCount() != this._lastSelectedCount)
+            {
+                this._minimizeFuncState = false;
+                this._lastSelectedCount = this.mActiveCanvas.GetSelectedCount();
+            }
+            if (ImGuiComponents.IconButton(this._minimizeFuncState ? FontAwesomeIcon.WindowMaximize : FontAwesomeIcon.WindowMinimize))
+            {
+                if (this._minimizeFuncState) this.mActiveCanvas.UnminimizeSelectedNodes();
+                else this.mActiveCanvas.MinimizeSelectedNodes();
+                this._minimizeFuncState = !this._minimizeFuncState;
+            }
+            else UtilsGUI.SetTooltipForLastItem(this._minimizeFuncState ? "Unminimize selected nodes" : "Minimize selected nodes");
+            // Button: Remove selected
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
+            {
+                this.mActiveCanvas.RemoveSelectedNodes();
+            }
+            // Button: Add node (within view)
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
             {
                 //NodeContent.NodeContent tContent = new("New node");
                 //this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
