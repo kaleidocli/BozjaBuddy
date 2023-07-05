@@ -110,7 +110,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public void Minimize() => this.mIsMinimized = true;
         public void Unminimize() => this.mIsMinimized = false;
 
-        public NodeInteractionFlags Draw(Vector2 pNodeOSP, float pCanvasScaling, bool pIsActive, UtilsGUI.InputPayload pInputPayload, ImDrawListPtr pDrawList, bool pIsEstablishingConn = false)
+        public NodeInteractionFlags Draw(
+            Vector2 pNodeOSP, 
+            float pCanvasScaling, 
+            bool pIsActive, 
+            UtilsGUI.InputPayload pInputPayload, 
+            ImDrawListPtr pDrawList, 
+            bool pIsEstablishingConn = false,
+            bool pIsDrawingHndCtxMnu = false)
         {
             // Re-calculate ImGui-dependant members, if required.
             if (this._needReinit)
@@ -190,7 +197,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 );
             // backdrop (leave this here so the backgrop can overwrite the child's bg)
             if (!this.mIsMinimized) tDrawList.AddRectFilled(pNodeOSP,tEnd,ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
-            tRes |= this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive);
+            tRes |= this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive, out var tHndCtxMnu);
             ImGui.SetCursorScreenPos(new Vector2(pNodeOSP.X, ImGui.GetCursorScreenPos().Y + 5 * pCanvasScaling));
             if (!this.mIsMinimized) tRes |= this.DrawBody(pNodeOSP, pCanvasScaling);
             ImGui.EndChild();
@@ -202,11 +209,18 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             Utils.PopFontScale();
 
             ImGui.EndChild();
+
+            // HndCtxMnu
+            if (pIsDrawingHndCtxMnu || tHndCtxMnu) ImGui.OpenPopup(this.GetExtraOptionPUGuiId());
+            ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.NodeText);
+            tRes |= this.DrawHandeExtraOptionPU();
+            ImGui.PopStyleColor();
+
             tRes |= this.DrawEdgePlugButton(tDrawList, pNodeOSP, pIsActive, pIsEstablishingConn: pIsEstablishingConn);
 
             return tRes;
         }
-        protected virtual NodeInteractionFlags DrawHandle(Vector2 pNodeOSP, float pCanvasScaling, ImDrawListPtr pDrawList, bool pIsActive)
+        protected virtual NodeInteractionFlags DrawHandle(Vector2 pNodeOSP, float pCanvasScaling, ImDrawListPtr pDrawList, bool pIsActive, out bool pHndCtxMnu)
         {
             var tHandleSize = this.mStyle.GetHandleSizeScaled(pCanvasScaling);
             pDrawList.AddRectFilled(
@@ -225,12 +239,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.SameLine();
             Utils.AlignRight(Node.handleButtonBoxItemWidth * 3 * pCanvasScaling, pConsiderImguiPaddings: false);
             
-            var tRes = this.DrawHandleButtonBox(pNodeOSP, pCanvasScaling, pDrawList);
+            var tRes = this.DrawHandleButtonBox(pNodeOSP, pCanvasScaling, pDrawList, out var tHndCtxMnu);
+            pHndCtxMnu = tHndCtxMnu;
 
             return tRes;
         }
         protected abstract NodeInteractionFlags DrawBody(Vector2 pNodeOSP, float pCanvasScaling);
-        protected NodeInteractionFlags DrawHandleButtonBox(Vector2 pNodeOSP, float pCanvasScaling, ImDrawListPtr pDrawList)
+        protected NodeInteractionFlags DrawHandleButtonBox(Vector2 pNodeOSP, float pCanvasScaling, ImDrawListPtr pDrawList, out bool tHndCtxMnu)
         {
             NodeInteractionFlags tRes = NodeInteractionFlags.None;
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
@@ -243,12 +258,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this.mIsMinimized = !this.mIsMinimized;
             }
             if (ImGui.IsItemActive()) tRes |= NodeInteractionFlags.Internal;
-            ImGui.SameLine(); 
-            if (ImGui.Selectable(" …", false, ImGuiSelectableFlags.DontClosePopups, tBSize))
-            {
-                ImGui.OpenPopup($"##hepu{this.mId}");
-            }
-            tRes |= this.DrawHandeExtraOptionPU($"##hepu{this.mId}");
+            ImGui.SameLine();
+            tHndCtxMnu = ImGui.Selectable(" …", false, ImGuiSelectableFlags.DontClosePopups, tBSize);
             if (ImGui.IsItemActive()) tRes |= NodeInteractionFlags.Internal;
             ImGui.SameLine(); 
             if (ImGui.Selectable(" ×", false, ImGuiSelectableFlags.DontClosePopups, tBSize))
@@ -261,14 +272,25 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.PopStyleVar();
             return tRes;
         }
-        protected NodeInteractionFlags DrawHandeExtraOptionPU(string pPU_id)
+        public NodeInteractionFlags DrawHandeExtraOptionPU()
         {
             NodeInteractionFlags tRes = NodeInteractionFlags.None;
-            if (ImGui.BeginPopup(pPU_id))
+            if (ImGui.BeginPopup(this.GetExtraOptionPUGuiId()))
             {
-                ImGui.Selectable("Select all child");
-                ImGui.Selectable("Pack up all child");
+                // Select all
+                ImGui.Selectable("Select all child nodes");
+                // Pack all
+                if (ImGui.Selectable(this.mPackingStatus == PackingStatus.PackingDone ? $"Unpack {this.mPack.Count} child node(s)" : "Pack up all child nodes"))
+                {
+                    this.mPackingStatus = this.mPackingStatus switch
+                    {
+                        PackingStatus.PackingDone => PackingStatus.UnpackingUnderway,
+                        PackingStatus.None => PackingStatus.PackingUnderway,
+                        _ => this.mPackingStatus
+                    };
+                }
                 ImGui.Separator();
+                // Edit
                 ImGui.Selectable("Edit node");
 
                 ImGui.EndPopup();
@@ -277,6 +299,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             return tRes;
         }
+        public string GetExtraOptionPUGuiId() => $"##hepu{this.mId}";
         /// <summary>Draw this in NodeCanvas. Drawing it in Node would mask the thing.</summary>
         public NodeInteractionFlags DrawEdgePlugButton(ImDrawListPtr pDrawList, Vector2 pNodeOSP, bool pIsActive, bool pIsEstablishingConn = false)
         {
@@ -304,7 +327,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
 
             }
-            else if (UtilsGUI.SetTooltipForLastItem(string.Format("[Left-click] to {0}\n[Right-click] to start connecting nodes", this.mPackingStatus == PackingStatus.PackingDone ? $"unpack {this.mPack.Count} node(s)" : "shrink succeeding node path")))
+            else if (UtilsGUI.SetTooltipForLastItem(string.Format("[Left-click] to {0}\n[Right-click] to start connecting nodes", this.mPackingStatus == PackingStatus.PackingDone ? $"unpack {this.mPack.Count} child node(s)" : "pack up all child nodes")))
             {
                 tIsHovered = true;
             }

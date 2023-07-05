@@ -259,7 +259,7 @@ namespace BozjaBuddy.Utils
                         new(
                             AuxNode.nodeType, 
                             new BBNodeContent(pPlugin, pTargetGenId, tObj.mName),
-                            ofsToPrevNode: new Vector2(20, 20)
+                            ofsToPrevNode: new Vector2(40, 20)
                             ));
             }
             ImGui.PopID();

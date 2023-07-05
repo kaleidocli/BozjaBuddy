@@ -53,6 +53,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private bool _isNodeBeingDragged = false;
         private HashSet<string> _selectedNodes = new();
         private LinkedList<string> _nodeRenderZOrder = new();
+        private string? _nodeQueueingHndCtxMnu = null;
         private Node? _snappingNode = null;
         private Dictionary<int, string> _nodeIdAndNodeGraphId = new();
         private Vector2? _lastSnapDelta = null;
@@ -369,7 +370,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (pPacker.mPackingStatus != Node.PackingStatus.PackingUnderway) return;
             if (!this.mGraph.TryGetOutEdges(pPacker.mGraphId, out var tEdges) || tEdges == null) return;
             this._packNodeWalker(pPacker.mGraphId, ref pPacker.mPack, pPacker.mId);
-            if (pPacker.mPack.Count == 0) return;
+            if (pPacker.mPack.Count == 0)
+            {
+                pPacker.mPackingStatus = Node.PackingStatus.None;
+                return;
+            }
             pPacker._relaPosLastPackingCall = this.mMap.GetNodeRelaPos(pPacker.mId);
             pPacker.mPackingStatus = Node.PackingStatus.PackingDone;
         }
@@ -454,16 +459,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     tIsNodeClicked = true;
                     tIsNodeHandleClicked = true;
-                    // multi-selecting
-                    //if (pInputPayload.mIsKeyCtrl)
-                    //{
-                    //    // select
-                    //    if (!this._selectedNodes.Contains(pNode.mId))
-                    //        tIsMarkedForSelect = true;
-                    //    // remove
-                    //    else
-                    //        tIsMarkedForDeselect = true;
-                    //}
                     // single-selecting a node and deselect other node (while in multiselecting)
                     if (!pInputPayload.mIsKeyCtrl && !pInputPayload.mIsALmbDragRelease && this._selectedNodes.Count > 1)
                     {
@@ -505,12 +500,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                         // multi-selecting
                         if (pInputPayload.mIsKeyCtrl)
                         {
-                            //// select
-                            //if (!this._selectedNodes.Contains(pNode.mId))
-                            //    tIsMarkedForSelect = true;
-                            //// remove
-                            //else
-                            //    tIsMarkedForDeselect = true;
                             // select (should be true, regardless of node's select status)
                             tIsMarkedForSelect = true;
                             // remove (process selecting first, then deselecting the node)
@@ -716,6 +705,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             List<Tuple<Seed, string>> tSeedToAdd = new();
             Stack<LinkedListNode<string>> tNodeToFocus = new();
             Stack<string> tNodeToSelect = new();
+            Stack<string> tNodeReqqingHandleCtxMenu = new();
             List<string> tNodeToDeselect = new();
             string? tNodeToDelete = null;
             HashSet<string> tNodesReqqingClearSelect = new();
@@ -744,6 +734,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
 
                 // Process input on node
+                // We record the inputs of each individual node.
+                // Then, we evaluate those recorded inputs in context of z-order, determining which one we need and which we don't.
                 if (!pCanvasDrawFlag.HasFlag(CanvasDrawFlags.NoInteract) && !this._isNodeSelectionLocked)
                 {
                     // Process input on node    (tIsNodeHandleClicked, pReadClicks, tIsNodeClicked, tFirstClick)
@@ -815,9 +807,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                             tNodeToDeselect.Add(tNode.mId);
                         }
                         if (t.isReqqingClearSelect) tNodesReqqingClearSelect.Add(tNode.mId);
+                        // Handle ctx menu
+                        if (t.isWithinHandle && pInputPayload.mIsMouseRmb) tNodeReqqingHandleCtxMenu.Push(tNode.mId);
                     }
                     
-                    //if (tIsAnySelectedNodeInteracted) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
                     if (tNode.mStyle.CheckPosWithin(tNodeOSP.Value, this.GetScaling(), pInputPayload.mMousePos)
                         && pInputPayload.mMouseWheelValue != 0
                         && this._selectedNodes.Contains(id))
@@ -844,7 +837,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                                     this._selectedNodes.Contains(id),
                                                     pInputPayload,
                                                     ImGui.GetWindowDrawList(),
-                                                    pIsEstablishingConn: this._nodeConnTemp != null && this._nodeConnTemp.IsSource(tNode.mId));
+                                                    pIsEstablishingConn: this._nodeConnTemp != null && this._nodeConnTemp.IsSource(tNode.mId),
+                                                    pIsDrawingHndCtxMnu: this._nodeQueueingHndCtxMnu != null && tNode.mId == this._nodeQueueingHndCtxMnu);
+                if (this._nodeQueueingHndCtxMnu != null && tNode.mId == this._nodeQueueingHndCtxMnu)
+                    this._nodeQueueingHndCtxMnu = null;
                 var tNodeRelaPos = this.mMap.GetNodeRelaPos(id);
                 if (this._isNodeBeingDragged && this._selectedNodes.Contains(tNode.mId) && tNodeRelaPos.HasValue) 
                     ImGui.GetWindowDrawList().AddText(
@@ -903,9 +899,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     pDrawList.AddText(pInputPayload.mMousePos, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NodeText), "[Right-click] another plug to connect, elsewhere to cancel.\n\nConnection will fail if it causes cycling or repeated graph.");
                 }
             }
-            // Node interaction process (order of op: clearing > selecting > deselecting)
+            // Node interaction z-order process (order of op: clearing > selecting > deselecting)
             if (tNodeToSelect.Count != 0) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
-            tNodeToFocus.TryPeek(out var topFF);
             if (tNodeToFocus.TryPeek(out var topF) && tNodesReqqingClearSelect.Contains(topF.Value)
                 || tIsEscapingMultiselect)      // only accept a clear-select-req from a node that is on top of the focus queue
             { 
@@ -914,6 +909,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             foreach (var tId in tNodeToSelect) this._selectedNodes.Add(tId);
             foreach (var tId in tNodeToDeselect) this._selectedNodes.Remove(tId);
             if (tNodeToDelete != null) this.RemoveNode(tNodeToDelete);
+            if (tNodeReqqingHandleCtxMenu.TryPeek(out var tNodeReqCtxMnu) && tNodeReqCtxMnu != null)        // handle ctx menu
+            {
+                this._nodeQueueingHndCtxMnu = tNodeReqCtxMnu;
+            }
             // Bring to focus (only get the top node)
             if (tNodeToFocus.Count != 0)
             {
