@@ -369,6 +369,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (pPacker.mPackingStatus != Node.PackingStatus.PackingUnderway) return;
             if (!this.mGraph.TryGetOutEdges(pPacker.mGraphId, out var tEdges) || tEdges == null) return;
             this._packNodeWalker(pPacker.mGraphId, ref pPacker.mPack, pPacker.mId);
+            if (pPacker.mPack.Count == 0) return;
+            pPacker._relaPosLastPackingCall = this.mMap.GetNodeRelaPos(pPacker.mId);
             pPacker.mPackingStatus = Node.PackingStatus.PackingDone;
         }
         private void _packNodeWalker(int pId, ref HashSet<string> pNodeIds, string pPackerNodeId)
@@ -379,26 +381,47 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 var tTargetNodeId = this.GetNodeIdWithNodeGraphId(outEdge.Target);
                 if (tTargetNodeId == null) continue;
                 if (!this.mNodes.TryGetValue(tTargetNodeId, out var n) || n == null) continue;
+
+                if (n.mPackerNodeId != null) continue;      // ignore nodes that are already packed
+
                 n.mIsPacked = true;
-                n.mPackers.Add(pPackerNodeId);
+                n.mPackerNodeId = pPackerNodeId;
                 pNodeIds.Add(tTargetNodeId);
                 this._packNodeWalker(outEdge.Target, ref pNodeIds, pPackerNodeId);
             }
         }
         /// <summary>
         /// Will unpack if node's status is None and its pack still not empty.
-        /// <para>A node will only be fully unpacked (mIsPacked=false) when all of its packers are cleared.</para>
+        /// <para>A node can only be unpacked by its packer.</para>
         /// </summary>
         private void UnpackNode(Node pPacker)
         {
             if (pPacker.mPackingStatus != Node.PackingStatus.UnpackingUnderway || pPacker.mPack.Count == 0) return;
+            Vector2? tRelaPosDelta = null;
+            var tCurrRelaPos = this.mMap.GetNodeRelaPos(pPacker.mId);
+            if (pPacker._relaPosLastPackingCall.HasValue && tCurrRelaPos.HasValue)
+            {
+                tRelaPosDelta =  tCurrRelaPos - pPacker._relaPosLastPackingCall.Value;
+            }
             foreach (string packedNodeId in pPacker.mPack)
             {
                 if (!this.mNodes.TryGetValue(packedNodeId, out var n) || n == null) continue;
-                n.mPackers.Remove(pPacker.mId);
-                if (n.mPackers.Count == 0) n.mIsPacked = false;
+                
+                if (n.mPackerNodeId == pPacker.mId)     // only packer can unpack the node
+                {
+                    n.mPackerNodeId = null;
+                    n.mIsPacked = false;
+
+                    // Set pack's nodes to new pos
+                    var npos = this.mMap.GetNodeRelaPos(n.mId);
+                    if (tRelaPosDelta.HasValue && npos.HasValue)
+                    {
+                        this.mMap.SetNodeRelaPos(n.mId, npos.Value + tRelaPosDelta.Value);
+                    }
+                }
             }
             pPacker.mPack.Clear();
+            pPacker._relaPosLastPackingCall = null;
             pPacker.mPackingStatus = Node.PackingStatus.None;
         }
         public NodeInputProcessResult ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
@@ -667,21 +690,24 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     || !this.mNodes.TryGetValue(e.GetTargetNodeId(), out var tTargetNode)) continue;
 
                 // Check pack
-                if (tSourceNode.mIsPacked || tTargetNode.mIsPacked) continue;
+                if (tSourceNode.mIsPacked) continue;        // ignore if source is packed
+                bool tIsTargetPacked = tTargetNode.mIsPacked;
+                if (tIsTargetPacked && tTargetNode.mPackerNodeId == null) continue;
+                if (tTargetNode.mPackerNodeId == tSourceNode.mId) continue;         // avoid drawing edge from packer to packed node.
 
                 Vector2? tSourceOSP = this.mMap.GetNodeScreenPos(tSourceNode.mId, tCanvasOSP, this.mConfig.scaling);
                 if (!tSourceOSP.HasValue) continue;
-                Vector2? tTargetOSP = this.mMap.GetNodeScreenPos(tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
-                if (!tTargetOSP.HasValue) continue;
+                Vector2? tFinalTargetOSP = this.mMap.GetNodeScreenPos(tIsTargetPacked ? tTargetNode.mPackerNodeId! : tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
+                if (!tFinalTargetOSP.HasValue) continue;
 
                 // Skip rendering if both ends of an edge is out of view
-                Vector2 tMid = new((tSourceOSP.Value.X + tTargetOSP.Value.X) / 2, (tSourceOSP.Value.Y + tTargetOSP.Value.Y) / 2);
-                if (!Utils.IsLineIntersectRect(tSourceOSP.Value, tTargetOSP.Value, new(pViewerOSP, pViewerSize)))
+                Vector2 tMid = new((tSourceOSP.Value.X + tFinalTargetOSP.Value.X) / 2, (tSourceOSP.Value.Y + tFinalTargetOSP.Value.Y) / 2);
+                if (!Utils.IsLineIntersectRect(tSourceOSP.Value, tFinalTargetOSP.Value, new(pViewerOSP, pViewerSize)))
                 {
                     continue;
                 }
 
-                NodeInteractionFlags tEdgeRes = e.Draw(pDrawList, tSourceOSP.Value, tTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()));
+                NodeInteractionFlags tEdgeRes = e.Draw(pDrawList, tSourceOSP.Value, tFinalTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()), pIsTargetPacked: tIsTargetPacked);
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.Edge)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.RequestEdgeRemoval)) tEdgeToRemove.Add(e);
             }

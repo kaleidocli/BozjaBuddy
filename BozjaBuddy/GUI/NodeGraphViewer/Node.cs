@@ -33,9 +33,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public bool _isMarkedDeleted = false;
 
         public HashSet<string> mPack = new();           // represents the nodes that this node packs
-        public HashSet<string> mPackers = new();        // represents the nodes which pack this node (the master packer, not just the parent node)
+        public string? mPackerNodeId = null;        // represents the node which packs this node (the master packer, not just the parent node). Only ONE packer per node.
         public bool mIsPacked = false;
         public PackingStatus mPackingStatus = PackingStatus.None;
+        public Vector2? _relaPosLastPackingCall = null;
 
         public abstract string mType { get; }
         public string mId { get; protected set; } = string.Empty;
@@ -303,7 +304,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
 
             }
-            else if (UtilsGUI.SetTooltipForLastItem("[Left-click] to select all child nodes.\n[Right-click] to start connecting."))
+            else if (UtilsGUI.SetTooltipForLastItem(string.Format("[Left-click] to {0}\n[Right-click] to start connecting nodes", this.mPackingStatus == PackingStatus.PackingDone ? $"unpack {this.mPack.Count} node(s)" : "shrink succeeding node path")))
             {
                 tIsHovered = true;
             }
@@ -312,7 +313,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             pDrawList.AddCircleFilled(
                 pNodeOSP - tSize, tSize.X * ((tIsHovered || pIsEstablishingConn || (this.mPackingStatus != PackingStatus.None)) ? 2.5f : 1), 
                 ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(
-                    this.mPackingStatus == PackingStatus.None ? UtilsGUI.Colors.NodeFg : UtilsGUI.Colors.BackgroundText_Green, 
+                    this.mPackingStatus == PackingStatus.None ? UtilsGUI.Colors.NodeFg : UtilsGUI.Colors.NodePack, 
                     (pIsActive || tIsHovered || pIsEstablishingConn) ? 1f : 0.7f)));
             pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.7f) * ((tIsHovered || pIsEstablishingConn || (this.mPackingStatus != PackingStatus.None)) ? 2.5f : 1), ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
             pDrawList.AddCircleFilled(pNodeOSP - tSize, (tSize.X * 0.5f) * ((tIsHovered || pIsEstablishingConn) ? 2.5f : 1), ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, (pIsActive || pIsEstablishingConn) ? 0.55f : 0.25f)));
