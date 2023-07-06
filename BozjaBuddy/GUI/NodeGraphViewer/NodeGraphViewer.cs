@@ -190,6 +190,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 this.mActiveCanvas.RemoveSelectedNodes();
             }
+            else UtilsGUI.SetTooltipForLastItem("Delete ALL selected nodes [Del]");
             // Button: Add node (within view)
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus))

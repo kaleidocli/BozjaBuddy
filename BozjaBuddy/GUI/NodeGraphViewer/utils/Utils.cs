@@ -92,7 +92,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         Edge = 8,
         RequestingEdgeConn = 16,
         UnrequestingEdgeConn = 32,
-        RequestEdgeRemoval = 64
+        RequestEdgeRemoval = 64,
+        RequestSelectAllChild = 128
     }
 
     [Flags]

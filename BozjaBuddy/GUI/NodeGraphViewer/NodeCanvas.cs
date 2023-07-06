@@ -429,6 +429,24 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             pPacker._relaPosLastPackingCall = null;
             pPacker.mPackingStatus = Node.PackingStatus.None;
         }
+        private void SelectAllChild(Node pParent)
+        {
+            if (!this.mGraph.TryGetOutEdges(pParent.mGraphId, out var tEdges) || tEdges == null) return;
+            this._selectedNodes.Add(pParent.mId);
+            this._selectAllChildWalker(pParent.mGraphId);
+        }
+        private void _selectAllChildWalker(int pId)
+        {
+            if (!this.mGraph.TryGetOutEdges(pId, out var tEdges) || tEdges == null) return;
+            foreach (var outEdge in tEdges)
+            {
+                var tTargetNodeId = this.GetNodeIdWithNodeGraphId(outEdge.Target);
+                if (tTargetNodeId == null) continue;
+                this._selectedNodes.Add(tTargetNodeId);
+
+                this._selectAllChildWalker(outEdge.Target);
+            }
+        }
         public NodeInputProcessResult ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
         {
             bool tIsNodeHandleClicked = false;
@@ -862,6 +880,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     tIsRemovingConn = true;             // abort connection establishing if RMB outside of connecting plug
                 }
+                if (tNodeRes.HasFlag(NodeInteractionFlags.RequestSelectAllChild))
+                {
+                    pCanvasDrawFlag |= CanvasDrawFlags.NoInteract;      // prevent node unselect
+                    this.SelectAllChild(tNode);
+                }
                 // Get seed and grow if possible
                 Seed? tSeed = tNode.GetSeed();
                 if (tSeed != null) tSeedToAdd.Add(new(tSeed, tNode.mId));
@@ -903,7 +926,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (tNodeToSelect.Count != 0) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
             if (tNodeToFocus.TryPeek(out var topF) && tNodesReqqingClearSelect.Contains(topF.Value)
                 || tIsEscapingMultiselect)      // only accept a clear-select-req from a node that is on top of the focus queue
-            { 
+            {
                 this._selectedNodes.Clear();
             }
             foreach (var tId in tNodeToSelect) this._selectedNodes.Add(tId);

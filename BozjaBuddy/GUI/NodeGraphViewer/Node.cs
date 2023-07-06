@@ -18,6 +18,7 @@ using Newtonsoft.Json.Linq;
 using System.Reflection.Metadata.Ecma335;
 using BozjaBuddy.GUI.NodeGraphViewer.NodeContent;
 using BozjaBuddy.GUI.NodeGraphViewer.utils;
+using Dalamud.Interface.Components;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -37,6 +38,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public bool mIsPacked = false;
         public PackingStatus mPackingStatus = PackingStatus.None;
         public Vector2? _relaPosLastPackingCall = null;
+
+        protected bool _isBeingEdited = false;
+        protected string? _newHeader = null;
+        protected Vector4? _newColorUnique = null;        
 
         public abstract string mType { get; }
         public string mId { get; protected set; } = string.Empty;
@@ -95,15 +100,38 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.mStyle.SetSize(this.mRecommendedInitSize);        // adjust size to the new minSize
         }
 
-        public virtual void SetHeader(string pText, bool pAutoSizing = true)
+        /// <summary>
+        /// <para>pAdjustWidthOnly:         (requires: autoSizing) Adjust node's width only, keep node's height the same.</para>
+        /// <para>pChooseGreaterWidth:      (requires: autoSizing, adjustWidthOnly) Only adjust if the new width is greater than the current one.</para>
+        /// </summary>
+        public virtual void SetHeader(string pText, bool pAutoSizing = true, bool pAdjustWidthOnly = false, bool pChooseGreaterWidth = false)
         {
             this.mContent._setHeader(pText);
             this.mStyle.SetHandleTextSize(ImGui.CalcTextSize(this.mContent.GetHeader()));
-            if (pAutoSizing) this.AdjustSizeToHeader();
+            if (pAutoSizing) this.AdjustSizeToHeader(pAdjustWidthOnly, pChooseGreaterWidth);
         }
-        public virtual void AdjustSizeToHeader()
+        /// <summary>
+        /// <para>pAdjustWidthOnly:         Adjust node's width only, keep node's height the same.</para>
+        /// <para>pChooseGreaterWidth:      Only adjust if the new width is greater than the current one.</para>
+        /// </summary>
+        public virtual void AdjustSizeToHeader(bool pAdjustWidthOnly = false, bool pChooseGreaterWidth = false)
         {
-            this.mStyle.SetSize(ImGui.CalcTextSize(this.mContent.GetHeader()) + Node.nodeInsidePadding * 2);
+            if (pAdjustWidthOnly)
+            {
+                float tW = (ImGui.CalcTextSize(this.mContent.GetHeader()) + Node.nodeInsidePadding * 2).X;
+                this.mStyle.SetSize(
+                    new(
+                        pChooseGreaterWidth
+                        ? tW > this.mStyle.GetSize().X
+                            ? tW
+                            : this.mStyle.GetSize().X
+                        : tW,
+                        this.mStyle.GetSize().Y
+                        )
+                    );
+            }
+            else
+                this.mStyle.SetSize(ImGui.CalcTextSize(this.mContent.GetHeader()) + Node.nodeInsidePadding * 2);
         }
         public virtual NodeCanvas.Seed? GetSeed() => this._seeds.Count == 0 ? null : this._seeds.Dequeue();
         protected virtual void SetSeed(NodeCanvas.Seed pSeed) => this._seeds.Enqueue(pSeed);
@@ -198,7 +226,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // backdrop (leave this here so the backgrop can overwrite the child's bg)
             if (!this.mIsMinimized) tDrawList.AddRectFilled(pNodeOSP,tEnd,ImGui.ColorConvertFloat4ToU32(this.mStyle.colorBg));
             tRes |= this.DrawHandle(pNodeOSP, pCanvasScaling, tDrawList, pIsActive, out var tHndCtxMnu);
-            ImGui.SetCursorScreenPos(new Vector2(pNodeOSP.X, ImGui.GetCursorScreenPos().Y + 5 * pCanvasScaling));
+            ImGui.SetCursorScreenPos(new Vector2(pNodeOSP.X + 2 * pCanvasScaling, ImGui.GetCursorScreenPos().Y + 5 * pCanvasScaling));
             if (!this.mIsMinimized) tRes |= this.DrawBody(pNodeOSP, pCanvasScaling);
             ImGui.EndChild();
 
@@ -272,13 +300,17 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.PopStyleVar();
             return tRes;
         }
-        public NodeInteractionFlags DrawHandeExtraOptionPU()
+        protected NodeInteractionFlags DrawHandeExtraOptionPU()
         {
             NodeInteractionFlags tRes = NodeInteractionFlags.None;
+            bool tIsOpeningEditPU = false;
             if (ImGui.BeginPopup(this.GetExtraOptionPUGuiId()))
             {
                 // Select all
-                ImGui.Selectable("Select all child nodes");
+                if (ImGui.Selectable("Select all child nodes"))
+                {
+                    tRes |= NodeInteractionFlags.RequestSelectAllChild;
+                }
                 // Pack all
                 if (ImGui.Selectable(this.mPackingStatus == PackingStatus.PackingDone ? $"Unpack {this.mPack.Count} child node(s)" : "Pack up all child nodes"))
                 {
@@ -291,15 +323,95 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
                 ImGui.Separator();
                 // Edit
-                ImGui.Selectable("Edit node");
+                if (ImGui.Selectable("Edit node", false, ImGuiSelectableFlags.DontClosePopups))
+                {
+                    this.NodeEditPU_VarsInit();
+                    tIsOpeningEditPU = true;
+                    ImGui.CloseCurrentPopup();
+                }
 
                 ImGui.EndPopup();
                 tRes |= NodeInteractionFlags.Internal | NodeInteractionFlags.LockSelection;
             }
+            if (tIsOpeningEditPU) ImGui.OpenPopup($"##nepu{this.mId}");
+            tRes |= this.DrawNodeEditPU();
 
             return tRes;
         }
-        public string GetExtraOptionPUGuiId() => $"##hepu{this.mId}";
+        protected string GetExtraOptionPUGuiId() => $"##hepu{this.mId}";
+        protected NodeInteractionFlags DrawNodeEditPU()
+        {
+            if (!this._isBeingEdited || this._newHeader == null || !this._newColorUnique.HasValue) return NodeInteractionFlags.None;
+            NodeInteractionFlags tRes = NodeInteractionFlags.None;
+            ImGui.SetNextWindowSize(new(200, 300));
+            if (ImGui.BeginPopup($"##nepu{this.mId}"))
+            {
+                // Edit fields
+                ImGui.BeginGroup();
+                ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 1.5f);
+                ImGui.BeginChild("##nepuw", new(ImGui.GetWindowContentRegionMax().X / 6 * 5f, ImGui.GetContentRegionAvail().Y), true);
+                tRes |= this.DrawNodeEditPU_Fields();
+                ImGui.EndChild();
+                ImGui.PopStyleVar();
+                ImGui.EndGroup();
+                // Op buttons
+                ImGui.SameLine();
+                ImGui.BeginGroup();
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
+                {
+                    this.NodeEditPU_VarsSave();
+                }
+                if (ImGui.Button("×"))
+                {
+                    this.NodeEditPU_VarsCancel();
+                }
+                ImGui.EndGroup();
+
+                ImGui.EndPopup();
+                tRes |= NodeInteractionFlags.Internal | NodeInteractionFlags.LockSelection;
+            }
+            else       // split it here so that the save button wouldn't close the pop up
+            {
+                this.NodeEditPU_VarsCancel();
+            }
+            return tRes;
+        }
+        protected virtual NodeInteractionFlags DrawNodeEditPU_Fields()
+        {
+            NodeInteractionFlags tRes = NodeInteractionFlags.None;
+            if (this._newColorUnique == null) return tRes;
+
+            ImGui.Text("Header");
+            ImGui.SameLine();
+            ImGui.InputText("##nodeHeader", ref this._newHeader, 200);
+            if (ImGui.CollapsingHeader("Colors"))
+            {
+                var tCol = this._newColorUnique.Value;
+                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                ImGui.ColorPicker4("##colp", ref tCol, ImGuiColorEditFlags.NoSidePreview);
+                this._newColorUnique = tCol;
+            }
+
+            return tRes;
+        }
+        protected virtual void NodeEditPU_VarsInit()
+        {
+            this._isBeingEdited = true;
+            this._newHeader = this.mContent.GetHeader();
+            this._newColorUnique = new(this.mStyle.colorUnique.X, this.mStyle.colorUnique.Y, this.mStyle.colorUnique.Z, this.mStyle.colorUnique.W);
+        }
+        protected virtual void NodeEditPU_VarsSave()
+        {
+            if (this._newHeader == null || !this._newColorUnique.HasValue) return;
+            this.SetHeader(this._newHeader, pAdjustWidthOnly: true, pChooseGreaterWidth: true);
+            this.mStyle.colorUnique = this._newColorUnique.Value;
+        }
+        protected virtual void NodeEditPU_VarsCancel()
+        {
+            this._isBeingEdited = false;
+            this._newHeader = null;
+            this._newColorUnique = null;
+        }
         /// <summary>Draw this in NodeCanvas. Drawing it in Node would mask the thing.</summary>
         public NodeInteractionFlags DrawEdgePlugButton(ImDrawListPtr pDrawList, Vector2 pNodeOSP, bool pIsActive, bool pIsEstablishingConn = false)
         {
