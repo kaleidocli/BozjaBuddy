@@ -63,10 +63,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private bool _isNodeSelectionLocked = false;
         private EdgeConn? _nodeConnTemp = null;
 
-        public NodeCanvas(int pId, string pName = "new canvas")
+        public NodeCanvas(int pId, string pName = "Canvas")
         {
             this.mId = pId;
-            this.mName = pName;
+            this.mName = $"{pName} {this.mId}";
             this.mOccuppiedRegion = new();
             this.mGraph = new();
 
@@ -612,6 +612,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             Vector2 pViewerOSP,         // Viewer OSP.
             Vector2 pViewerSize,
             Vector2 pInitBaseOffset,
+            float pGridSnapProximity,
             UtilsGUI.InputPayload pInputPayload,
             ImDrawListPtr pDrawList,
             NodeGraphViewer.GridSnapData? pSnapData = null, 
@@ -674,7 +675,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     Vector2? tNodeOSP = this.mMap.GetNodeScreenPos(this._snappingNode.mId, tCanvasOSP, this.mConfig.scaling);
                     Vector2? tSnapOSP = null;
                     if (tNodeOSP.HasValue)
-                        tSnapOSP = pSnapData?.GetClosestSnapPos(tNodeOSP.Value, NodeGraphViewer.kGridSnapProximity);
+                        tSnapOSP = pSnapData?.GetClosestSnapPos(tNodeOSP.Value, pGridSnapProximity);
                     if (tSnapOSP.HasValue)
                         tSnapDelta = tSnapOSP.Value - tNodeOSP;
                     this._lastSnapDelta = tSnapDelta;

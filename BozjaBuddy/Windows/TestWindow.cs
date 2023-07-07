@@ -23,7 +23,7 @@ namespace BozjaBuddy.Windows
             this.SizeCondition = ImGuiCond.Once;
 
             this.mPlugin = plugin;
-            this.mGraphViewer = new(this.mPlugin);
+            this.mGraphViewer = new();
         }
 
         public override void Draw()

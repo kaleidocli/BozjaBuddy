@@ -17,6 +17,7 @@ using QuickGraph.Serialization;
 using static BozjaBuddy.Data.Location;
 using Dalamud.Interface;
 using System.Linq.Expressions;
+using System.Reflection.Emit;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -27,19 +28,18 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     {
         private const float kUnitGridSmall_Default = 10;
         private const float kUnitGridLarge_Default = 50;
-        public const float kGridSnapProximity = 3.5f;
-        private const float kRulerTextFadePeriod = 2500;
+        private const float kGridSnapProximity_Default = 3.5f;
+        private const float kRulerTextFadePeriod_Default = 2500;
+        private static Vector2 kRecommendedViewerSizeToSearch = new Vector2(200, 300);
 
         [JsonProperty]
-        private readonly Dictionary<int, NodeCanvas> _canvases = new();
+        private Dictionary<int, NodeCanvas> _canvases = new();
         [JsonProperty]
-        private readonly List<int> _canvasOrder = new();
+        private List<int> _canvasOrder = new();
         [JsonProperty]
         private int _canvasCounter = 0;
         [JsonProperty]
         private NodeCanvas mActiveCanvas;
-        private float mUnitGridSmall = NodeGraphViewer.kUnitGridSmall_Default;
-        private float mUnitGridLarge = NodeGraphViewer.kUnitGridLarge_Default;
         private ViewerNotificationManager mNotificationManager = new();
 
         private bool _isMouseHoldingViewer = false;
@@ -47,20 +47,28 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private DateTime? _rulerTextLastAppear = null;
         private int _lastSelectedCount = 0;    // is shared between canvases of this viewer
         private bool _minimizeFuncState = false;
+        private ViewerEventFlag _eventFlags = ViewerEventFlag.None;
         public Vector2? mSize = null;
 
         private string? _debugViewerJson = null;
-        private Plugin? _plugin = null;
+
+        private Queue<Tuple<DateTime, string>> _saveData = new();
+        private DateTime _lastTimeAutoSave = DateTime.Now;
+
+        [JsonProperty]
+        private NodeGraphViewerConfig mConfig = new()
+        {
+            unitGridSmall = NodeGraphViewer.kUnitGridSmall_Default,
+            unitGridLarge = NodeGraphViewer.kUnitGridLarge_Default,
+            gridSnapProximity = NodeGraphViewer.kGridSnapProximity_Default,
+            timeForRulerTextFade = NodeGraphViewer.kRulerTextFadePeriod_Default,
+            showRulerText = true
+        };
 
         public NodeGraphViewer()
         {
             this.AddBlankCanvas();
             this.mActiveCanvas = this.GetTopCanvas()!;
-        }
-        /// <summary>For debugging Bozja buddy related stuff only</summary>
-        public NodeGraphViewer(Plugin pPlugin) : this()
-        {
-            this._plugin = pPlugin;
         }
 
         private void AddBlankCanvas()
@@ -101,26 +109,70 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             return true;
         }
         /// <summary>'Deep-copy' given canvas, and add it to the viewer with a new id.</summary>
-        public bool ImportCanvas(NodeCanvas pCanvas)
+        private bool ImportCanvas(NodeCanvas pCanvas)
         {
             return this.ImportCanvas(JsonConvert.SerializeObject(pCanvas));
         }
         /// <summary>Add new canvas to viewer using JSON. Return false if the deserialization fails, otherwise true.</summary>
-        public bool ImportCanvas(string pCanvasJson)
+        private bool ImportCanvas(string pCanvasJson)
         {
             return this.AddCanvas(pCanvasJson);
         }
-        public string? ExportCanvasAsJson(int pCanvasId)
+        /// <summary> Returns false if canvasId is not found, otherwise true. </summary>
+        private string? ExportCanvasAsJson(int pCanvasId)
         {
             var pCanvas = this.GetCanvas(pCanvasId);
             return pCanvas == null ? null : JsonConvert.SerializeObject(pCanvas);
         }
-        public string ExportActiveCanvasAsJson()
+        private string ExportActiveCanvasAsJson()
         {
             return JsonConvert.SerializeObject(this.mActiveCanvas);
         }
+        private bool Save()
+        {
+            // Check interaction interval
+            if ((DateTime.Now - this._lastTimeAutoSave).Milliseconds < this.mConfig.autoSaveInterval) return false;
 
+            // Save
+            var json = JsonConvert.SerializeObject(this);
+            if (json == null) return false;
+            this._saveData.Enqueue(new(DateTime.Now, json));
+            while (this._saveData.Count > this.mConfig.saveCapacity) this._saveData.Dequeue();
 
+            this._lastTimeAutoSave = DateTime.Now;
+            this._eventFlags |= ViewerEventFlag.NewSaveDataAvailable;
+            return true;
+        }
+        private Tuple<DateTime, string>? GetLatestSaveData() => this._saveData.Count == 0 ? null : this._saveData.Dequeue();
+        // The difference between this and GetLatestSaveData() is that this method will only retrieve and return the save data if there is a flag.
+        /// <summary> 
+        /// Returns null if there is no new save data flagged by the viewer. Otherwise, return the latest save data AND remove the flag. 
+        /// </summary>
+        public Tuple<DateTime, string>? GetLatestSaveDataSinceLastChange()
+        {
+            if (!this._eventFlags.HasFlag(ViewerEventFlag.NewSaveDataAvailable)) return null;
+            this._eventFlags &= ~ViewerEventFlag.NewSaveDataAvailable;
+            return this.GetLatestSaveData();
+        }
+        private bool LoadSaveData(string dataJson)
+        {
+            var tRes = JsonConvert.DeserializeObject<NodeGraphViewer>(dataJson, new utils.JsonConverters.NodeJsonConverter());
+            if (tRes == null) return false;
+
+            this._canvases = tRes._canvases;
+            this._canvasOrder = tRes._canvasOrder;
+            this._canvasCounter = tRes._canvasCounter;
+            this.mActiveCanvas = tRes.mActiveCanvas;
+            this.mConfig = tRes.mConfig;
+            return true;
+        }
+        public ViewerEventFlag GetViewerEventFlags() => this._eventFlags;
+        public void AddNodeToActiveCanvas<T>(NodeContent.NodeContent pNodeContent) where T : Node, new()
+        {
+            //BBNodeContent tContent = new(this._plugin, 400005, "Lost Banner of Xyz");
+            //this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
+            this.mActiveCanvas.AddNodeWithinView<T>(pNodeContent, this.mConfig.sizeLastKnown ?? NodeGraphViewer.kRecommendedViewerSizeToSearch);
+        }
 
         public void Draw()
         {
@@ -128,14 +180,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         public void Draw(Vector2 pScreenPos, Vector2? pSize = null)
         {
-            Area tGraphArea = new(pScreenPos + new Vector2(0, 30), (pSize ?? ImGui.GetContentRegionAvail()) + new Vector2(0, -30));
+            this.mConfig.sizeLastKnown = pSize ?? ImGui.GetContentRegionAvail();
+            Area tGraphArea = new(pScreenPos + new Vector2(0, 30), (this.mConfig.sizeLastKnown ?? ImGui.GetContentRegionAvail()) + new Vector2(0, -30));
             var tDrawList = ImGui.GetWindowDrawList();
 
-            this.DrawUtilsBar(tGraphArea.size);
+            this.DrawUtilsBar();
             ImGui.SetCursorScreenPos(tGraphArea.start);
             this.DrawGraph(tGraphArea, tDrawList);
         }
-        private void DrawUtilsBar(Vector2 pViewerSize)
+        private void DrawUtilsBar()
         {
             // =======================================================
             // DEBUG =================================================
@@ -162,13 +215,90 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // DEBUG =================================================
             // =======================================================
 
-            Utils.AlignRight(ImGui.GetWindowWidth() / 4 * 3 + 18 + ImGui.GetStyle().ItemSpacing.X);
-            // Slider: Scaling
-            float tScaling = this.mActiveCanvas.GetScaling();
-            ImGui.SetNextItemWidth(ImGui.GetWindowWidth() / 4);
-            if (ImGui.InputFloat("##sliderScale", ref tScaling, NodeCanvas.stepScale, NodeCanvas.stepScale * 2))
+            // Split into 3 parts
+            // [Canvasses tab bar and related] | [Viewer related] | [Active canvas related]
+
+            // Canvas tab bar   ================================================
+            float tTabBarW = ImGui.GetContentRegionMax().X / 10 * 4.4f - 10;
+            if (ImGui.BeginTabBar("##ngvCanvasTabbar", ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton))
             {
-                this.mActiveCanvas.SetScaling(tScaling);
+                List<int> tCanvasToRemove = new();
+                foreach (var canvasId in this._canvasOrder)
+                {
+                    if (!this._canvases.TryGetValue(canvasId, out var c) || c == null) continue;
+                    bool isOpened = true;
+                    ImGui.SetNextItemWidth((tTabBarW - ImGui.GetStyle().ItemInnerSpacing.X * this._canvasOrder.Count) / this._canvasOrder.Count);
+                    if (ImGui.BeginTabItem($"{c.mName}##{c.mId}", ref isOpened))
+                    {
+                        this.mActiveCanvas = c;
+                        ImGui.EndTabItem();
+                    }
+                    if (!isOpened) tCanvasToRemove.Add(c.mId);
+                }
+                foreach (var id in tCanvasToRemove) { this.RemoveCanvas(id); }
+                if (ImGui.TabItemButton(" +"))
+                {
+                    this.AddBlankCanvas();
+                }
+                ImGui.EndTabBar();
+            }
+
+            // Viewer 'n Canvas options =======================================
+            ImGui.SameLine();
+            UtilsGUI.ShowHelpMarker(
+                """
+                [Shortcuts]
+
+                [Help]
+                """
+                );
+            // menu 1
+            ImGui.SameLine();
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
+            if (ImGui.BeginChildFrame(1, ImGui.CalcTextSize("Viewer") + ImGui.GetStyle().FramePadding * 2))
+            {
+                if (ImGui.BeginMenu("Viewer"))
+                {
+                    ImGui.MenuItem("Test");
+                    ImGui.MenuItem("Test");
+                    ImGui.EndMenu();
+                }
+                ImGui.EndChildFrame();
+            }
+            ImGui.PopStyleColor();
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.SlidersH))
+            {
+
+            }
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
+            {
+
+            }
+
+            // Active canvas options ==========================================
+            // menu 2
+            ImGui.SameLine();
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
+            if (ImGui.BeginChildFrame(2, ImGui.CalcTextSize("Canvas") + ImGui.GetStyle().FramePadding * 2))
+            {
+                if (ImGui.BeginMenu("Canvas"))
+                {
+                    ImGui.MenuItem("Test");
+                    ImGui.MenuItem("Test");
+                    ImGui.EndMenu();
+                }
+                ImGui.EndChildFrame();
+            }
+            ImGui.PopStyleColor();
+            ImGui.SameLine();
+            // Slider: Scaling
+            int tScaling = (int)(this.mActiveCanvas.GetScaling() * 100);
+            ImGui.SetNextItemWidth(40);
+            if (ImGui.DragInt("##sldScaling", ref tScaling, NodeCanvas.stepScale * 100, (int)(NodeCanvas.minScale * 100), (int)(NodeCanvas.maxScale * 100), "%d%%"))
+            {
+                this.mActiveCanvas.SetScaling((float)tScaling / 100);
             }
             // Button: Minimize/Unminimize selected
             ImGui.SameLine();
@@ -195,11 +325,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
             {
-                //NodeContent.NodeContent tContent = new("New node");
-                //this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
-                BBNodeContent tContent = new(this._plugin, 400005, "Lost Banner of Xyz");
-                this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
-            }            
+                this.AddNodeToActiveCanvas<BasicNode>(new NodeContent.NodeContent("New node"));
+            }
+            else UtilsGUI.SetTooltipForLastItem("Add a basic node");
         }
         private void DrawGraph(Area pGraphArea, ImDrawListPtr pDrawList)
         {
@@ -284,6 +412,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                                     pGraphArea.start,
                                     pGraphArea.size,
                                     -1 * pGraphArea.size / 2,
+                                    this.mConfig.gridSnapProximity,
                                     tInputPayload,
                                     pDrawList,
                                     pSnapData: pSnapData,
@@ -299,12 +428,17 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             // Snap lines
             if (!tRes.HasFlag(CanvasDrawFlags.NoNodeSnap)) this.DrawSnapLine(pGraphArea, pSnapData);
+            // Auto save
+            if (tRes == CanvasDrawFlags.None || tRes == CanvasDrawFlags.NoCanvasZooming)
+            {
+                this.Save();
+            }
         }
         private GridSnapData DrawGraphBg(Area pArea, Vector2 pOffset, float pCanvasScale)
         {
             GridSnapData tGridSnap = new();
-            float tUGSmall = this.mUnitGridSmall * pCanvasScale;
-            float tUGLarge = this.mUnitGridLarge * pCanvasScale;
+            float tUGSmall = this.mConfig.unitGridSmall * pCanvasScale;
+            float tUGLarge = this.mConfig.unitGridLarge * pCanvasScale;
             ImGui.SetCursorScreenPos(pArea.start);
             var pDrawList = ImGui.GetWindowDrawList();
 
@@ -336,8 +470,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 pDrawList.AddLine(new Vector2(pArea.start.X, tGridStart_S.Y + i * tUGSmall), new Vector2(pArea.end.X, tGridStart_S.Y + i * tUGSmall), tGridColor, 1.0f);
             }
 
-            int tXFirstNotation = (int)(-pOffset.X * pCanvasScale - pArea.size.X / 2) / (int)tUGLarge * (int)this.mUnitGridLarge;
-            int tYFirstNotation = (int)(-pOffset.Y * pCanvasScale - pArea.size.Y / 2) / (int)tUGLarge * (int)this.mUnitGridLarge;
+            int tXFirstNotation = (int)(-pOffset.X * pCanvasScale - pArea.size.X / 2) / (int)tUGLarge * (int)this.mConfig.unitGridLarge;
+            int tYFirstNotation = (int)(-pOffset.Y * pCanvasScale - pArea.size.Y / 2) / (int)tUGLarge * (int)this.mConfig.unitGridLarge;
             float tTransMax = 0.2f;
             for (var i = 0; i < (pArea.end.X - tGridStart_L.X) / tUGLarge; i++)        // vertical L
             {
@@ -347,11 +481,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     float tTrans = 1;
                     if (this._rulerTextLastAppear.HasValue)
-                        tTrans = tTransMax - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / NodeGraphViewer.kRulerTextFadePeriod) * tTransMax;
+                        tTrans = tTransMax - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / this.mConfig.timeForRulerTextFade) * tTransMax;
                     pDrawList.AddText(
                         new Vector2(tGridStart_L.X + i * tUGLarge, pArea.start.Y),
                         ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeText, tTrans)),
-                        $"{(tXFirstNotation + (this.mUnitGridLarge * i)) / 10}");
+                        $"{(tXFirstNotation + (this.mConfig.unitGridLarge * i)) / 10}");
                     // fade check
                     if (tTrans < 0.05f)
                     {
@@ -368,11 +502,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 {
                     float tTrans = 1;
                     if (this._rulerTextLastAppear.HasValue)
-                        tTrans = tTransMax - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / NodeGraphViewer.kRulerTextFadePeriod) * tTransMax;
+                        tTrans = tTransMax - ((float)((DateTime.Now - this._rulerTextLastAppear.Value).TotalMilliseconds) / this.mConfig.timeForRulerTextFade) * tTransMax;
                     pDrawList.AddText(
                         new Vector2(pArea.start.X + 6, tGridStart_L.Y + i * tUGLarge),
                         ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeText, tTrans)),
-                        $"{tYFirstNotation + (this.mUnitGridLarge * i)}");
+                        $"{tYFirstNotation + (this.mConfig.unitGridLarge * i)}");
                     // fade check
                     if (tTrans < 0.05f)
                     {
@@ -445,6 +579,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 else if (tYClosest.HasValue) this.lastClosestSnapY = y;
                 return new(x, y);
             }
+        }
+
+        [Flags]
+        public enum ViewerEventFlag
+        {
+            None = 0,
+            NewSaveDataAvailable = 1
         }
     }
 }

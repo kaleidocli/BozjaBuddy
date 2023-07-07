@@ -192,6 +192,7 @@ namespace BozjaBuddy.Utils
             string pAdditionalHoverText = "",
             bool pIsAuxiLinked = true,
             InputPayload? pInputPayload = null,
+            NodeGraphViewer? pNGViewer = null,
             AuxNode? pAuxNode = null)
         {
             pInputPayload ??= new InputPayload();
@@ -254,13 +255,20 @@ namespace BozjaBuddy.Utils
             }
             else if (tRes)
             {
-                if (pAuxNode == null) pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
-                else pAuxNode.SetSeed(
+                if (pAuxNode != null)
+                {
+                    pAuxNode.SetSeed(
                         new(
-                            AuxNode.nodeType, 
+                            AuxNode.nodeType,
                             new BBNodeContent(pPlugin, pTargetGenId, tObj.mName),
                             ofsToPrevNode: new Vector2(40, 20)
                             ));
+                }
+                else if (pNGViewer != null)
+                {
+                    pNGViewer.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
+                }
+                else pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
             }
             ImGui.PopID();
             // Lost action's cache amount
