@@ -56,6 +56,8 @@ namespace BozjaBuddy
         public bool mIsAuxiFocused = false;
         public HashSet<int> mCacheAlertIgnoreIds = new();
         public HashSet<int> mUserFieldNotes = new();
+        public bool mIsAuxiUsingNGV = true;
+        public string? mAuxiNGVSaveData = null;
 
         public GuiAssistConfig mGuiAssistConfig = new();
 

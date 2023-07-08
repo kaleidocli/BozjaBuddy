@@ -36,7 +36,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private Dictionary<int, NodeCanvas> _canvases = new();
         [JsonProperty]
         private List<int> _canvasOrder = new();
-        [JsonProperty]
         private int _canvasCounter = 0;
         [JsonProperty]
         private NodeCanvas mActiveCanvas;
@@ -50,10 +49,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private ViewerEventFlag _eventFlags = ViewerEventFlag.None;
         public Vector2? mSize = null;
 
-        private string? _debugViewerJson = null;
+        private string? _infield_CanvasName = null;
 
         private Queue<Tuple<DateTime, string>> _saveData = new();
-        private DateTime _lastTimeAutoSave = DateTime.Now;
+        private DateTime _lastTimeAutoSave = DateTime.MinValue;
 
         [JsonProperty]
         private NodeGraphViewerConfig mConfig = new()
@@ -86,6 +85,27 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         private bool AddCanvas(NodeCanvas pCanvas)
         {
+            // reassign canvas IDs every first time viewer is loaded to cache
+            if (this._canvasCounter == 0)
+            {
+                List<int> tNewCanvasOrder = new();
+                Dictionary<int, NodeCanvas> tNewCanvases = new();
+                // assign new id to canvasses
+                foreach (var id in this._canvasOrder)
+                {
+                    if (this._canvases.TryGetValue(id, out var tCanvas) && tCanvas != null)
+                    {
+                        tCanvas.mId = this._canvasCounter++;
+                        // assign new canvas to the new colection
+                        tNewCanvases.Add(tCanvas.mId, tCanvas);
+                        // assign the new id into the new order
+                        tNewCanvasOrder.Add(tCanvas.mId);
+                    }
+                }
+                this._canvases = tNewCanvases;
+                this._canvasOrder = tNewCanvasOrder;
+            }
+
             pCanvas.mId = this._canvasCounter + 1;
             this._canvases.Add(pCanvas.mId, pCanvas);
             this._canvasOrder.Add(pCanvas.mId);
@@ -128,10 +148,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             return JsonConvert.SerializeObject(this.mActiveCanvas);
         }
-        private bool Save()
+        /// <summary> forceSave: Save without interval check. Be advised when using this.</summary>
+        private bool Save(bool _forceSave = false)
         {
             // Check interaction interval
-            if ((DateTime.Now - this._lastTimeAutoSave).Milliseconds < this.mConfig.autoSaveInterval) return false;
+            if (!_forceSave && (DateTime.Now - this._lastTimeAutoSave).TotalMilliseconds < this.mConfig.autoSaveInterval) return false;
 
             // Save
             var json = JsonConvert.SerializeObject(this);
@@ -141,6 +162,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             this._lastTimeAutoSave = DateTime.Now;
             this._eventFlags |= ViewerEventFlag.NewSaveDataAvailable;
+
+            this.mNotificationManager.Push(new ViewerNotification("sysSaveNotiSucess", "Successfully saved!"));
             return true;
         }
         private Tuple<DateTime, string>? GetLatestSaveData() => this._saveData.Count == 0 ? null : this._saveData.Dequeue();
@@ -154,16 +177,20 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this._eventFlags &= ~ViewerEventFlag.NewSaveDataAvailable;
             return this.GetLatestSaveData();
         }
-        private bool LoadSaveData(string dataJson)
+        public bool LoadSaveData(string dataJson)
         {
             var tRes = JsonConvert.DeserializeObject<NodeGraphViewer>(dataJson, new utils.JsonConverters.NodeJsonConverter());
             if (tRes == null) return false;
 
-            this._canvases = tRes._canvases;
-            this._canvasOrder = tRes._canvasOrder;
-            this._canvasCounter = tRes._canvasCounter;
-            this.mActiveCanvas = tRes.mActiveCanvas;
+            foreach (var id in tRes._canvasOrder)
+            {
+                var tCanvasIn = tRes.GetCanvas(id);
+                if (tCanvasIn == null) continue;
+                this.AddCanvas(tCanvasIn);
+            }
             this.mConfig = tRes.mConfig;
+            if (this.GetTopCanvas() == null) this.AddBlankCanvas();
+            this.mActiveCanvas = this.GetTopCanvas()!;
             return true;
         }
         public ViewerEventFlag GetViewerEventFlags() => this._eventFlags;
@@ -174,10 +201,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.mActiveCanvas.AddNodeWithinView<T>(pNodeContent, this.mConfig.sizeLastKnown ?? NodeGraphViewer.kRecommendedViewerSizeToSearch);
         }
 
+        /// <summary> Draw at current cursor, with size as ContentRegionAvail </summary>
         public void Draw()
         {
             Draw(ImGui.GetCursorScreenPos());
         }
+        /// <summary> Draw at specified pos, with size as specified </summary>
         public void Draw(Vector2 pScreenPos, Vector2? pSize = null)
         {
             this.mConfig.sizeLastKnown = pSize ?? ImGui.GetContentRegionAvail();
@@ -247,51 +276,53 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.SameLine();
             UtilsGUI.ShowHelpMarker(
                 """
-                [Shortcuts]
+                Keybinds basic
+                [LMB]               Select/Drag nodes by the handle.
+                [RMB]               Extra options on the handle.
+                [MiddleClick]       Delete a canvas by the handle.
+                [MouseScroll]       Zoom in/out on canvas.
 
-                [Help]
+                Basics
+                - Nodes can be added, deleted, edited, minimnized.
+                - Nodes can also be packed up into a bundle, and unpacked.
+                - Nodes can be connected/disconnected to and from each other.
+                - Nodes' connections can be adjusted in specific forms for organizing's sake.
+
+                Saving and Auto-save
+                - Viewer and all of its canvasses' data can be saved manually.
+                - It can also be auto-saved, every X seconds (configurable in config).
+                - Auto-save only runs when the viewer is visible.
+                - Any adjustments that are not saved will be lost.
                 """
                 );
-            // menu 1
             ImGui.SameLine();
-            ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
-            if (ImGui.BeginChildFrame(1, ImGui.CalcTextSize("Viewer") + ImGui.GetStyle().FramePadding * 2))
+            if (ImGui.Button("Viewer"))
             {
-                if (ImGui.BeginMenu("Viewer"))
-                {
-                    ImGui.MenuItem("Test");
-                    ImGui.MenuItem("Test");
-                    ImGui.EndMenu();
-                }
-                ImGui.EndChildFrame();
+                ImGui.OpenPopup("vwexpu");
             }
-            ImGui.PopStyleColor();
+            else UtilsGUI.SetTooltipForLastItem("Viewer's extra options");
+            this.DrawViewerExtraOptions("vwexpu");
             ImGui.SameLine();
+            ImGui.BeginDisabled();
             if (ImGuiComponents.IconButton(FontAwesomeIcon.SlidersH))
             {
-
+                ImGui.OpenPopup("##vcpu");
             }
+            else UtilsGUI.SetTooltipForLastItem("Viewer's settings");
+            ImGui.EndDisabled();
+            this.DrawViewerConfig("##vcpu");
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
             {
-
+                this.Save(_forceSave: true);
             }
+            else UtilsGUI.SetTooltipForLastItem("Save viewer's and canvasses' data");
 
             // Active canvas options ==========================================
-            // menu 2
             ImGui.SameLine();
-            ImGui.PushStyleColor(ImGuiCol.FrameBg, 0);
-            if (ImGui.BeginChildFrame(2, ImGui.CalcTextSize("Canvas") + ImGui.GetStyle().FramePadding * 2))
-            {
-                if (ImGui.BeginMenu("Canvas"))
-                {
-                    ImGui.MenuItem("Test");
-                    ImGui.MenuItem("Test");
-                    ImGui.EndMenu();
-                }
-                ImGui.EndChildFrame();
-            }
-            ImGui.PopStyleColor();
+            ImGui.BeginDisabled();
+            ImGui.Button("Canvas");
+            ImGui.EndDisabled();
             ImGui.SameLine();
             // Slider: Scaling
             int tScaling = (int)(this.mActiveCanvas.GetScaling() * 100);
@@ -539,6 +570,49 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeGraphViewer_SnaplineGold, 0.5f)),
                     1.0f);
             }
+        }
+        private void DrawViewerExtraOptions(string pGuiId)
+        {
+            bool tReq_Rename = false;
+            if (ImGui.BeginPopup(pGuiId))
+            {
+                if (ImGui.Selectable("Rename current canvas", false, ImGuiSelectableFlags.DontClosePopups))
+                {
+                    tReq_Rename = true;
+                }
+                ImGui.Separator();
+                ImGui.BeginDisabled();
+                ImGui.Selectable("Import canvas", false, ImGuiSelectableFlags.DontClosePopups);
+                ImGui.Selectable("Export current canvas", false, ImGuiSelectableFlags.DontClosePopups);
+                ImGui.EndDisabled();
+                ImGui.EndPopup();
+            }
+            if (tReq_Rename) { ImGui.OpenPopup("vwexpu_rename"); }
+            this.DrawViewerExtraOptions_Rename("vwexpu_rename");
+        }
+        private void DrawViewerExtraOptions_Rename(string pGuiId)
+        {
+            if (ImGui.BeginPopup(pGuiId))
+            {
+                if (this._infield_CanvasName == null) this._infield_CanvasName = this.mActiveCanvas.mName;
+                ImGui.InputText($"##{pGuiId}_input", ref this._infield_CanvasName, 200);
+                ImGui.SameLine();
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
+                {
+                    this.mActiveCanvas.mName = this._infield_CanvasName;
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndPopup();
+            }
+            // reset fields
+            else
+            {
+                this._infield_CanvasName = null;
+            }
+        }
+        private void DrawViewerConfig(string pGuiId)
+        {
+
         }
 
         public void Dispose()

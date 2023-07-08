@@ -18,6 +18,7 @@ using Dalamud.Game.ClientState;
 using BozjaBuddy.Utils;
 using BozjaBuddy.GUI;
 using System.Numerics;
+using BozjaBuddy.GUI.NodeGraphViewer;
 
 namespace BozjaBuddy
 {
@@ -47,6 +48,7 @@ namespace BozjaBuddy
         public GuiScraper GuiScraper { get; init; }
         public GUIAssistManager GUIAssistManager { get; init; }
         public MainWindow MainWindow { get; init; }
+        public NodeGraphViewer NodeGraphViewer_Auxi { get; init; }
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -81,6 +83,8 @@ namespace BozjaBuddy
             this.Configuration.Save();
 
             mBBDataManager = new BBDataManager(this);
+            this.NodeGraphViewer_Auxi = new();
+            //if (this.Configuration.mAuxiNGVSaveData != null) this.NodeGraphViewer_Auxi.LoadSaveData(this.Configuration.mAuxiNGVSaveData);
             UtilsGameData.Init(this);
             this.MainWindow = new(this);
             WindowSystem.AddWindow(new ConfigWindow(this));
@@ -137,6 +141,7 @@ namespace BozjaBuddy
             UtilsGameData.Dispose();
             this.GuiScraper.Stop();
             this.mBBDataManager.Dispose();
+            this.NodeGraphViewer_Auxi.Dispose();
         }
 
         private void OnCommand(string command, string args)

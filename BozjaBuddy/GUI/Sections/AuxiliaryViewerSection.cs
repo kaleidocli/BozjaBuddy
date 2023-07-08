@@ -37,19 +37,34 @@ namespace BozjaBuddy.GUI.Sections
 
         public override bool DrawGUI()
         {
-            if (mTabGenIds.Keys.Count == 0) return false;
-
-            if (ImGui.BeginTabBar("Aux", AuxiliaryViewerSection.AUXILIARY_TAB_FLAGS))
+            // Legacy Auxi viewer
+            if (!this.mPlugin.Configuration.mIsAuxiUsingNGV)
             {
-                int tCurr = 0;
-                while (true)        // Side-stepping "Collectioned was modified" issue
+                if (mTabGenIds.Keys.Count == 0) return false;
+
+                if (ImGui.BeginTabBar("Aux", AuxiliaryViewerSection.AUXILIARY_TAB_FLAGS))
                 {
-                    if (tCurr >= AuxiliaryViewerSection.mTabGenIdsToDraw.Count) break;
-                    this.DrawTab(this.mPlugin.mBBDataManager.mGeneralObjects[AuxiliaryViewerSection.mTabGenIdsToDraw[tCurr]]);
-                    tCurr++;
+                    int tCurr = 0;
+                    while (true)        // Side-stepping "Collectioned was modified" issue
+                    {
+                        if (tCurr >= AuxiliaryViewerSection.mTabGenIdsToDraw.Count) break;
+                        this.DrawTab(this.mPlugin.mBBDataManager.mGeneralObjects[AuxiliaryViewerSection.mTabGenIdsToDraw[tCurr]]);
+                        tCurr++;
+                    }
+                    ImGui.EndTabBar();
                 }
-                ImGui.EndTabBar();
+                return true;
             }
+
+            // Node graph viewer
+            this.mPlugin.NodeGraphViewer_Auxi.Draw();
+            var tSaveData = this.mPlugin.NodeGraphViewer_Auxi.GetLatestSaveDataSinceLastChange();
+            if (tSaveData != null)
+            {
+                this.mPlugin.Configuration.mAuxiNGVSaveData = tSaveData.Item2;
+                this.mPlugin.Configuration.Save();
+            }
+
             return true;
         }
 

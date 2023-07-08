@@ -192,7 +192,7 @@ namespace BozjaBuddy.Utils
             string pAdditionalHoverText = "",
             bool pIsAuxiLinked = true,
             InputPayload? pInputPayload = null,
-            NodeGraphViewer? pNGViewer = null,
+            NodeGraphViewer? pNGViewer = null,          // the viewer to hook this link to
             AuxNode? pAuxNode = null)
         {
             pInputPayload ??= new InputPayload();
@@ -267,6 +267,10 @@ namespace BozjaBuddy.Utils
                 else if (pNGViewer != null)
                 {
                     pNGViewer.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
+                }
+                else if (pPlugin.Configuration.mIsAuxiUsingNGV)
+                {
+                    pPlugin.NodeGraphViewer_Auxi.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
                 }
                 else pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
             }

@@ -62,6 +62,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private Vector2? _selectAreaOSP = null;
         private bool _isNodeSelectionLocked = false;
         private EdgeConn? _nodeConnTemp = null;
+        private Dictionary<string, string> _cacheTargetToPath = new();
+        private Dictionary<string, string> _cachePathToTarget = new();
 
         public NodeCanvas(int pId, string pName = "Canvas")
         {
@@ -69,18 +71,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.mName = $"{pName} {this.mId}";
             this.mOccuppiedRegion = new();
             this.mGraph = new();
-
-            var nid1 = this.AddNodeToAvailableCorner<BasicNode>(new NodeContent.NodeContent("1"));
-            var nid2 = this.AddNodeToAvailableCorner<AuxNode>(new BBNodeContent(null, 0, "2"));
-            var nid3 = this.AddNodeToAvailableCorner<BasicNode>(new NodeContent.NodeContent("3"));
-            var nid4 = this.AddNodeToAvailableCorner<BBNode>(new BBNodeContent(null, 0, "4"));
-            if (nid1 != null && nid2 != null && nid3 != null && nid4 != null)
-            {
-                this.AddEdge(nid1, nid2);
-                this.AddEdge(nid1, nid3);
-                this.AddEdge(nid2, nid4);
-                this.AddEdge(nid3, nid4);
-            }
         }
         public float GetScaling() => this.mConfig.scaling;
         public void SetScaling(float pScale) => this.mConfig.scaling = pScale;
@@ -428,6 +418,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             pPacker.mPack.Clear();
             pPacker._relaPosLastPackingCall = null;
             pPacker.mPackingStatus = Node.PackingStatus.None;
+            // free cache path + packer
+            if (this._cacheTargetToPath.TryGetValue(pPacker.mId, out var tPath) && tPath != null )
+            {
+                PluginLog.LogDebug($"> Removing cached path. Path: {tPath} fTarget={pPacker.mId}");
+                this._cachePathToTarget.Remove(tPath);
+                this._cacheTargetToPath.Remove(pPacker.mId);
+            }
         }
         private void SelectAllChild(Node pParent)
         {
@@ -699,13 +696,41 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
                 // Check pack
                 if (tSourceNode.mIsPacked) continue;        // ignore if source is packed
-                bool tIsTargetPacked = tTargetNode.mIsPacked;
-                if (tIsTargetPacked && tTargetNode.mPackerNodeId == null) continue;
-                if (tTargetNode.mPackerNodeId == tSourceNode.mId) continue;         // avoid drawing edge from packer to packed node.
+                string? _currPackerId = tTargetNode.mPackerNodeId;
+                Node? tFinalTarget = null;          // null if there's no pack or there's something wrong with pack data
+                if (tTargetNode.mIsPacked && _currPackerId == null) continue;
+                // Getting final target
+                string tPath = tSourceNode.mId + tTargetNode.mId;
+                if (this._cachePathToTarget.TryGetValue(tPath, out var finalId) && finalId != null)     // try retrieving finalTarget from cache
+                {
+                    if (this.mNodes.TryGetValue(finalId, out var iFinalTarget) && iFinalTarget != null)
+                    {
+                        tFinalTarget = iFinalTarget;
+                        _currPackerId = null;
+                    }
+                }
+                else
+                {
+                    while (_currPackerId != null)
+                    {
+                        if (this.mNodes.TryGetValue(_currPackerId, out var iFinalTarget) && iFinalTarget != null)
+                        {
+                            tFinalTarget = iFinalTarget;
+                            _currPackerId = tFinalTarget.mPackerNodeId;
+                        }
+                    }
+                    if (tFinalTarget != null)
+                    {
+                        PluginLog.LogDebug($"> Caching path. Path: {tPath} fTarget={tFinalTarget.mId}");
+                        this._cachePathToTarget.Add(tPath, tFinalTarget.mId);     // cache the path
+                        this._cacheTargetToPath.Add(tFinalTarget.mId, tPath);
+                    }
+                }
+                if (tFinalTarget != null && tFinalTarget.mId == tSourceNode.mId) continue;         // avoid drawing edge from packer to packed node.
 
                 Vector2? tSourceOSP = this.mMap.GetNodeScreenPos(tSourceNode.mId, tCanvasOSP, this.mConfig.scaling);
                 if (!tSourceOSP.HasValue) continue;
-                Vector2? tFinalTargetOSP = this.mMap.GetNodeScreenPos(tIsTargetPacked ? tTargetNode.mPackerNodeId! : tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
+                Vector2? tFinalTargetOSP = this.mMap.GetNodeScreenPos(tFinalTarget != null ? tFinalTarget.mId : tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
                 if (!tFinalTargetOSP.HasValue) continue;
 
                 // Skip rendering if both ends of an edge is out of view
@@ -715,7 +740,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     continue;
                 }
 
-                NodeInteractionFlags tEdgeRes = e.Draw(pDrawList, tSourceOSP.Value, tFinalTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()), pIsTargetPacked: tIsTargetPacked);
+                NodeInteractionFlags tEdgeRes = e.Draw(pDrawList, tSourceOSP.Value, tFinalTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()), pIsTargetPacked: tFinalTarget != null);
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.Edge)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.RequestEdgeRemoval)) tEdgeToRemove.Add(e);
             }
@@ -746,8 +771,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     case Node.PackingStatus.UnpackingUnderway: this.UnpackNode(tNode); break;
                 }
                 // Skip rendering if node is out of view
-                if (((tNodeOSP.Value.X + tNode.mStyle.GetSizeScaled(this.GetScaling()).X) < pViewerOSP.X || tNodeOSP.Value.X > pViewerOSP.X + pViewerOSP.X)
-                    || ((tNodeOSP.Value.Y + tNode.mStyle.GetSizeScaled(this.GetScaling()).Y) < pViewerOSP.Y || tNodeOSP.Value.Y > pViewerOSP.Y + pViewerOSP.Y))
+                if (((tNodeOSP.Value.X + tNode.mStyle.GetSizeScaled(this.GetScaling()).X) < pViewerOSP.X || tNodeOSP.Value.X > pViewerOSP.X + pViewerSize.X)
+                    || ((tNodeOSP.Value.Y + tNode.mStyle.GetSizeScaled(this.GetScaling()).Y) < pViewerOSP.Y || tNodeOSP.Value.Y > pViewerOSP.Y + pViewerSize.Y))
                 {
                     continue;
                 }
