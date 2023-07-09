@@ -1,5 +1,4 @@
-﻿using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+﻿using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using System.Numerics;
 using System;
 using System.Collections.Generic;
@@ -34,13 +33,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (this.notifications.TryGetValue(notification.id, out var n))
             {
                 n.Renew();
-                PluginLog.LogDebug($"> Noti renewed. Current noti = {this.notifications.Count}");
                 this._needSorting = true;
                 return false;
             }
             this.notifications.Add(notification.id, notification);
             this._needSorting = true;
-            PluginLog.LogDebug($"> Noti pushed. Current noti = {this.notifications.Count}");
             return true;
         }
         /// <summary>

@@ -16,6 +16,7 @@ using BozjaBuddy.GUI.NodeGraphViewer.utils;
 using static BozjaBuddy.GUI.NodeGraphViewer.NodeCanvas;
 using QuickGraph.Algorithms.Search;
 using System.Runtime.CompilerServices;
+using QuickGraph.Algorithms.ShortestPath;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -35,26 +36,28 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private int _nodeCounter { get; set; } = -1;
 
         [JsonProperty]
-        private readonly NodeMap mMap = new();
+        private NodeMap mMap = new();
         [JsonProperty]
-        private readonly Dictionary<string, Node> mNodes = new();
+        private Dictionary<string, Node> mNodes = new();
         [JsonProperty]
-        private readonly HashSet<string> _nodeIds = new();
+        private HashSet<string> _nodeIds = new();
         [JsonProperty]
-        private readonly OccupiedRegion mOccuppiedRegion;       // this shouldn't be serialized, and only initiated using node list and maps.
+        private OccupiedRegion mOccuppiedRegion;       // this shouldn't be serialized, and only initiated using node list and maps.
         [JsonProperty]
-        private readonly AdjacencyGraph<int, SEdge<int>> mGraph;        // whatever this is
+        public AdjacencyGraph<int, SEdge<int>> mGraph;        // whatever this is
         [JsonProperty]
-        private readonly List<Edge> mEdges = new();
+        private List<Edge> mEdges = new();
 
         [JsonProperty]
         private CanvasConfig mConfig { get; set; } = new();
 
         private bool _isNodeBeingDragged = false;
         private HashSet<string> _selectedNodes = new();
+        [JsonProperty]
         private LinkedList<string> _nodeRenderZOrder = new();
         private string? _nodeQueueingHndCtxMnu = null;
         private Node? _snappingNode = null;
+        [JsonProperty]
         private Dictionary<int, string> _nodeIdAndNodeGraphId = new();
         private Vector2? _lastSnapDelta = null;
         private FirstClickType _firstClickInDrag = FirstClickType.None;
@@ -62,16 +65,42 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private Vector2? _selectAreaOSP = null;
         private bool _isNodeSelectionLocked = false;
         private EdgeConn? _nodeConnTemp = null;
-        private Dictionary<string, string> _cacheTargetToPath = new();
-        private Dictionary<string, string> _cachePathToTarget = new();
+        private Dictionary<string, string> _cachePathToPTarget = new();
+        private Dictionary<string, string> _cachePathToPSource = new();
 
-        public NodeCanvas(int pId, string pName = "Canvas")
+        public NodeCanvas(int pId, string? pName = null)
         {
             this.mId = pId;
-            this.mName = $"{pName} {this.mId}";
+            this.mName = pName == null ? $"Canvas {this.mId}" : pName;
             this.mOccuppiedRegion = new();
             this.mGraph = new();
         }
+
+        /// <summary> Specifically for JsonConverter. </summary>
+        public void Init(
+            int _nodeCounter, 
+            NodeMap mMap,
+            Dictionary<string, Node> mNodes,
+            HashSet<string> _nodeIds,
+            OccupiedRegion mOccuppiedRegion,
+            AdjacencyGraph<int, SEdge<int>> mGraph,
+            List<Edge> mEdges,
+            CanvasConfig mConfig,
+            LinkedList<string> _nodeRenderZOrder,
+            Dictionary<int, string> _nodeIdAndNodeGraphId)
+        {
+            this._nodeCounter = _nodeCounter;
+            this.mMap = mMap;
+            this.mNodes = mNodes;
+            this._nodeIds = _nodeIds;
+            this.mOccuppiedRegion = mOccuppiedRegion;
+            this.mGraph = mGraph;
+            this.mEdges = mEdges;
+            this.mConfig = mConfig;
+            this._nodeRenderZOrder = _nodeRenderZOrder;
+            this._nodeIdAndNodeGraphId = _nodeIdAndNodeGraphId;
+        }
+
         public float GetScaling() => this.mConfig.scaling;
         public void SetScaling(float pScale) => this.mConfig.scaling = pScale;
         public Vector2 GetBaseOffset() => this.mMap.GetBaseOffset();
@@ -382,6 +411,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 n.mIsPacked = true;
                 n.mPackerNodeId = pPackerNodeId;
                 pNodeIds.Add(tTargetNodeId);
+                // free cache path + packer
+                this._cachePathToPTarget.Clear();
+                this._cachePathToPSource.Clear();
                 this._packNodeWalker(outEdge.Target, ref pNodeIds, pPackerNodeId);
             }
         }
@@ -419,12 +451,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             pPacker._relaPosLastPackingCall = null;
             pPacker.mPackingStatus = Node.PackingStatus.None;
             // free cache path + packer
-            if (this._cacheTargetToPath.TryGetValue(pPacker.mId, out var tPath) && tPath != null )
-            {
-                PluginLog.LogDebug($"> Removing cached path. Path: {tPath} fTarget={pPacker.mId}");
-                this._cachePathToTarget.Remove(tPath);
-                this._cacheTargetToPath.Remove(pPacker.mId);
-            }
+            this._cachePathToPTarget.Clear();
+            this._cachePathToPSource.Clear();
         }
         private void SelectAllChild(Node pParent)
         {
@@ -622,6 +650,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             bool tIsAnySelectedNodeInteracted = false;
             Area? tSelectScreenArea = null;
             Vector2? tSnapDelta = null;
+
             // Get this canvas' origin' screenPos   (only scaling for zooming)
             if (this.mMap.CheckNeedInitOfs())
             {
@@ -689,58 +718,91 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             // Draw edges
             List<Edge> tEdgeToRemove = new();
+            List<Tuple<string, string>> tPEdges = new();
             foreach (Edge e in this.mEdges)
             {
                 if (!this.mNodes.TryGetValue(e.GetSourceNodeId(), out var tSourceNode)
                     || !this.mNodes.TryGetValue(e.GetTargetNodeId(), out var tTargetNode)) continue;
 
                 // Check pack
-                if (tSourceNode.mIsPacked) continue;        // ignore if source is packed
-                string? _currPackerId = tTargetNode.mPackerNodeId;
+                //if (tSourceNode.mIsPacked) continue;        // ignore if source is packed
+                string? _currTPackerId = tTargetNode.mPackerNodeId;
+                string? _currSPackerId = tSourceNode.mPackerNodeId;
                 Node? tFinalTarget = null;          // null if there's no pack or there's something wrong with pack data
-                if (tTargetNode.mIsPacked && _currPackerId == null) continue;
-                // Getting final target
-                string tPath = tSourceNode.mId + tTargetNode.mId;
-                if (this._cachePathToTarget.TryGetValue(tPath, out var finalId) && finalId != null)     // try retrieving finalTarget from cache
+                Node? tFinalSource = null;
+                if (tTargetNode.mIsPacked && _currTPackerId == null) continue;
+                if (tSourceNode.mIsPacked && _currSPackerId == null) continue;
+                // Case: Target is also a PSource
+                if (tTargetNode.mPackerNodeId != null && tTargetNode.mPackerNodeId == tSourceNode.mId)
                 {
-                    if (this.mNodes.TryGetValue(finalId, out var iFinalTarget) && iFinalTarget != null)
+                    continue;         // avoid drawing edge from packer to packed node.
+                }
+                // Getting final target
+                string path = tSourceNode.mId + tTargetNode.mId;
+                if (this._cachePathToPTarget.TryGetValue(path, out var PTargetId) && PTargetId != null)     // try retrieving finalTarget from cache
+                {
+                    if (this.mNodes.TryGetValue(PTargetId, out var PTarget) && PTarget != null)
                     {
-                        tFinalTarget = iFinalTarget;
-                        _currPackerId = null;
+                        tFinalTarget = PTarget;
+                        _currTPackerId = null;
                     }
                 }
                 else
                 {
-                    while (_currPackerId != null)
+                    while (_currTPackerId != null)
                     {
-                        if (this.mNodes.TryGetValue(_currPackerId, out var iFinalTarget) && iFinalTarget != null)
+                        if (this.mNodes.TryGetValue(_currTPackerId, out var iFinalTarget) && iFinalTarget != null)
                         {
                             tFinalTarget = iFinalTarget;
-                            _currPackerId = tFinalTarget.mPackerNodeId;
+                            _currTPackerId = tFinalTarget.mPackerNodeId;
                         }
                     }
                     if (tFinalTarget != null)
                     {
-                        PluginLog.LogDebug($"> Caching path. Path: {tPath} fTarget={tFinalTarget.mId}");
-                        this._cachePathToTarget.Add(tPath, tFinalTarget.mId);     // cache the path
-                        this._cacheTargetToPath.Add(tFinalTarget.mId, tPath);
+                        this._cachePathToPTarget.Add(path, tFinalTarget.mId);     // cache the path
                     }
                 }
-                if (tFinalTarget != null && tFinalTarget.mId == tSourceNode.mId) continue;         // avoid drawing edge from packer to packed node.
+                // Getting final source
+                if (this._cachePathToPSource.TryGetValue(path, out var PSourceId) && PSourceId != null)
+                {
+                    if (this.mNodes.TryGetValue(PSourceId, out var PSource) && PSource != null)
+                    {
+                        tFinalSource = PSource;
+                        _currSPackerId = null;
+                    }
+                }
+                else
+                {
+                    while (_currSPackerId != null)
+                    {
+                        if (this.mNodes.TryGetValue(_currSPackerId, out var iFinalSource) && iFinalSource != null)
+                        {
+                            tFinalSource = iFinalSource;
+                            _currSPackerId = tFinalSource.mPackerNodeId;
+                        }
+                    }
+                    if (tFinalSource != null)
+                    {
+                        this._cachePathToPSource.Add(path, tFinalSource.mId);
+                    }
+                }
 
-                Vector2? tSourceOSP = this.mMap.GetNodeScreenPos(tSourceNode.mId, tCanvasOSP, this.mConfig.scaling);
-                if (!tSourceOSP.HasValue) continue;
+                if (tFinalTarget != null && tFinalTarget.mId == tSourceNode.mId) continue;         // avoid drawing edge from packer to packed node.
+                if (tFinalSource != null && tFinalSource.mId == tSourceNode.mId) continue;
+                if (tFinalSource != null && tFinalTarget != null && tFinalSource.mId == tFinalTarget.mId) continue;
+
+                Vector2? tFinalSourceOSP = this.mMap.GetNodeScreenPos(tFinalSource != null ? tFinalSource.mId : tSourceNode.mId, tCanvasOSP, this.mConfig.scaling);
+                if (!tFinalSourceOSP.HasValue) continue;
                 Vector2? tFinalTargetOSP = this.mMap.GetNodeScreenPos(tFinalTarget != null ? tFinalTarget.mId : tTargetNode.mId, tCanvasOSP, this.mConfig.scaling);
                 if (!tFinalTargetOSP.HasValue) continue;
 
                 // Skip rendering if both ends of an edge is out of view
-                Vector2 tMid = new((tSourceOSP.Value.X + tFinalTargetOSP.Value.X) / 2, (tSourceOSP.Value.Y + tFinalTargetOSP.Value.Y) / 2);
-                if (!Utils.IsLineIntersectRect(tSourceOSP.Value, tFinalTargetOSP.Value, new(pViewerOSP, pViewerSize)))
+                if (!Utils.IsLineIntersectRect(tFinalSourceOSP.Value, tFinalTargetOSP.Value, new(pViewerOSP, pViewerSize)))
                 {
                     continue;
                 }
 
-                NodeInteractionFlags tEdgeRes = e.Draw(pDrawList, tSourceOSP.Value, tFinalTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()), pIsTargetPacked: tFinalTarget != null);
+                NodeInteractionFlags tEdgeRes = e.Draw(pDrawList, tFinalSourceOSP.Value, tFinalTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()), pIsTargetPacked: tFinalTarget != null || tFinalSource != null);
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.Edge)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.RequestEdgeRemoval)) tEdgeToRemove.Add(e);
             }

@@ -19,6 +19,7 @@ using BozjaBuddy.Utils;
 using BozjaBuddy.GUI;
 using System.Numerics;
 using BozjaBuddy.GUI.NodeGraphViewer;
+using BozjaBuddy.GUI.NodeGraphViewer.ext;
 
 namespace BozjaBuddy
 {
@@ -82,9 +83,9 @@ namespace BozjaBuddy
             if (this.Configuration.mAudioPath == null) this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
             this.Configuration.Save();
 
+            BBNode.kPlugin = this;
             mBBDataManager = new BBDataManager(this);
-            this.NodeGraphViewer_Auxi = new();
-            //if (this.Configuration.mAuxiNGVSaveData != null) this.NodeGraphViewer_Auxi.LoadSaveData(this.Configuration.mAuxiNGVSaveData);
+            this.NodeGraphViewer_Auxi = new(this.Configuration.mAuxiNGVSaveData);
             UtilsGameData.Init(this);
             this.MainWindow = new(this);
             WindowSystem.AddWindow(new ConfigWindow(this));

@@ -37,7 +37,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         [JsonProperty]
         private List<int> _canvasOrder = new();
         private int _canvasCounter = 0;
-        [JsonProperty]
+        private bool _fistLoaded = true;
         private NodeCanvas mActiveCanvas;
         private ViewerNotificationManager mNotificationManager = new();
 
@@ -64,9 +64,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             showRulerText = true
         };
 
-        public NodeGraphViewer()
+        private NodeGraphViewer() { }
+        /// <summary> Create a viewer with given data. If not given, create a fresh one. </summary>
+        public NodeGraphViewer(string? dataJson)
         {
-            this.AddBlankCanvas();
+            if (dataJson != null) this.LoadSaveData(dataJson);
+            if (this.GetTopCanvas() == null)
+            {
+                this.AddBlankCanvas();
+            }
             this.mActiveCanvas = this.GetTopCanvas()!;
         }
 
@@ -86,8 +92,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private bool AddCanvas(NodeCanvas pCanvas)
         {
             // reassign canvas IDs every first time viewer is loaded to cache
-            if (this._canvasCounter == 0)
+            if (this._fistLoaded)
             {
+                this._canvasCounter = 0;
                 List<int> tNewCanvasOrder = new();
                 Dictionary<int, NodeCanvas> tNewCanvases = new();
                 // assign new id to canvasses
@@ -104,6 +111,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
                 this._canvases = tNewCanvases;
                 this._canvasOrder = tNewCanvasOrder;
+                this._fistLoaded = false;
             }
 
             pCanvas.mId = this._canvasCounter + 1;
@@ -155,7 +163,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (!_forceSave && (DateTime.Now - this._lastTimeAutoSave).TotalMilliseconds < this.mConfig.autoSaveInterval) return false;
 
             // Save
-            var json = JsonConvert.SerializeObject(this);
+            var json = JsonConvert.SerializeObject(this, Formatting.Indented);
             if (json == null) return false;
             this._saveData.Enqueue(new(DateTime.Now, json));
             while (this._saveData.Count > this.mConfig.saveCapacity) this._saveData.Dequeue();
@@ -179,13 +187,17 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         public bool LoadSaveData(string dataJson)
         {
-            var tRes = JsonConvert.DeserializeObject<NodeGraphViewer>(dataJson, new utils.JsonConverters.NodeJsonConverter());
+            var tRes = JsonConvert.DeserializeObject<NodeGraphViewer>(dataJson, new utils.JsonConverters.NodeCanvasJsonConverter());
             if (tRes == null) return false;
 
+            HashSet<int> tLoadedIds = new();
             foreach (var id in tRes._canvasOrder)
             {
+                if (tLoadedIds.Contains(id)) continue;      // prevent loading dupes
+
                 var tCanvasIn = tRes.GetCanvas(id);
                 if (tCanvasIn == null) continue;
+                PluginLog.LogDebug($"NGV.LoadSaveData(): Loaded canvas ({tCanvasIn.mId}) with graph having vertices: {string.Join(",", tCanvasIn.mGraph.Vertices)}");
                 this.AddCanvas(tCanvasIn);
             }
             this.mConfig = tRes.mConfig;

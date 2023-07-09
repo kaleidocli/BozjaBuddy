@@ -3,14 +3,13 @@ using FFXIVClientStructs.FFXIV.Common.Math;
 using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
-    internal class Set
+    public class Set
     {
+        [JsonProperty]
         private HashSet<SubSet> subSets = new();
         public float minBound { get; private set; } = 0;
         public float maxBound { get; private set; } = 0;

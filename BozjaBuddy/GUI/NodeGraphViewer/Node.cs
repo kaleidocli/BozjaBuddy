@@ -92,7 +92,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
 
             this.mStyle.SetSize(this.mRecommendedInitSize);
-            PluginLog.LogDebug($"> Node.Init(): type={this.GetType()} id={this.mId} contentType={this.mContent._contentType}");
         }
         protected virtual void ReInit()
         {
@@ -416,7 +415,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public NodeInteractionFlags DrawEdgePlugButton(ImDrawListPtr pDrawList, Vector2 pNodeOSP, bool pIsActive, bool pIsEstablishingConn = false)
         {
             NodeInteractionFlags tRes = NodeInteractionFlags.None;
-            Vector2 tSize = new(4f, 4f);
+            Vector2 tSize = new(5f, 5f);
             bool tIsHovered = false;
             Vector2 tOriAnchor = ImGui.GetCursorScreenPos();
             ImGui.SetCursorScreenPos(pNodeOSP - (tSize * 3f));
@@ -446,7 +445,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             ImGui.SetCursorScreenPos(tOriAnchor);
             // Draw
             pDrawList.AddCircleFilled(
-                pNodeOSP - tSize, tSize.X * ((tIsHovered || pIsEstablishingConn || (this.mPackingStatus != PackingStatus.None)) ? 2.5f : 1), 
+                pNodeOSP - tSize, tSize.X * ((tIsHovered || pIsEstablishingConn || (this.mPackingStatus != PackingStatus.None)) ? 2f : 1), 
                 ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(
                     this.mPackingStatus == PackingStatus.None ? UtilsGUI.Colors.NodeFg : UtilsGUI.Colors.NodePack, 
                     (pIsActive || tIsHovered || pIsEstablishingConn) ? 1f : 0.7f)));
@@ -480,7 +479,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             public NodeStyle(Vector2 size, Vector2 minSize, Vector2? minestMinSize = null)
             {
                 this.minestMinSize = minestMinSize;
-                PluginLog.LogDebug($"> Initing NodeStyle...");
                 this.SetMinSize(minSize);
                 this.SetSize(size);
                 this.UpdatePartialSizes();
@@ -501,7 +499,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             public void SetHandleTextSize(Vector2 handleTextSize)
             {
                 this.handleTextSize = handleTextSize;
-                PluginLog.LogDebug($"> Setting handleTextSize...");
                 this.SetMinSize(this.GetHandleTextSize() + Node.nodeInsidePadding * 2 + new Vector2(Node.handleButtonBoxItemWidth * 3, 0));
             }
             private void SetMinSize(Vector2 handleSize)
@@ -512,7 +509,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this.minSize.Y = handleSize.Y < (minestMinSize == null ? Node.minHandleSize.Y : minestMinSize.Value.Y) 
                                  ? (minestMinSize == null ? Node.minHandleSize.Y : minestMinSize.Value.Y) 
                                  : handleSize.Y;
-                PluginLog.LogDebug($"> pH={handleSize} M={this.minSize} mM={this.minestMinSize} nM={Node.minHandleSize}");
             }
             private void UpdatePartialSizes()
             {

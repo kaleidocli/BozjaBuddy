@@ -8,9 +8,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     /// <summary>
     /// <para>Represents regions occuppied by nodes on a canvas.</para>
     /// </summary>
-    internal class OccupiedRegion
+    public class OccupiedRegion
     {
+        [JsonProperty]
         private readonly Set X = new();
+        [JsonProperty]
         private readonly Set Y = new();
         private bool _isUpdatedOnce = false;
 

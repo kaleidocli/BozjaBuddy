@@ -4,11 +4,13 @@ using System.Linq;
 using System.Numerics;
 using BozjaBuddy.GUI.NodeGraphViewer.NodeContent;
 using BozjaBuddy.GUI.NodeGraphViewer.utils;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer.ext
 {
     public class BBNode : Node
     {
+        public static Plugin? kPlugin = null;       // this is a bad way to go with...
         public const string nodeType = "BBNode";
         public override string mType { get; } = BBNode.nodeType;
         protected Plugin? mPlugin = null;
@@ -21,6 +23,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             {
                 BBNodeContent tContent = (BBNodeContent)pContent;
                 this.mPlugin = tContent.GetPlugin();
+                if (this.mPlugin == null && BBNode.kPlugin != null) this.mPlugin = BBNode.kPlugin;
                 this.mGenId = tContent.GetGenObjId();
                 if (this.mPlugin != null && this.mGenId.HasValue)
                 {

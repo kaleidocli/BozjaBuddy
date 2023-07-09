@@ -31,6 +31,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
         protected override NodeInteractionFlags DrawBody(Vector2 pNodeOSP, float pCanvasScaling)
         {
             var tRes = NodeInteractionFlags.None;
+            if (this.mPlugin == null && BBNode.kPlugin != null) this.mPlugin = BBNode.kPlugin;
             if (this.mPlugin == null || !this.mGenId.HasValue) return tRes;
             if (!this.mPlugin.mBBDataManager.mGeneralObjects.TryGetValue(this.mGenId.Value, out var tGenObj) || tGenObj == null) return tRes;
 
