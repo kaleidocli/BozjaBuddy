@@ -295,10 +295,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 [MouseScroll]       Zoom in/out on canvas.
 
                 Basics
-                - Nodes can be added, deleted, edited, minimnized.
-                - Nodes can also be packed up into a bundle, and unpacked.
-                - Nodes can be connected/disconnected to and from each other.
-                - Nodes' connections can be adjusted in specific forms for organizing's sake.
+                - Nodes can be added, deleted, edited, minimnized, and resized.
+                - Nodes can be bundled and moved around, using its plug on top-left corner and LMB.
+                - Nodes can be connected to each other, using its plug on top-left corner and LMB.
+                - Nodes' connections can be modified in pre-defined path for organizing's sake, using a button in the middle of the connection's line.
 
                 Saving and Auto-save
                 - Viewer and all of its canvasses' data can be saved manually.

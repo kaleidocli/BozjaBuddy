@@ -30,9 +30,9 @@ namespace BozjaBuddy.GUI.Sections
 
         public override bool DrawGUI()
         {
-            // Test window
-            UtilsGUI.WindowLinkedButton(mPlugin, TestWindow.kHandle, Dalamud.Interface.FontAwesomeIcon.Tape);
-            ImGui.SameLine();
+            //// Test window
+            //UtilsGUI.WindowLinkedButton(mPlugin, TestWindow.kHandle, Dalamud.Interface.FontAwesomeIcon.Tape);
+            //ImGui.SameLine();
             // Char stats button
             UtilsGUI.WindowLinkedButton(mPlugin, CharStatsWindow.kHandle, Dalamud.Interface.FontAwesomeIcon.Portrait);
             if (ImGui.IsItemHovered())
@@ -73,7 +73,7 @@ namespace BozjaBuddy.GUI.Sections
             }
             // Section switch button
             ImGui.SameLine();
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowsUpDown, defaultColor: this.mPlugin.Configuration.mIsAuxiFocused
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Expand, defaultColor: this.mPlugin.Configuration.mIsAuxiFocused
                                                                                                          ? UtilsGUI.Colors.MycItemBoxOverlay_Red
                                                                                                          : null))
             {
@@ -82,7 +82,7 @@ namespace BozjaBuddy.GUI.Sections
             }
             else
             {
-                UtilsGUI.SetTooltipForLastItem($"Alternative layout: {(this.mPlugin.Configuration.mIsAuxiFocused ? "ON" : "OFF")}\n- Bring the information viewer to the top.\n\n(can be toggled by pressing [Alt] while this plugin window is being focused)");
+                UtilsGUI.SetTooltipForLastItem($"Expanding info-viewer: {(this.mPlugin.Configuration.mIsAuxiFocused ? "ON" : "OFF")}\n- Expand the information viewer.\n\n(can be toggled by pressing [Alt] while this plugin window is being focused)");
             }
 
             return true;

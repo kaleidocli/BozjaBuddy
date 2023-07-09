@@ -26,7 +26,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
     /// </summary>
     public class NodeCanvas : IDisposable
     {
-        public static float minScale = 0.4f;
+        public static float minScale = 0.1f;
         public static float maxScale = 2f;
         public static float stepScale = 0.1f;
 

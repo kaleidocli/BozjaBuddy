@@ -277,12 +277,33 @@ public class ConfigWindow : Window, IDisposable
     {
         if (ImGui.BeginTabItem("Misc"))
         {
-            if (ImGui.CollapsingHeader("[A] Action-Running-out Alert (in Character Stats window)"))
+            if (ImGui.CollapsingHeader("[A] General configs"))
+            {
+                ConfigWindow.Draw_GeneralConfig(this.mPlugin, this.mPlugin.Configuration);
+            }
+            if (ImGui.CollapsingHeader("[B] Action-Running-out Alert (in Character Stats window)"))
                 ConfigWindow.Draw_CacheAlertConfig(this.mPlugin, this.mPlugin.Configuration, this.mFilter_CacheAlert1, this.mFilter_CacheAlert2);
             ImGui.EndTabItem();
             return true;
         }
         return false;
+    }
+    public static void Draw_GeneralConfig(Plugin pPlugin, Configuration pConfig)
+    {
+        if (ImGuiComponents.ToggleButton("##tglbInfoViewer", ref pConfig.mIsAuxiUsingNGV))
+        {
+            pConfig.Save();
+        }
+        ImGui.SameLine();
+        UtilsGUI.TextDescriptionForWidget($"1. Info viewer type: {(pConfig.mIsAuxiUsingNGV ? "Node graph" : "Tab items")}");
+        ImGui.SameLine();
+        UtilsGUI.ShowHelpMarker(
+            """
+            Switch between info viewer modes.
+            - Tab items: pages of info organized into tabs. Simplest and quickest way to view info.
+            - Node graph: movable nodes containing info. Provides better coherence and allows to view multiple topics at once.
+            """
+            );
     }
     public static void Draw_CacheAlertConfig(Plugin pPlugin, Configuration pConfig, ImGuiTextFilterPtr pFilter_CacheAlert1, ImGuiTextFilterPtr pFilter_CacheAlert2)
     {
