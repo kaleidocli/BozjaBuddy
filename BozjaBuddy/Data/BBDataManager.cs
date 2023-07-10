@@ -88,8 +88,8 @@ namespace BozjaBuddy.Data
                 this.DataSetUpMob(tCommand);
                 this.DataSetUpVendor(tCommand);
                 this.DataSetUpFieldNote(tCommand);
-                this.DataSetUpQuest(tCommand);
-                this.DataSetupQuestChain(tCommand);
+                //this.DataSetUpQuest(tCommand);
+                //this.DataSetupQuestChain(tCommand);
             }
             if (this.mQuests != null)
             {
