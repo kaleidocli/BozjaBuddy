@@ -47,10 +47,7 @@ namespace BozjaBuddy.GUI.Sections
             },
             {
                 "eu", new() {
-                    new() { "EU DRS Schedule", "5 different EU DRS groups", " ", "https://docs.google.com/spreadsheets/d/1uPDvKs8BrqWVOXFtDcs1aWXfa0x0azS-5Qjc3cvGlV0/edit?usp=sharing" },
-                    new() { "LN", "Late night [Chaos]", "(anyprog)", "https://discord.gg/28SRRADTK3" },
-                    new() { "SS", "Savage Slimes", "(anyprog)", "https://discord.gg/SavageSlimes" },
-                    new() { "LFG", "Light Forays Group", "(anyprog)", "https://discord.gg/LightForays" }
+                    new() { "Late night [Chaos]", "   ", "(static/reclears)", "https://discord.gg/28SRRADTK3" }
                 }
             }
         };
