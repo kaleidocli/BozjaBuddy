@@ -537,7 +537,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     UtilsGUI.SelectableLink_WithPopup(
                         this.mPlugin,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
-                        this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId()
+                        this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
+                        pAuxNode: this
                         );
                     ImGui.SameLine();
                     AuxiliaryViewerSection.GUIAlignRight(-15);
@@ -643,7 +644,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                         this.mPlugin,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
                         this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
-                        true
+                        true,
+                        pAuxNode: this
                         );
                     ImGui.SameLine();
                     ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, $"+{this.mPlugin.mBBDataManager.mLostActions[iActionId].mWeight}");
