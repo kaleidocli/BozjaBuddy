@@ -2,7 +2,7 @@
     "Author": "K-Cli",
     "Name": "Bozja Buddy",
     "Punchline": "Improve your Bozja sufferring. Maybe.",
-    "Description": "Features:\n• Info about Lost Actions, Fragments, FATEs/CE, Field Notes e.g. location, drops, marketboard price, fate chains, mettle rewards, exp rewards, etc. Options to copy the info to clipboard, then paste it on chat.\n• Weather forecast.\n• Alarms based on time, weather, and FATE/CE.\n• Custom loadouts planning, saving, and sharing. Featuring recommended loadouts from many communities.\n• Overlay for Lost Find Cache. Filterable by name, role, fragment, weight, and Custom Loadout of choice.\n• View Bozja stats and Cache from anywhere. Customisable alert for actions that are running low.\n• Delubrum Reginae (Savage) resources and communities.",
+    "Description": "Features:\n• Info about Lost Actions, Fragments, FATEs/CE, Field Notes e.g. location, drops, marketboard price, fate chains, mettle rewards, exp rewards, etc. Options to copy the info to clipboard, then paste it on chat.\n• These info can be arranged and linked neatly with Bozja Buddy node graph viewer.\n• Weather forecast.\n• Alarms based on time, weather, and FATE/CE.\n• Custom loadouts planning, saving, and sharing. Featuring recommended loadouts from many communities.\n• Overlay for Lost Find Cache. Filterable by name, role, fragment, weight, and Custom Loadout of choice.\n• View Bozja stats and Cache from anywhere. Customisable alert for actions that are running low.\n• Delubrum Reginae (Savage) resources and communities.",
     "InternalName": "bozjaBuddy",
     "ApplicableVersion": "any",
     "Tags": [
@@ -13,7 +13,9 @@
         "fate",
         "fragment",
         "relic",
-        "alarm"
+        "alarm",
+        "node",
+        "graph"
     ],
     "AcceptsFeedback": true
 }

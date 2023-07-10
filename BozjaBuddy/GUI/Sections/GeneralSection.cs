@@ -82,7 +82,7 @@ namespace BozjaBuddy.GUI.Sections
             }
             else
             {
-                UtilsGUI.SetTooltipForLastItem($"Expanding info-viewer: {(this.mPlugin.Configuration.mIsAuxiFocused ? "ON" : "OFF")}\n- Expand the information viewer.\n\n(can be toggled by pressing [Alt] while this plugin window is being focused)");
+                UtilsGUI.SetTooltipForLastItem($"Expanding info-viewer: {(this.mPlugin.Configuration.mIsAuxiFocused ? "ON" : "OFF")}\n\n(can be toggled by pressing [Alt] while this plugin window is being focused)");
             }
 
             return true;

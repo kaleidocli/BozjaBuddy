@@ -485,7 +485,8 @@ namespace BozjaBuddy.Utils
             Vector4? pImageOverlayRGBA = null,
             Vector4? pImageBorderColor = null,
             string pAdditionalHoverText = "",
-            InputPayload? pInputPayload = null)
+            InputPayload? pInputPayload = null,
+            AuxNode? pAuxNode = null)
         {
             bool tRes;
             var tAnchor = ImGui.GetCursorPos();
@@ -505,7 +506,8 @@ namespace BozjaBuddy.Utils
                     pIsShowingLinkIcon: false,
                     pAdditionalHoverText: pAdditionalHoverText,
                     pIsAuxiLinked: pIsAuxiLinked,
-                    pInputPayload: pInputPayload);
+                    pInputPayload: pInputPayload,
+                    pAuxNode: pAuxNode);
             }
             else
             {

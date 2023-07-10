@@ -110,7 +110,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             if (tIconWrap != null)
             {
                 float tLinkHeight = 47;
-                UtilsGUI.SelectableLink_Image(this.mPlugin, pObj.GetGenId(), tIconWrap, pImageScaling: (2 - (float)tIconWrap.Height / tLinkHeight) * pCanvasScaling * tExtraScaling);
+                UtilsGUI.SelectableLink_Image(this.mPlugin, pObj.GetGenId(), tIconWrap, pImageScaling: (2 - (float)tIconWrap.Height / tLinkHeight) * pCanvasScaling * tExtraScaling, pAuxNode: this);
                 ImGui.SameLine();           // Do not Sameline() if there's no image, since it'll Sameline() to the TabItem above
             }
             // Alarm and Location button
@@ -528,7 +528,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                                 this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
                                 tIconWrap,
                                 pIsShowingCacheAmount: true,
-                                pImageScaling: 0.6f * pCanvasScaling
+                                pImageScaling: 0.6f * pCanvasScaling,
+                                pAuxNode: this
                             );
                     }
                     // link
@@ -624,7 +625,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                                 pIsShowingCacheAmount: true,
                                 pImageScaling: 0.6f * pCanvasScaling,
                                 pInputPayload: tInputPayload,
-                                pAdditionalHoverText: $"[Shift+LMB/RMB] Add/remove from loadout\n"
+                                pAdditionalHoverText: $"[Shift+LMB/RMB] Add/remove from loadout\n",
+                                pAuxNode: this
                             )
                         && tInputPayload.mIsKeyShift)
                     {
