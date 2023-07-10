@@ -10,7 +10,6 @@ using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using QuickGraph;
-using JsonSubTypes;
 using Newtonsoft.Json;
 using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using static Lumina.Data.Files.Pcb.PcbResourceFile;

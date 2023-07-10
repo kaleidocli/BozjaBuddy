@@ -46,7 +46,6 @@
 
   <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="2.1.11" />
-    <PackageReference Include="JsonSubTypes" Version="2.0.1" />
     <PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="QuickGraph" Version="3.6.61119.7" />

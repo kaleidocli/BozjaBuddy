@@ -79,7 +79,9 @@ namespace BozjaBuddy.GUI.Sections
                                                                     : ImGuiTabItemFlags.None))
             {
                 if (pObj.GetGenId() == AuxiliaryViewerSection._mGenIdToTabFocus) AuxiliaryViewerSection._mGenIdToTabFocus = -1;   // Release selected
-                ImGui.BeginChild($"##{pObj.mId}", new Vector2(ImGui.GetWindowWidth(), 390));
+                ImGui.BeginChild($"##{pObj.mId}", new Vector2(ImGui.GetWindowWidth(), this.mPlugin.Configuration.mIsAuxiFocused
+                                                                      ? 390
+                                                                      : ImGui.GetWindowHeight() - ImGui.GetStyle().WindowPadding.Y));
                 if (pObj is Loadout)
                 {
                     this.DrawTabHeaderLoadout(pObj);
@@ -313,10 +315,13 @@ namespace BozjaBuddy.GUI.Sections
                     // Lost action grid popup
                     //ImGui.SetCursorPos(new Vector2(ImGui.GetCursorPosX() + (ImGui.GetWindowWidth() / 5 * 2 + 10), 0));
                     AuxiliaryViewerSection.GUIAlignRight(-5);
+                    ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.Button_Green));
                     if (ImGui.Button(" + "))
                     {
+                        ImGui.PopStyleColor();
                         ImGui.OpenPopup("##lagrid");
                     }
+                    else ImGui.PopStyleColor();
                     if (ImGui.BeginPopup("##lagrid"))
                     {
                         this.mLostActionTableSection.DrawTable_GridOnly();
