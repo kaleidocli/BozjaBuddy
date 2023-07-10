@@ -122,7 +122,7 @@ namespace BozjaBuddy.GUI.Sections
                 this.DrawGridContent(this.mPlugin.mBBDataManager.mUiMap_MycItemBox, 16);
             }
         }
-        public void DrawTable_GridOnly()
+        public void DrawTable_GridOnly(float pScaling = 1)
         {
             if (ImGui.BeginTable(
                     "##LostActionGridOnly",
@@ -134,7 +134,7 @@ namespace BozjaBuddy.GUI.Sections
                 DrawTableHeader();
                 ImGui.EndTable();
             }
-            this.DrawGridContent(this.mPlugin.mBBDataManager.mUiMap_MycItemBox, 16);
+            this.DrawGridContent(this.mPlugin.mBBDataManager.mUiMap_MycItemBox, 16, pScaling: pScaling);
         }
 
         private void DrawTableHeader()
@@ -252,7 +252,7 @@ namespace BozjaBuddy.GUI.Sections
             }
         }
         /// <summary>pColCount:        Specifically hard-coded, for cell scaling and performance.</summary>
-        private void DrawGridContent(List<List<int>> pMap, int pColCount)
+        private void DrawGridContent(List<List<int>> pMap, int pColCount, float pScaling = 1)
         {
             var tScreenAnchor = ImGui.GetCursorScreenPos();
             if (ImGui.BeginTable(
@@ -271,7 +271,7 @@ namespace BozjaBuddy.GUI.Sections
                     {
                         if (iColIdx >= pColCount) break;
                         ImGui.TableSetColumnIndex(iColIdx);
-                        this.DrawGridCell(iId, tCellWidth);
+                        this.DrawGridCell(iId, tCellWidth * pScaling);
                         iColIdx++;
                     }
                 }

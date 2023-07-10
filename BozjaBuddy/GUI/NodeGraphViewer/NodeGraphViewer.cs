@@ -68,7 +68,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <summary> Create a viewer with given data. If not given, create a fresh one. </summary>
         public NodeGraphViewer(string? dataJson)
         {
-            if (dataJson != null) this.LoadSaveData(dataJson);
+            if (dataJson != null || dataJson == string.Empty) this.LoadSaveData(dataJson);
             if (this.GetTopCanvas() == null)
             {
                 this.AddBlankCanvas();
@@ -163,7 +163,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (!_forceSave && (DateTime.Now - this._lastTimeAutoSave).TotalMilliseconds < this.mConfig.autoSaveInterval) return false;
 
             // Save
-            var json = JsonConvert.SerializeObject(this, Formatting.Indented);
+            var json = JsonConvert.SerializeObject(this);
             if (json == null) return false;
             this._saveData.Enqueue(new(DateTime.Now, json));
             while (this._saveData.Count > this.mConfig.saveCapacity) this._saveData.Dequeue();

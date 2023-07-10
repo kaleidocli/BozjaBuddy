@@ -22,7 +22,7 @@ namespace BozjaBuddy.GUI.Sections
         public static TextureCollection? mTextureCollection = null;
         public static int _mGenIdToTabFocus = -1;
         private static ImGuiTabBarFlags AUXILIARY_TAB_FLAGS = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
-        private static GUIFilter mGUIFilter = new GUIFilter();
+        public static GUIFilter mGUIFilter = new GUIFilter();
         unsafe static ImGuiTextFilterPtr mFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
 
         private LostActionTableSection mLostActionTableSection;

@@ -10,6 +10,10 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
+using System.Text.Json;
+
 
 namespace BozjaBuddy.GUI.NodeGraphViewer.ext
 {
@@ -21,7 +25,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
         public new const string nodeType = "AuxNode";
         public new static Vector2 minHandleSize = new(Node.minHandleSize.X * 4.5f, Node.minHandleSize.Y);
         public override string mType { get; } = AuxNode.nodeType;
-        private InnerBodyTab _currTab = InnerBodyTab.Links; 
+        private InnerBodyTab _currTab = InnerBodyTab.Links;
+
+        private static LostActionTableSection? _lostActionTableSection = null;
 
         public AuxNode() : base()
         {
@@ -47,10 +53,21 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             ImGui.PushStyleColor(ImGuiCol.TabHovered, UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, 0.35f));
             ImGui.PushStyleColor(ImGuiCol.TabActive, UtilsGUI.AdjustTransparency(this.mStyle.colorUnique, 0.45f));
 
-            this.DrawInnerHeader(tGenObj, pCanvasScaling);
-            tRes |= this._currTab == InnerBodyTab.Overview
-                    ? this.DrawInnerContent_Overview(tGenObj, pCanvasScaling)
-                    : this.DrawInnerContent_Links(tGenObj, pCanvasScaling);
+            if (tGenObj is Loadout)
+            {
+                this.DrawInnerHeader_Loadout(tGenObj, pCanvasScaling);
+                if (AuxiliaryViewerSection.mTenpLoadout == null)
+                    this.DrawInnerContent_Loadout(tGenObj, pCanvasScaling);
+                else
+                    this.DrawInnerContent_LoadoutEdit(tGenObj, pCanvasScaling);
+            }
+            else
+            {
+                this.DrawInnerHeader(tGenObj, pCanvasScaling);
+                tRes |= this._currTab == InnerBodyTab.Overview
+                        ? this.DrawInnerContent_Overview(tGenObj, pCanvasScaling)
+                        : this.DrawInnerContent_Links(tGenObj, pCanvasScaling);
+            }
 
             ImGui.PopStyleColor();
             ImGui.PopStyleColor();
@@ -412,6 +429,277 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             ImGui.PopStyleVar();
         }
 
+        // The loadout stuff are copy-pasted straight from AuxiliaryViewerSection
+        protected virtual NodeInteractionFlags DrawInnerHeader_Loadout(GeneralObject pObj, float pCanvasScaling)
+        {
+            if (this.mPlugin == null) return NodeInteractionFlags.None;
+            var tRes = NodeInteractionFlags.None;
+
+            ImGuiIOPtr io = ImGui.GetIO();
+            Loadout tLoadout = this.mPlugin.mBBDataManager.mLoadouts[pObj.mId];
+
+            // DELETE button
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash, UtilsGUI.AdjustTransparency(ImGuiColors.DalamudRed, 0.4f)) && io.KeyShift)
+            {
+                BBDataManager.DynamicRemoveGeneralObject<Loadout>(this.mPlugin, tLoadout, this.mPlugin.mBBDataManager.mLoadouts);
+                AuxiliaryViewerSection.mIsRefreshRequired = true;
+            }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("[Shift + LMB] to delete the current entry"); }
+            ImGui.SameLine(); ImGui.Spacing(); ImGui.SameLine(); ImGui.Spacing(); ImGui.SameLine();
+            // COPY button
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Upload))
+            {
+                ImGui.SetClipboardText(JsonSerializer.Serialize(new LoadoutJson(tLoadout)));
+            }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Copy the current entry to clipboard"); }
+            ImGui.SameLine();
+            // EDIT button
+            if (AuxiliaryViewerSection.mTenpLoadout == null && ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PencilAlt))
+            {
+                AuxiliaryViewerSection.mTenpLoadout = new LoadoutJson(tLoadout);
+                AuxiliaryViewerSection.mTenpLoadout.RecalculateWeight(this.mPlugin);
+            }
+            else
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, UtilsGUI.Colors.Button_Red);
+                if (AuxiliaryViewerSection.mTenpLoadout != null && ImGui.Button("  X "))
+                {
+                    AuxiliaryViewerSection.mTenpLoadout = null;
+                }
+                ImGui.PopStyleColor();
+            }
+            if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Edit / Discard edit"); }
+            ImGui.SameLine();
+            // SAVE button
+            if (AuxiliaryViewerSection.mTenpLoadout == null)
+            {
+                ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save);
+                if (ImGui.IsItemHovered()) { ImGui.SetTooltip("Save changes"); }
+            }
+            else if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Save, UtilsGUI.Colors.Button_Green) && AuxiliaryViewerSection.mTenpLoadout != null)
+            {
+                // Save to cache
+                Loadout tLoadoutNew = new Loadout(this.mPlugin, AuxiliaryViewerSection.mTenpLoadout);
+                BBDataManager.DynamicAddGeneralObject<Loadout>(this.mPlugin, tLoadoutNew, this.mPlugin.mBBDataManager.mLoadouts);
+            }
+            // Instruction
+            ImGui.SameLine();
+            UtilsGUI.ShowHelpMarker("To edit your Custom Loadout, press the Pen icon button on the right.\n=========== WHILE EDITING ===========\n- There is an Action table below to add/remove actions from loadout.\n- Similar to in-game loadout, [Shift+LMB/RMB] on action's icon to add/remove action from loadout.\n- The grey number on the right of action's name is its weight.");
+
+            ImGui.SameLine();
+            string tTemp = $"[{tLoadout.mGroup}] • [{tLoadout.mRole}]";
+            AuxiliaryViewerSection.GUIAlignRight(tTemp); ImGui.TextUnformatted(tTemp);
+
+            ImGui.Separator();
+
+            return tRes;
+        }
+        protected virtual NodeInteractionFlags DrawInnerContent_Loadout(GeneralObject pObj, float pCanvasScaling)
+        {
+            if (this.mPlugin == null) return NodeInteractionFlags.None;
+            var tRes = NodeInteractionFlags.None;
+
+            Loadout tLoadout = this.mPlugin.mBBDataManager.mLoadouts[pObj.mId];
+            // Action List
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
+                ImGui.BeginChild("loadout_actionlist",
+                    new Vector2(ImGui.GetWindowWidth() / 5 * 3 - ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetStyle().FramePadding.Y),
+                    true,
+                    ImGuiWindowFlags.MenuBar);
+                var tOriScale = Utils.GetCurrFontScale();
+                Utils.PopFontScale();
+                Utils.PushFontScale(tOriScale);
+
+                if (ImGui.BeginMenuBar())
+                {
+                    ImGui.TextColored(tLoadout.mWeight > 99 ? UtilsGUI.Colors.NormalText_Red : UtilsGUI.Colors.BackgroundText_Grey, $"WEIGHT: {tLoadout.mWeight} / 99");
+                    ImGui.EndMenuBar();
+                }
+                foreach (int iActionId in tLoadout.mActionIds.Keys)
+                {
+                    // icon
+                    UtilsGameData.kTextureCollection?.AddTextureFromItemId(Convert.ToUInt32(iActionId));
+                    TextureWrap? tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(iActionId));
+                    if (tIconWrap != null)
+                    {
+                        UtilsGUI.SelectableLink_Image(
+                                this.mPlugin,
+                                this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
+                                tIconWrap,
+                                pIsShowingCacheAmount: true,
+                                pImageScaling: 0.6f * pCanvasScaling
+                            );
+                    }
+                    // link
+                    ImGui.SameLine();
+                    UtilsGUI.SelectableLink_WithPopup(
+                        this.mPlugin,
+                        this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
+                        this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId()
+                        );
+                    ImGui.SameLine();
+                    AuxiliaryViewerSection.GUIAlignRight(-15);
+                    ImGui.Text($"{tLoadout.mActionIds[iActionId]}");
+                }
+
+                Utils.PopFontScale();
+                Utils.PushFontScale(tOriScale);
+                ImGui.EndChild();
+                ImGui.PopStyleVar();
+            }
+
+            // Description
+            ImGui.SameLine();
+            {
+                ImGui.BeginChild("loadout_description", new Vector2(ImGui.GetWindowWidth() / 5 * 2 - ImGui.GetStyle().FramePadding.X, ImGui.GetWindowHeight() - ImGui.GetCursorPosY()));
+                var tOriScale = Utils.GetCurrFontScale();
+                Utils.PopFontScale();
+                Utils.PushFontScale(tOriScale);
+
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+                ImGui.PushTextWrapPos();
+                if (pObj.mIGMarkup == null)
+                    ImGui.TextUnformatted(pObj.mDescription);
+                else
+                    pObj.mIGMarkup!.DrawGUI();
+                ImGui.PopTextWrapPos();
+
+                Utils.PopFontScale();
+                Utils.PushFontScale(tOriScale);
+                ImGui.EndChild();
+            }
+
+            return tRes;
+        }
+        protected virtual NodeInteractionFlags DrawInnerContent_LoadoutEdit(GeneralObject pObj, float pCanvasScaling)
+        {
+            if (this.mPlugin == null) return NodeInteractionFlags.None;
+            var tRes = NodeInteractionFlags.None;
+
+            LoadoutJson tLoadout = AuxiliaryViewerSection.mTenpLoadout!;
+            // Action List
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
+                ImGui.BeginChild("loadout_actionlist",
+                    new System.Numerics.Vector2(ImGui.GetWindowWidth() / 5 * 2 - ImGui.GetStyle().FramePadding.X, 241 * pCanvasScaling),
+                    true,
+                    ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoScrollbar);
+                var tOriScale = Utils.GetCurrFontScale();
+                Utils.PopFontScale();
+                Utils.PushFontScale(tOriScale);
+
+                if (ImGui.BeginMenuBar())
+                {
+                    ImGui.TextColored(tLoadout.mWeight > 99 ? UtilsGUI.Colors.NormalText_Red : UtilsGUI.Colors.BackgroundText_Grey, $"WEIGHT: {tLoadout.mWeight} / 99");
+                    ImGui.SameLine();
+                    // Lost action grid popup
+                    //ImGui.SetCursorPos(new Vector2(ImGui.GetCursorPosX() + (ImGui.GetWindowWidth() / 5 * 2 + 10), 0));
+                    AuxiliaryViewerSection.GUIAlignRight(-5);
+                    if (ImGui.Button(" + "))
+                    {
+                        ImGui.OpenPopup("##lagrid");
+                    }
+                    if (ImGui.BeginPopup("##lagrid"))
+                    {
+                        AuxNode.GetLostActionTableSection()?.DrawTable_GridOnly();
+                        ImGui.EndPopup();
+                    }
+                    ImGui.EndMenuBar();
+                }
+                UtilsGUI.InputPayload tInputPayload = new();
+                foreach (int iActionId in tLoadout.mActionIds.Keys)
+                {
+                    // icon
+                    UtilsGameData.kTextureCollection?.AddTextureFromItemId(Convert.ToUInt32(iActionId));
+                    TextureWrap? tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(iActionId));
+                    if (tIconWrap != null
+                        && UtilsGUI.SelectableLink_Image(
+                                this.mPlugin,
+                                this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
+                                tIconWrap,
+                                pIsAuxiLinked: !ImGui.GetIO().KeyShift,
+                                pIsShowingCacheAmount: true,
+                                pImageScaling: 0.6f * pCanvasScaling,
+                                pInputPayload: tInputPayload,
+                                pAdditionalHoverText: $"[Shift+LMB/RMB] Add/remove from loadout\n"
+                            )
+                        && tInputPayload.mIsKeyShift)
+                    {
+                        AuxiliaryViewerSection.GUILoadoutEditAdjuster_Incre(this.mPlugin, iActionId);
+                    }
+                    else if (tIconWrap != null && tInputPayload.mIsHovered && tInputPayload.mIsMouseRmb && tInputPayload.mIsKeyShift)
+                    {
+                        AuxiliaryViewerSection.GUILoadoutEditAdjuster_Decre(this.mPlugin, iActionId);
+                    }
+                    // link
+                    ImGui.SameLine();
+
+                    UtilsGUI.SelectableLink_WithPopup(
+                        this.mPlugin,
+                        this.mPlugin.mBBDataManager.mLostActions[iActionId].mName,
+                        this.mPlugin.mBBDataManager.mLostActions[iActionId].GetGenId(),
+                        true
+                        );
+                    ImGui.SameLine();
+                    ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, $"+{this.mPlugin.mBBDataManager.mLostActions[iActionId].mWeight}");
+                    ImGui.SameLine();
+                    AuxiliaryViewerSection.GUIAlignRight(-15);
+                    // adjuster
+                    ImGui.Text(tLoadout.mActionIds[iActionId].ToString());
+                }
+
+                Utils.PopFontScale();
+                Utils.PushFontScale(tOriScale);
+                ImGui.EndChild();
+                ImGui.PopStyleVar();
+            }
+
+            // Description
+            ImGui.SameLine();
+            {
+                ImGui.BeginChild("loadout_description", new System.Numerics.Vector2(ImGui.GetWindowWidth() / 5 * 3 - ImGui.GetStyle().FramePadding.X, 241 * pCanvasScaling));
+                var tOriScale = Utils.GetCurrFontScale();
+                Utils.PopFontScale();
+                Utils.PushFontScale(tOriScale);
+
+                // Name
+                ImGui.InputText("##name", ref AuxiliaryViewerSection.mTenpLoadout!._mName, 120);
+                // Group & Role
+                ImGui.PushItemWidth(ImGui.GetFontSize() * 4);
+                ImGui.InputText("##group", ref AuxiliaryViewerSection.mTenpLoadout!._mGroup, 120);
+                ImGui.PopItemWidth();
+                ImGui.SameLine(); ImGui.Text(" • ");
+                ImGui.SameLine(); AuxiliaryViewerSection.mGUIFilter.HeaderRoleIconButtons(AuxiliaryViewerSection.mTenpLoadout!._mRole, null);
+
+
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+
+                // Description
+                ImGui.InputTextMultiline("##description",
+                                        ref AuxiliaryViewerSection.mTenpLoadout!._mDescription,
+                                        1024,
+                                        new Vector2(ImGui.GetWindowWidth() - ImGui.GetStyle().WindowPadding.X, ImGui.GetTextLineHeight() * 10));
+
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+
+                Utils.PopFontScale();
+                Utils.PushFontScale(tOriScale);
+                ImGui.EndChild();
+            }
+
+            // Action table
+            AuxNode.GetLostActionTableSection()?.DrawTable_GridOnly(pScaling: pCanvasScaling);
+
+            return tRes;
+        }
+
         public override void Dispose()
         {
 
@@ -422,6 +710,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             None = 0,
             Links = 1,
             Overview = 2
+        }
+
+
+        private static LostActionTableSection? GetLostActionTableSection()
+        {
+            if (AuxNode._lostActionTableSection == null && BBNode.kPlugin != null)
+            {
+                AuxNode._lostActionTableSection = new(BBNode.kPlugin);
+            }
+            return AuxNode._lostActionTableSection;
         }
     }
 }
