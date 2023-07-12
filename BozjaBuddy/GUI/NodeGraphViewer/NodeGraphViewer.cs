@@ -18,6 +18,7 @@ using static BozjaBuddy.Data.Location;
 using Dalamud.Interface;
 using System.Linq.Expressions;
 using System.Reflection.Emit;
+using BozjaBuddy.Data;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -85,8 +86,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         private bool AddCanvas(string pCanvasJson)
         {
-            var tCanvas = JsonConvert.DeserializeObject<NodeCanvas>(pCanvasJson, new utils.JsonConverters.NodeJsonConverter());
+            var tCanvas = JsonConvert.DeserializeObject<NodeCanvas>(pCanvasJson, new utils.JsonConverters.NodeCanvasJsonConverter());
             if (tCanvas == null) return false;
+            PluginLog.LogDebug($"> Imported canvas with {tCanvas.mGraph.EdgeCount} edges");
             return this.AddCanvas(tCanvas);
         }
         private bool AddCanvas(NodeCanvas pCanvas)
@@ -154,7 +156,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         private string ExportActiveCanvasAsJson()
         {
-            return JsonConvert.SerializeObject(this.mActiveCanvas);
+            return JsonConvert.SerializeObject(this.mActiveCanvas, Formatting.Indented);
         }
         /// <summary> forceSave: Save without interval check. Be advised when using this.</summary>
         private bool Save(bool _forceSave = false)
@@ -214,12 +216,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
 
         /// <summary> Draw at current cursor, with size as ContentRegionAvail </summary>
-        public void Draw()
+        public void Draw(HashSet<ImGuiKey>? pExtraKeyboardInputs = null)
         {
-            Draw(ImGui.GetCursorScreenPos());
+            Draw(ImGui.GetCursorScreenPos(), pExtraKeyboardInputs: pExtraKeyboardInputs);
         }
         /// <summary> Draw at specified pos, with size as specified </summary>
-        public void Draw(Vector2 pScreenPos, Vector2? pSize = null)
+        public void Draw(Vector2 pScreenPos, Vector2? pSize = null, HashSet<ImGuiKey>? pExtraKeyboardInputs = null)
         {
             this.mConfig.sizeLastKnown = pSize ?? ImGui.GetContentRegionAvail();
             Area tGraphArea = new(pScreenPos + new Vector2(0, 30), (this.mConfig.sizeLastKnown ?? ImGui.GetContentRegionAvail()) + new Vector2(0, -30));
@@ -227,35 +229,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             this.DrawUtilsBar();
             ImGui.SetCursorScreenPos(tGraphArea.start);
-            this.DrawGraph(tGraphArea, tDrawList);
+            this.DrawGraph(tGraphArea, tDrawList, pExtraKeyboardInputs: pExtraKeyboardInputs);
         }
         private void DrawUtilsBar()
         {
-            // =======================================================
-            // DEBUG =================================================
-            //if (ImGui.Button("Cache viewer"))
-            //{
-            //    var tRes = this.ExportActiveCanvasAsJson();
-            //    this._debugViewerJson = tRes;
-            //}
-            //ImGui.SameLine();
-            //if (this._debugViewerJson == null) ImGui.BeginDisabled();
-            //if (ImGui.Button("Load json from cache") && this._debugViewerJson != null)
-            //{
-            //    var tRes = JsonConvert.DeserializeObject<NodeCanvas>(this._debugViewerJson, new utils.JsonConverters.NodeJsonConverter());
-            //}
-            //if (this._debugViewerJson == null) ImGui.EndDisabled();
-            //ImGui.SameLine();
-            //if (ImGui.Button("Notify!"))
-            //{
-            //    this.mNotificationManager.Push(new ViewerNotification("viewerNoti", "INFO! viewer's notification button\n... or is it?"));
-            //    this.mNotificationManager.Push(new ViewerNotification("viewerNoti2", "WARNING! viewer's notification button pressed!aaaaaaaaaa\n... or is it?", ViewerNotificationType.Warning));
-            //    this.mNotificationManager.Push(new ViewerNotification("viewerNoti3", "ERROR! viewer's notification button\n... or is it?", ViewerNotificationType.Error));
-            //}
-            //ImGui.SameLine();
-            // DEBUG =================================================
-            // =======================================================
-
             // Split into 3 parts
             // [Canvasses tab bar and related] | [Viewer related] | [Active canvas related]
 
@@ -332,9 +309,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             // Active canvas options ==========================================
             ImGui.SameLine();
-            ImGui.BeginDisabled();
-            ImGui.Button("Canvas");
-            ImGui.EndDisabled();
+            if (ImGui.Button("Canvas"))
+            {
+                ImGui.OpenPopup("##activecpu");
+            }
+            this.DrawCanvasExtraOptions("##activecpu");
             ImGui.SameLine();
             // Slider: Scaling
             int tScaling = (int)(this.mActiveCanvas.GetScaling() * 100);
@@ -372,7 +351,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             else UtilsGUI.SetTooltipForLastItem("Add a basic node");
         }
-        private void DrawGraph(Area pGraphArea, ImDrawListPtr pDrawList)
+        private void DrawGraph(Area pGraphArea, ImDrawListPtr pDrawList, HashSet<ImGuiKey>? pExtraKeyboardInputs = null)
         {
             List<ViewerNotification> tNotiListener = new();
             ImGui.BeginChild(
@@ -383,7 +362,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             pDrawList.PushClipRect(pGraphArea.start, pGraphArea.end, true);
 
             var tSnapData = DrawGraphBg(pGraphArea, this.mActiveCanvas.GetBaseOffset(), this.mActiveCanvas.GetScaling());
-            DrawGraphNodes(pGraphArea, tSnapData, pDrawList, pNotiListener: tNotiListener);
+            DrawGraphNodes(pGraphArea, tSnapData, pDrawList, pNotiListener: tNotiListener, pExtraKeyboardInputs: pExtraKeyboardInputs);
             this.mNotificationManager.Push(tNotiListener);
             DrawNotifications(pGraphArea);
 
@@ -437,13 +416,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             }
             ImGui.PopStyleVar();
         }
-        private void DrawGraphNodes(Area pGraphArea, GridSnapData pSnapData, ImDrawListPtr pDrawList, List<ViewerNotification>? pNotiListener = null)
+        private void DrawGraphNodes(Area pGraphArea, GridSnapData pSnapData, ImDrawListPtr pDrawList, List<ViewerNotification>? pNotiListener = null, HashSet<ImGuiKey>? pExtraKeyboardInputs = null)
         {
             ImGui.SetCursorScreenPos(pGraphArea.start);
             
             // check if mouse within viewer, and if mouse is holding on viewer.
             UtilsGUI.InputPayload tInputPayload = new();
-            tInputPayload.CaptureInput();
+            tInputPayload.CaptureInput(pExtraKeyboardInputs: pExtraKeyboardInputs);
             bool tIsWithinViewer = pGraphArea.CheckPosIsWithin(tInputPayload.mMousePos);
             this._isMouseHoldingViewer = tInputPayload.mIsMouseLmbDown && (tIsWithinViewer || this._isMouseHoldingViewer);
             
@@ -593,10 +572,33 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     tReq_Rename = true;
                 }
                 ImGui.Separator();
-                ImGui.BeginDisabled();
-                ImGui.Selectable("Import canvas", false, ImGuiSelectableFlags.DontClosePopups);
-                ImGui.Selectable("Export current canvas", false, ImGuiSelectableFlags.DontClosePopups);
-                ImGui.EndDisabled();
+                // Import
+                if (ImGui.Selectable("Import canvas", false, ImGuiSelectableFlags.DontClosePopups))
+                {
+                    try
+                    {
+                        if (this.ImportCanvas(ImGui.GetClipboardText()))
+                        {
+                            this.mNotificationManager.Push(new ViewerNotification($"##cimpy", $"Imported from clipboard successfully!"));
+                        }
+                        else
+                        {
+                            this.mNotificationManager.Push(new ViewerNotification($"##cimpn", $"Failed to import canvas from clipboard.", ViewerNotificationType.Error));
+                        }
+                    }
+                    catch (Newtonsoft.Json.JsonReaderException _)
+                    {
+                        this.mNotificationManager.Push(new ViewerNotification($"##cimpn", $"Failed to import canvas from clipboard.", ViewerNotificationType.Error));
+                    }
+                }
+                else UtilsGUI.SetTooltipForLastItem("Import a canvas from clipboard.");
+                // Export
+                if (ImGui.Selectable("Export current canvas", false, ImGuiSelectableFlags.DontClosePopups))
+                {
+                    ImGui.SetClipboardText(this.ExportActiveCanvasAsJson());
+                    this.mNotificationManager.Push(new ViewerNotification($"##cexp{this.mActiveCanvas.mId}", $"Copied to clipboard: Canvas {this.mActiveCanvas.mName}"));
+                }
+                else UtilsGUI.SetTooltipForLastItem("Copied a canvas to clipboard.");
                 ImGui.EndPopup();
             }
             if (tReq_Rename) { ImGui.OpenPopup("vwexpu_rename"); }
@@ -620,6 +622,18 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             else
             {
                 this._infield_CanvasName = null;
+            }
+        }
+        private void DrawCanvasExtraOptions(string pGuiId)
+        {
+            if (ImGui.BeginPopup(pGuiId))
+            {
+                ImGui.BeginDisabled();
+                ImGui.Selectable("Import nodes");
+                ImGui.Selectable("Export selected nodes");
+                ImGui.EndDisabled();
+
+                ImGui.EndPopup();
             }
         }
         private void DrawViewerConfig(string pGuiId)

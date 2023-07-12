@@ -182,10 +182,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             Vector2 tRelaPosRes;
 
             this.mGraph.TryGetOutEdges(pPrevNode.mGraphId, out var edges);
+            if ( edges == null ) return null;
             // Getting child nodes that is positioned at greatest Y
             float? tChosenY = null;
             Node? tChosenNode = null;
-            PluginLog.LogDebug($"> Finding greatest Y from {edges.Count()} edges ===============");
             foreach (var e in edges)
             {
                 PluginLog.LogDebug($"> Evaluating child with graphId={e.Target}");
@@ -882,7 +882,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                         }
                         pCanvasDrawFlag |= t.CDFRes;
                         if (t.isMarkedForDelete)       // proc node delete, only one node deletion allowed per button interaction.
-                                                       // If the interaction picks up multiple nodes, choose the highest one in the z-order (last one rendered)
+                                                                                // If the interaction picks up multiple nodes, choose the highest one in the z-order (last one rendered)
                         {
                             tNodeToDelete = tNode.mId;      // the upper node will override the lower chosen node
                         }
@@ -1103,6 +1103,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     && this._selectAreaOSP == null)
                 {
                     pCanvasDrawFlag |= this.ProcessInputOnCanvas(pInputPayload, pCanvasDrawFlag);
+                }
+            }
+
+            // Mass delete nodes
+            if (pInputPayload.mIsKeyDel)
+            {
+                foreach (var id in this._selectedNodes)
+                {
+                    this.RemoveNode(id);
                 }
             }
 

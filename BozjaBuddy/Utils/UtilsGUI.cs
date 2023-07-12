@@ -831,6 +831,7 @@ namespace BozjaBuddy.Utils
             public bool mIsKeyShift = false;
             public bool mIsKeyAlt = false;
             public bool mIsKeyCtrl = false;
+            public bool mIsKeyDel = false;
             public Vector2 mMousePos = Vector2.Zero;
             private Vector2? mFirstMouseLeftHoldPos = null;
             public bool mIsALmbDragRelease = false;
@@ -839,7 +840,11 @@ namespace BozjaBuddy.Utils
             public Vector2? mLmbDragDelta = null;
             public float mMouseWheelValue = 0;
 
-            public void CaptureInput(bool pCaptureMouseWheel = false, bool pCaptureMouseDrag = false)
+            /// <summary>
+            /// ExtraKeyboardInputs:            in case something is blocking ImGui keyboard non-mod input capture,
+            ///                                 use this to submit inputs.
+            /// </summary>
+            public void CaptureInput(bool pCaptureMouseWheel = false, bool pCaptureMouseDrag = false, HashSet<ImGuiKey>? pExtraKeyboardInputs = null)
             {
                 var io = ImGui.GetIO();
                 if (io.KeyShift) mIsKeyShift = true;
@@ -863,6 +868,12 @@ namespace BozjaBuddy.Utils
                     InputPayload.kWasLmbDragged = false;
                     this.mIsALmbDragRelease = InputPayload.kWasLmbDragged;
                 }
+
+                if (pExtraKeyboardInputs != null)       // extra-inputs
+                {
+                    if (pExtraKeyboardInputs.Contains(ImGuiKey.Delete)) mIsKeyDel = true;
+                }
+                if (ImGui.IsKeyPressed(ImGuiKey.Delete)) mIsKeyDel = true;
             }
             /// <summary> https://git.anna.lgbt/ascclemens/QuestMap/src/commit/2030f8374eb65a64947b2bc37f35fc53ff3723f4/QuestMap/PluginUi.cs#L857 </summary>
             private Vector2? CaptureMouseDragDeltaInternal()

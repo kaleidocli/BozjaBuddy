@@ -20,6 +20,7 @@ using BozjaBuddy.GUI;
 using System.Numerics;
 using BozjaBuddy.GUI.NodeGraphViewer;
 using BozjaBuddy.GUI.NodeGraphViewer.ext;
+using Dalamud.Game.ClientState.Keys;
 
 namespace BozjaBuddy
 {
@@ -41,6 +42,7 @@ namespace BozjaBuddy
         public ChatGui ChatGui { get; init; }
         public ClientState ClientState { get; init; }
         public DataManager DataManager { get; init; }
+        public KeyState KeyState { get; init; }
         public BBDataManager mBBDataManager;
 
         public Configuration Configuration { get; init; }
@@ -58,7 +60,8 @@ namespace BozjaBuddy
             [RequiredVersion("1.0")] GameGui gameGui,
             [RequiredVersion("1.0")] FateTable fateTable,
             [RequiredVersion("1.0")] ChatGui chatGui,
-            [RequiredVersion("1.0")] ClientState clientState)
+            [RequiredVersion("1.0")] ClientState clientState,
+            [RequiredVersion("1.0")] KeyState keyState)
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
@@ -67,6 +70,7 @@ namespace BozjaBuddy
             this.FateTable = fateTable;
             this.ChatGui = chatGui;
             this.ClientState = clientState;
+            this.KeyState = keyState;
 
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
@@ -172,5 +176,7 @@ namespace BozjaBuddy
             Plugin._isImGuiSafe = true;
             WindowSystem.GetWindow("Config - BozjaBuddy")!.IsOpen = true;
         }
+
+        public bool isKeyPressed(VirtualKey key) => this.KeyState.IsVirtualKeyValid(key) && KeyState[key];
     }
 }
