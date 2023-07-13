@@ -88,7 +88,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             var tCanvas = JsonConvert.DeserializeObject<NodeCanvas>(pCanvasJson, new utils.JsonConverters.NodeCanvasJsonConverter());
             if (tCanvas == null) return false;
-            PluginLog.LogDebug($"> Imported canvas with {tCanvas.mGraph.EdgeCount} edges");
             return this.AddCanvas(tCanvas);
         }
         private bool AddCanvas(NodeCanvas pCanvas)
@@ -210,8 +209,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public ViewerEventFlag GetViewerEventFlags() => this._eventFlags;
         public void AddNodeToActiveCanvas<T>(NodeContent.NodeContent pNodeContent) where T : Node, new()
         {
-            //BBNodeContent tContent = new(this._plugin, 400005, "Lost Banner of Xyz");
-            //this.mActiveCanvas.AddNodeWithinView<AuxNode>(tContent, pViewerSize);
             this.mActiveCanvas.AddNodeWithinView<T>(pNodeContent, this.mConfig.sizeLastKnown ?? NodeGraphViewer.kRecommendedViewerSizeToSearch);
         }
 
@@ -266,10 +263,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             UtilsGUI.ShowHelpMarker(
                 """
                 Keybinds basic
-                [LMB]               Select/Drag nodes by the handle.
-                [RMB]               Extra options on the handle.
-                [MiddleClick]       Delete a canvas by the handle.
-                [MouseScroll]       Zoom in/out on canvas.
+                [LMB]                           Select/Drag nodes by the handle.
+                [RMB]                           Extra options on the handle.
+                [MiddleClick]                   Delete a canvas by the handle.
+                [MouseScroll]                   Zoom in/out on canvas.
+                [Crtl + LMB]                    Multi-selecting nodes.
+                [Shift + LMB drag]      Multi-selecting nodes within an area.
+                [Ctrl + C]                      Copy selected nodes to clipboard.
+                [Ctrl + V]                      Paste selected nodes to active canvas.
 
                 Basics
                 - Nodes can be added, deleted, edited, minimnized, and resized.
@@ -448,6 +449,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._isShowingRulerText = true;
                 this._rulerTextLastAppear = DateTime.Now;
             }
+            // Input process (viewer level)
+            if (tInputPayload.mIsKeyCtrl && tInputPayload.mIsKeyC)
+            {
+                this.CopySelectedNodes();
+            }
+            if (tInputPayload.mIsKeyCtrl && tInputPayload.mIsKeyV)
+            {
+                this.PasteNodes();
+            }
             // Snap lines
             if (!tRes.HasFlag(CanvasDrawFlags.NoNodeSnap)) this.DrawSnapLine(pGraphArea, pSnapData);
             // Auto save
@@ -528,7 +538,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     pDrawList.AddText(
                         new Vector2(pArea.start.X + 6, tGridStart_L.Y + i * tUGLarge),
                         ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(UtilsGUI.Colors.NodeText, tTrans)),
-                        $"{tYFirstNotation + (this.mConfig.unitGridLarge * i)}");
+                        $"{(tYFirstNotation + (this.mConfig.unitGridLarge * i)) / 10}");
                     // fade check
                     if (tTrans < 0.05f)
                     {
@@ -579,7 +589,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     {
                         if (this.ImportCanvas(ImGui.GetClipboardText()))
                         {
-                            this.mNotificationManager.Push(new ViewerNotification($"##cimpy", $"Imported from clipboard successfully!"));
+                            this.mNotificationManager.Push(new ViewerNotification($"##cimpy", $"Canvas imported from clipboard!"));
                         }
                         else
                         {
@@ -593,10 +603,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
                 else UtilsGUI.SetTooltipForLastItem("Import a canvas from clipboard.");
                 // Export
-                if (ImGui.Selectable("Export current canvas", false, ImGuiSelectableFlags.DontClosePopups))
+                if (ImGui.Selectable("Export active canvas", false, ImGuiSelectableFlags.DontClosePopups))
                 {
                     ImGui.SetClipboardText(this.ExportActiveCanvasAsJson());
-                    this.mNotificationManager.Push(new ViewerNotification($"##cexp{this.mActiveCanvas.mId}", $"Copied to clipboard: Canvas {this.mActiveCanvas.mName}"));
+                    this.mNotificationManager.Push(new ViewerNotification($"##cexp{this.mActiveCanvas.mId}", $"Canvas copied to clipboard!"));
                 }
                 else UtilsGUI.SetTooltipForLastItem("Copied a canvas to clipboard.");
                 ImGui.EndPopup();
@@ -628,10 +638,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         {
             if (ImGui.BeginPopup(pGuiId))
             {
-                ImGui.BeginDisabled();
-                ImGui.Selectable("Import nodes");
-                ImGui.Selectable("Export selected nodes");
-                ImGui.EndDisabled();
+                if (ImGui.Selectable("Copy selected nodes [Ctrl + C]"))
+                {
+                    this.CopySelectedNodes();
+                }
+                else UtilsGUI.SetTooltipForLastItem("Copied selected nodes to clipboard.");
+                if (ImGui.Selectable("Paste nodes [Ctrl + V]"))
+                {
+                    this.PasteNodes();
+                }
+                else UtilsGUI.SetTooltipForLastItem("Paste nodes from clipboard.");
 
                 ImGui.EndPopup();
             }
@@ -639,6 +655,27 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private void DrawViewerConfig(string pGuiId)
         {
 
+        }
+        private void CopySelectedNodes()
+        {
+            var tJson = this.mActiveCanvas.ExportSelectedNodes();
+            if (tJson != null)
+            {
+                ImGui.SetClipboardText(tJson);
+                this.mNotificationManager.Push(new ViewerNotification($"##nexpo", $"Nodes copied to clipboard!"));
+            }
+        }
+        private void PasteNodes()
+        {
+            PluginLog.LogDebug($"> Pasting...");
+            if (this.mActiveCanvas.ImportNodes(ImGui.GetClipboardText()))
+            {
+                this.mNotificationManager.Push(new ViewerNotification($"##nimpo", $"Nodes pasted!"));
+            }
+            else
+            {
+                this.mNotificationManager.Push(new ViewerNotification($"##nimpof", $"Failed to paste nodes from clipboard.", ViewerNotificationType.Error));
+            }
         }
 
         public void Dispose()

@@ -800,7 +800,8 @@ namespace BozjaBuddy.Utils
             private const double kKeyClickValidityThreshold = 250;
             private static float kDelayBetweenMouseWheelCapture = 100;
             public static bool kWasLmbDragged = false;
-            private static string kGlobalCaptureId = "";
+            private static List<ImGuiKey> kKeysToCheck = new() { ImGuiKey.Delete, ImGuiKey.C, ImGuiKey.V };
+            private static Dictionary<ImGuiKey, bool> kKeysDown = new();
             private static double DeltaLastMouseClick() => (DateTime.Now - InputPayload.kLastMouseClicked).TotalMilliseconds;
             private static double DeltaLastKeyClick() => (DateTime.Now - InputPayload.kLastKeyClicked).TotalMilliseconds;
             public static bool CheckMouseClickValidity()
@@ -832,6 +833,8 @@ namespace BozjaBuddy.Utils
             public bool mIsKeyAlt = false;
             public bool mIsKeyCtrl = false;
             public bool mIsKeyDel = false;
+            public bool mIsKeyC = false;
+            public bool mIsKeyV = false;
             public Vector2 mMousePos = Vector2.Zero;
             private Vector2? mFirstMouseLeftHoldPos = null;
             public bool mIsALmbDragRelease = false;
@@ -869,9 +872,32 @@ namespace BozjaBuddy.Utils
                     this.mIsALmbDragRelease = InputPayload.kWasLmbDragged;
                 }
 
-                if (pExtraKeyboardInputs != null)       // extra-inputs
+                // extra-inputs
+                if (pExtraKeyboardInputs != null)
                 {
-                    if (pExtraKeyboardInputs.Contains(ImGuiKey.Delete)) mIsKeyDel = true;
+                    foreach (var imKey in InputPayload.kKeysToCheck)
+                    {
+                        // Try get state: Down
+                        if (pExtraKeyboardInputs.Contains(imKey))
+                        {
+                            if (!InputPayload.kKeysDown.TryAdd(imKey, true))
+                                InputPayload.kKeysDown[imKey] = true;
+                        }
+                        else
+                        {
+                            // Try get state: Released
+                            if (InputPayload.kKeysDown.TryGetValue(imKey, out var isKeyDown) && isKeyDown)
+                            {
+                                switch (imKey)
+                                {
+                                    case ImGuiKey.Delete: mIsKeyDel = true; break;
+                                    case ImGuiKey.C: mIsKeyC = true; break;
+                                    case ImGuiKey.V: mIsKeyV = true; break;
+                                }
+                                InputPayload.kKeysDown[imKey] = false;
+                            }
+                        }
+                    }
                 }
                 if (ImGui.IsKeyPressed(ImGuiKey.Delete)) mIsKeyDel = true;
             }

@@ -47,6 +47,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         public string GetSourceNodeId() => this.mSourceNodeId;
         public string GetTargetNodeId() => this.mTargetNodeId;
+        public bool IsSquarePathing() => this.mSquarePathingEnabled;
+        public bool IsDrawingUpRight() => this.mDrawUpright;
         public SEdge<int> GetEdge() => this.mQgEdge;
         public bool EitherWith(string pNodeId) => this.StartsWith(pNodeId) || this.EndsWith(pNodeId);
         public bool StartsWith(string pSourceNodeId) => this.mSourceNodeId == pSourceNodeId;

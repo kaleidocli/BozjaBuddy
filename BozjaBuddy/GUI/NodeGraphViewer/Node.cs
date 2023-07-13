@@ -97,6 +97,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.SetHeader(this.mContent.GetHeader());               // adjust minSize to new header
             this.mStyle.SetSize(this.mRecommendedInitSize);        // adjust size to the new minSize
         }
+        public void _setId(string pId) => this.mId = pId;
 
         /// <summary>
         /// <para>pAdjustWidthOnly:         (requires: autoSizing) Adjust node's width only, keep node's height the same.</para>
