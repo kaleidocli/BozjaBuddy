@@ -223,13 +223,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             Node? tChosenNode = null;
             foreach (var e in edges)
             {
-                PluginLog.LogDebug($"> Evaluating child with graphId={e.Target}");
                 string? iChildId = this.GetNodeIdWithNodeGraphId(e.Target);
                 if (iChildId == null) continue;
-                PluginLog.LogDebug($"> A");
                 var iChildRelaPos = this.mMap.GetNodeRelaPos(iChildId);
                 if (!iChildRelaPos.HasValue) continue;
-                PluginLog.LogDebug($"> cY={iChildRelaPos.Value.Y} > chY={tChosenY}");
                 if (!tChosenY.HasValue || iChildRelaPos.Value.Y > tChosenY)
                 {
                     tChosenY = iChildRelaPos.Value.Y;
@@ -943,7 +940,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     continue;
                 }
 
-                NodeInteractionFlags tEdgeRes = e.Draw(pDrawList, tFinalSourceOSP.Value, tFinalTargetOSP.Value, pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()), pIsTargetPacked: tFinalTarget != null || tFinalSource != null);
+                NodeInteractionFlags tEdgeRes = e.Draw(
+                    pDrawList, 
+                    tFinalSourceOSP.Value, 
+                    tFinalTargetOSP.Value, 
+                    pIsHighlighted: this._selectedNodes.Contains(e.GetSourceNodeId()), 
+                    pIsHighlightedNegative: this._selectedNodes.Contains(e.GetTargetNodeId()), 
+                    pIsTargetPacked: tFinalTarget != null || tFinalSource != null);
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.Edge)) pCanvasDrawFlag |= CanvasDrawFlags.NoCanvasDrag;
                 if (tEdgeRes.HasFlag(NodeInteractionFlags.RequestEdgeRemoval)) tEdgeToRemove.Add(e);
             }

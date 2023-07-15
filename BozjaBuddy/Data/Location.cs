@@ -47,8 +47,6 @@ namespace BozjaBuddy.Data
         public Location(Plugin pPlugin, Level pLevel)
         {
             this.mPlugin = pPlugin;
-            this.mMapCoordX = pLevel.X;
-            this.mMapCoordY = pLevel.Y;
             this.mTerritoryType = pLevel.Territory.Value != null
                                   ? pLevel.Territory.Value.Name
                                   : "";
@@ -58,6 +56,9 @@ namespace BozjaBuddy.Data
             this.mMapID = pLevel.Territory.Value != null
                                   ? pLevel.Territory.Value.Map.Row
                                   : 0;
+            var tPayload = new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(this.mTerritoryID, this.mMapID, (int)(pLevel.X * 1000), (int)(pLevel.Z * 1000));
+            this.mMapCoordX = tPayload.XCoord;
+            this.mMapCoordY = tPayload.YCoord;
             this.mReprString = string.Format(
                     "{0} ({1})",
                     pLevel.Territory.Value != null

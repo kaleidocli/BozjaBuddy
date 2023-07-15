@@ -240,7 +240,11 @@ namespace BozjaBuddy.Data
             Fate = 63914,
             BozjaCe = 63909,
             BozjaDuel = 63910,
-            BozjaDungeon = 63912
+            BozjaDungeon = 63912,
+            QuestMSQ = 61432,
+            QuestSide = 61431,
+            QuestRepeatable = 61433,
+            QuestKey = 61439
         }
     }
 }

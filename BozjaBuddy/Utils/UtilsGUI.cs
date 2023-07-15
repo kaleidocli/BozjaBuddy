@@ -370,12 +370,8 @@ namespace BozjaBuddy.Utils
                 // link to chat
                 pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry
                 {
-                    Message = SeString.CreateMapLink(pLocation.mTerritoryID,
-                            pLocation.mMapID,
-                            (float)pLocation.mMapCoordX,
-                            (float)pLocation.mMapCoordY)
+                    Message = SeString.CreateMapLink(pLocation.mTerritoryID, pLocation.mMapID, (float)pLocation.mMapCoordX, (float)pLocation.mMapCoordY)
                 });
-                //PluginLog.LogInformation($"Showing map: {pLocation.mTerritoryID} - {pLocation.mMapID} - {(float)pLocation.mMapCoordX} - {(float)pLocation.mMapCoordY}");
             }
             UtilsGUI.SetTooltipForLastItem($"Mark position on map + Link location to Chat (if available)\n\nat: {tButtonText}");
             ImGui.PopStyleVar();
@@ -783,6 +779,7 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 NodeFg = Utils.RGBAtoVec4(148, 121, 74, 255);
             public readonly static Vector4 NodeText = Utils.RGBAtoVec4(223, 211, 185, 255);
             public readonly static Vector4 NodePack = Utils.RGBAtoVec4(157, 189, 99, 255);
+            public readonly static Vector4 NodeEdgeHighlightNeg = Utils.RGBAtoVec4(246, 132, 118, 255);
             public readonly static Vector4 NodeGraphViewer_BackdropGrey = Utils.RGBAtoVec4(165, 165, 165, 255);
             public readonly static Vector4 NodeGraphViewer_SnaplineGold = Utils.RGBAtoVec4(148, 121, 74, 255);
             public readonly static Vector4 NodeNotifInfo = Utils.RGBAtoVec4(223, 211, 185, 255);

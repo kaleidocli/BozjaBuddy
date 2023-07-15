@@ -198,7 +198,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
                 var tCanvasIn = tRes.GetCanvas(id);
                 if (tCanvasIn == null) continue;
-                PluginLog.LogDebug($"NGV.LoadSaveData(): Loaded canvas ({tCanvasIn.mId}) with graph having vertices: {string.Join(",", tCanvasIn.mGraph.Vertices)}");
                 this.AddCanvas(tCanvasIn);
             }
             this.mConfig = tRes.mConfig;
@@ -667,7 +666,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         }
         private void PasteNodes()
         {
-            PluginLog.LogDebug($"> Pasting...");
             if (this.mActiveCanvas.ImportNodes(ImGui.GetClipboardText()))
             {
                 this.mNotificationManager.Push(new ViewerNotification($"##nimpo", $"Nodes pasted!"));

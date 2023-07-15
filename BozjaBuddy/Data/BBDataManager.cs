@@ -88,8 +88,8 @@ namespace BozjaBuddy.Data
                 this.DataSetUpMob(tCommand);
                 this.DataSetUpVendor(tCommand);
                 this.DataSetUpFieldNote(tCommand);
-                //this.DataSetUpQuest(tCommand);
-                //this.DataSetupQuestChain(tCommand);
+                this.DataSetUpQuest(tCommand);
+                this.DataSetupQuestChain(tCommand);
             }
             if (this.mQuests != null)
             {
@@ -101,7 +101,7 @@ namespace BozjaBuddy.Data
                             ", ",
                             q.Value.mNextQuestIds.Select(o => this.mQuests.TryGetValue(o, out Quest? tQuest) ? tQuest.mName : "")
                         ); ;
-                    //PluginLog.LogDebug($"> Loaded id={q.Value.mId} --- {q.Value.mName} --- ({String.Join(", ", q.Value.mNextQuestIds)}) --- {temp}");
+                    PluginLog.LogDebug($"> BBDM: Loaded quest id={q.Value.mId} --- {q.Value.mName} ------> ({String.Join(", ", q.Value.mNextQuestIds)}) --- {temp}");
                 }
             }
 
@@ -382,17 +382,17 @@ namespace BozjaBuddy.Data
                 Quest.LinkNextQuest(qq.Value, ref tLinkers);
             }
             // Load data from db
-            pCommand.CommandText = "SELECT * FROM Quest;";
-            SQLiteDataReader tReader = pCommand.ExecuteReader();
+            //pCommand.CommandText = "SELECT * FROM Quest;";
+            //SQLiteDataReader tReader = pCommand.ExecuteReader();
 
-            while (tReader.Read())
-            {
-                if (!this.mQuests.TryGetValue((int)(long)tReader["id"], out Quest? tQuest)
-                    && tQuest == null)
-                    continue;
-                tQuest.SetUpDb(tReader);
-            }
-            tReader.Close();
+            //while (tReader.Read())
+            //{
+            //    if (!this.mQuests.TryGetValue((int)(long)tReader["id"], out Quest? tQuest)
+            //        && tQuest == null)
+            //        continue;
+            //    tQuest.SetUpDb(tReader);
+            //}
+            //tReader.Close();
         }
         private void DataSetupQuestChain(SQLiteCommand pCommand)
         {
@@ -400,7 +400,8 @@ namespace BozjaBuddy.Data
 
             foreach (var iChain in this.mQuestChains.Values)
             {
-                QuestChain.LinkQuestsToChain(iChain.mId, ref this.mQuests, ref this.mQuestChains);
+                if (iChain == null) continue;
+                iChain.SetUpAfterDbLoad(ref this.mQuests);
             }
         }
 
@@ -420,6 +421,10 @@ namespace BozjaBuddy.Data
                 this.mGeneralObjects[this.mLoadouts[id].GetGenId()] = this.mLoadouts[id];
             foreach (int id in this.mFieldNotes.Keys)
                 this.mGeneralObjects[this.mFieldNotes[id].GetGenId()] = this.mFieldNotes[id];
+            foreach (int id in this.mQuests.Keys)
+                this.mGeneralObjects[this.mQuests[id].GetGenId()] = this.mQuests[id];
+            foreach (int id in this.mQuestChains.Keys)
+                this.mGeneralObjects[this.mQuestChains[id].GetGenId()] = this.mQuestChains[id];
         }
 
         public void SetUpAuxiliary()

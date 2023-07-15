@@ -55,7 +55,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public bool EndsWith(string pTargetNodeId) => this.mTargetNodeId == pTargetNodeId;
         public bool BothWith(string pSourceNodeId, string pTargetNodeId)
             => this.StartsWith(pSourceNodeId) && this.EndsWith(pTargetNodeId);
-        public NodeInteractionFlags Draw(ImDrawListPtr pDrawList, Vector2 pSourceOSP, Vector2 pTargetOSP, bool pIsHighlighted = false, bool pIsTargetPacked = false)
+        public NodeInteractionFlags Draw(ImDrawListPtr pDrawList, Vector2 pSourceOSP, Vector2 pTargetOSP, bool pIsHighlighted = false, bool pIsHighlightedNegative = false, bool pIsTargetPacked = false)
         {
             var tOriginalAnchor = ImGui.GetCursorScreenPos();
             NodeInteractionFlags tRes = NodeInteractionFlags.None;
@@ -194,7 +194,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             tRes |= this.DrawPU();
 
             // Anchor button (drawing)
-            var tColor = pIsTargetPacked ? UtilsGUI.Colors.NodePack : UtilsGUI.Colors.NodeFg;
+            var tColor = pIsTargetPacked 
+                            ? UtilsGUI.Colors.NodePack 
+                            : (pIsHighlightedNegative && !pIsHighlighted)
+                                ? UtilsGUI.Colors.NodeEdgeHighlightNeg
+                                : UtilsGUI.Colors.NodeFg;
             ImGui.SetCursorScreenPos(tOriginalAnchor);
             if (tClipRectEnd.HasValue) pDrawList.PushClipRect(
                                 new Vector2(Utils.GetSmallerVal(tAnchorOSP.X, tClipRectEnd.Value.X), Utils.GetSmallerVal(tAnchorOSP.Y, tClipRectEnd.Value.Y)),
@@ -206,8 +210,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             pDrawList.AddCircleFilled(tAnchorOSP, tAnchorSize.X * 0.4f, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(tColor, (tIsHovered || tClipRectEnd.HasValue) ? tTrasnsparency * 1.25f : tTrasnsparency)));
 
             // Line
-            pDrawList.AddLine(pSourceOSP, tAnchorOSP, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(tColor, pIsHighlighted ? 1 : tTrasnsparency)), pIsHighlighted ? Edge.kThickness * 1.4f : Edge.kThickness);
-            pDrawList.AddLine(tAnchorOSP, pTargetOSP, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(tColor, pIsHighlighted ? 1 : tTrasnsparency)), pIsHighlighted ? Edge.kThickness * 1.4f : Edge.kThickness);
+            pDrawList.AddLine(pSourceOSP, tAnchorOSP, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(tColor, pIsHighlighted || pIsHighlightedNegative ? (pIsHighlightedNegative ? 0.55f : 1) : tTrasnsparency)), (pIsHighlighted || pIsHighlightedNegative) ? Edge.kThickness * 1.4f : Edge.kThickness);
+            pDrawList.AddLine(tAnchorOSP, pTargetOSP, ImGui.ColorConvertFloat4ToU32(UtilsGUI.AdjustTransparency(tColor, pIsHighlighted || pIsHighlightedNegative ? (pIsHighlightedNegative ? 0.55f : 1) : tTrasnsparency)), (pIsHighlighted || pIsHighlightedNegative) ? Edge.kThickness * 1.4f : Edge.kThickness);
             // Edge's direction arrow (arrowhead)
             float tArrowOfsSource = Vector2.Distance(pSourceOSP, tAnchorOSP); if (tArrowOfsSource > Edge.kArrowPosOffsetMax) tArrowOfsSource = Edge.kArrowPosOffsetMax;
             float tArrowOfsAnchor = Vector2.Distance(tAnchorOSP, pTargetOSP); if (tArrowOfsAnchor > Edge.kArrowPosOffsetMax) tArrowOfsAnchor = Edge.kArrowPosOffsetMax;

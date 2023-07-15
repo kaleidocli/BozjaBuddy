@@ -25,7 +25,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 this.mPlugin = tContent.GetPlugin();
                 if (this.mPlugin == null && BBNode.kPlugin != null) this.mPlugin = BBNode.kPlugin;
                 this.mGenId = tContent.GetGenObjId();
-                if (this.mPlugin != null && this.mGenId.HasValue)
+                if (this.mPlugin != null && this.mGenId.HasValue && this.mPlugin.mBBDataManager != null)
                 {
                     if (this.mPlugin.mBBDataManager.mGeneralObjects.TryGetValue(this.mGenId.Value, out var pObj) && pObj != null)
                     {
