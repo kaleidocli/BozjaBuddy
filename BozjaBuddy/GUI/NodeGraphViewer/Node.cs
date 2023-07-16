@@ -280,7 +280,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             Vector2 tBSize = new(Node.handleButtonBoxItemWidth, this.mStyle.GetHandleSize().Y * 0.8f);
             tBSize *= pCanvasScaling;
-            if (ImGui.Selectable(this.mIsMinimized ? "  ^" : "  v", false, ImGuiSelectableFlags.DontClosePopups, tBSize))
+            if (ImGui.Selectable(this.mIsMinimized ? "  ▲" : "  ▼", false, ImGuiSelectableFlags.DontClosePopups, tBSize))
             {
                 this.mIsMinimized = !this.mIsMinimized;
             }

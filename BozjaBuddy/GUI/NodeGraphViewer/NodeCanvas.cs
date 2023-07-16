@@ -69,6 +69,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private EdgeConn? _nodeConnTemp = null;
         private Dictionary<string, string> _cachePathToPTarget = new();
         private Dictionary<string, string> _cachePathToPSource = new();
+        private Dictionary<string, string> _nodeLookUpData = new();
+        private Tuple<string, List<string>> _cacheLookUpValue = new("", new());
 
         public NodeCanvas(int pId, string? pName = null)
         {
@@ -101,6 +103,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.mConfig = mConfig;
             this._nodeRenderZOrder = _nodeRenderZOrder;
             this._nodeIdAndNodeGraphId = _nodeIdAndNodeGraphId;
+
+            // Refresh node lookup data
+            this._nodeLookUpData.Clear();
+            foreach (Node node in this.mNodes.Values)
+            {
+                this.AddNodeLookUpData(node.mId, node.mContent.GetHeader());
+            }
         }
 
         public float GetScaling() => this.mConfig.scaling;
@@ -145,6 +154,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             // add node vertex to graph
             this.mGraph.AddVertex(pNode.mGraphId);
             this._nodeIdAndNodeGraphId.TryAdd(pNode.mGraphId, pNode.mId);
+            // add look up value
+            this.AddNodeLookUpData(pNode.mId, pNode.mContent.GetHeader());
 
             this._nodeCounter++;
             return pNode.mId;
@@ -310,9 +321,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this.mGraph.RemoveVertex(tNodeGraphId.Value);
             }
 
+            // Remove look up data
+            this.RemoveNodeLookUpData(pNodeId);
 
             return tRes;
         }
+        public bool FocusOnNode(string pNodeId, Vector2? pExtraOfs = null) => this.mMap.FocusOnNode(pNodeId, (pExtraOfs ?? new Vector2(-90, -90)) * this.GetScaling());
         private string? GetNodeIdWithNodeGraphId(int pNodeGraphId)
         {
             this._nodeIdAndNodeGraphId.TryGetValue(pNodeGraphId, out var iChildId);
@@ -393,6 +407,12 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// <para>Check if node exists in this canvas' collection and map.</para>
         /// </summary>
         public bool HasNode(string pNodeId) => this._nodeIds.Contains(pNodeId) && this.mMap.CheckNodeExist(pNodeId);
+        /// <summary> Return a node with given id, null if none is found.</summary>
+        public Node? GetNode(string pNodeId)
+        {
+            if (!this.mNodes.TryGetValue(pNodeId, out var node)) return null;
+            return node;
+        }
         /// <summary> Returns true if import successfully, otherwise false.</summary>
         public bool ImportNodes(string pDataJson)
         {
@@ -610,6 +630,27 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._selectAllChildWalker(outEdge.Target);
             }
         }
+        private bool AddNodeLookUpData(string pNodeId, string pData) => this._nodeLookUpData.TryAdd(pNodeId, pData);
+        private bool RemoveNodeLookUpData(string pNodeId) => this._nodeLookUpData.Remove(pNodeId);
+        /// <summary> Returns a list if node ids with matching value (partial match is allowed). </summary>
+        public List<string> LookUpNode(string pValue)
+        {
+            List<string> tRes = new();
+            if (this._cacheLookUpValue.Item1 != pValue)
+            {
+                foreach (var d in this._nodeLookUpData)
+                {
+                    if (d.Value.Contains(pValue, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        tRes.Add(d.Key);
+                    }
+                }
+                this._cacheLookUpValue = new(pValue, tRes);
+            }
+            return this._cacheLookUpValue.Item2;
+        }
+
+
         public NodeInputProcessResult ProcessInputOnNode(Node pNode, Vector2 pNodeOSP, UtilsGUI.InputPayload pInputPayload, bool pReadClicks)
         {
             bool tIsNodeHandleClicked = false;

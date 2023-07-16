@@ -97,7 +97,7 @@ namespace BozjaBuddy.GUI.Sections
             bool tIsInputActive = ImGui.IsItemActive();
             bool tIsInputActivated = ImGui.IsItemActivated();
             bool tIsItemPUOpened = false;
-            UtilsGUI.SetTooltipForLastItem("- Search by name.\n- Search by phrases: action, fate, fragment, mob, loadout.\n\nCaptitalization is ignored. Nevertheless, the search function is still pretty barebone with no regex.");
+            UtilsGUI.SetTooltipForLastItem("- Search by name.\n- Search by phrases: action, fate, fragment, mob, loadout.\n\nCapitalization insensitive. No regex.");
 
             if (pCurrValue.Length != 0 && tIsInputActive)
                 ImGui.OpenPopup("##searchAllPU");
