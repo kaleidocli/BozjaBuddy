@@ -443,6 +443,10 @@ namespace BozjaBuddy.Data
                 AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mLoadouts[id].GetGenId());
             foreach (int id in this.mFieldNotes.Keys)
                 AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mFieldNotes[id].GetGenId());
+            foreach (int id in this.mQuests.Keys)
+                AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mQuests[id].GetGenId());
+            foreach (int id in this.mQuestChains.Keys)
+                AuxiliaryViewerSection.BindToGenObj(this.mPlugin, this.mQuestChains[id].GetGenId());
         }
         public void SetUpUiMap(List<UIMap_MycItemBoxRow> tUIMap_MycInfo)
         {

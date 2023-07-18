@@ -49,6 +49,8 @@ namespace BozjaBuddy.Data
 
             if (this.mLumina != null && tJournalGenre > 0)
                 this.mLumina = this.mPlugin.DataManager.Excel.GetSheet<JournalGenre>()?.GetRow((uint)tJournalGenre);
+
+            this.mUiTooltip = this.mDescription;
         }
         public bool ContainQuest(int pQuestId) => this.mQuests.Contains(pQuestId);
 
@@ -70,12 +72,12 @@ namespace BozjaBuddy.Data
         {
             return this.mUiTooltip;
         }
+        public string GetCanvasData() => JsonConvert.SerializeObject(this.mCanvas, Formatting.Indented);
 
         public void SetUpAfterDbLoad(ref Dictionary<int, Quest> pBbdmQuests)
         {
             this.LinkQuestsToChain(ref pBbdmQuests);
             this.SetUpCanvas(ref pBbdmQuests);
-            ImGui.SetClipboardText(JsonConvert.SerializeObject(this.mCanvas, Formatting.Indented));
         }
         private void LinkQuestsToChain(ref Dictionary<int, Quest> pBbdmQuests)
         {
@@ -111,7 +113,7 @@ namespace BozjaBuddy.Data
             // Set up general canvas stuff
             foreach (var iStart in this.mQuestStarts)
             {
-                PluginLog.LogDebug($"> QuestChain.SetUpCanvas(): proccing starter qid={iStart}");
+                //PluginLog.LogDebug($"> QuestChain.SetUpCanvas(): proccing starter qid={iStart}");
                 this.SetUpCanvasDriver(iStart, ref pBbdmQuests, tAdded, tQuestIdAndChildCount, tQuestIdAndNonfirstStarterCount, tQuestIdToNodeId, pIsStarter: true);
             }
             // Set up edges
@@ -137,7 +139,7 @@ namespace BozjaBuddy.Data
             // Check deadend
             if (!pBbdmQuests.TryGetValue(pQuestId, out Quest? tQuest)
                 || tQuest == null) return;
-            PluginLog.LogDebug($"> Canvas setup: qid={pQuestId} nextQs={tQuest.mNextQuestIds.Count} prevQs={tQuest.mPrevQuestIds.Count} ");
+            //PluginLog.LogDebug($"> Canvas setup: qid={pQuestId} nextQs={tQuest.mNextQuestIds.Count} prevQs={tQuest.mPrevQuestIds.Count} ");
 
             // Add quest to canvas
             string? tResNodeId = null;
@@ -169,11 +171,11 @@ namespace BozjaBuddy.Data
             }
             else if (tQuest.mPrevQuestIds.Count != 0)                                               // Mid-node / End-node
             {
-                PluginLog.LogDebug($"> (p={pQuestId}) ---> add_style 3");
+                //PluginLog.LogDebug($"> (p={pQuestId}) ---> add_style 3");
                 foreach (int idToAttach in tQuest.mPrevQuestIds)
                 {
                     if (!pQuestIdToNodeId.TryGetValue(idToAttach, out var nodeIdToAttach) || nodeIdToAttach == null) continue;
-                    PluginLog.LogDebug($"> (p={pQuestId}) ---> attach_id={nodeIdToAttach}");
+                    //PluginLog.LogDebug($"> (p={pQuestId}) ---> attach_id={nodeIdToAttach}");
                     if (!pQuestIdAndChildCount.TryGetValue(idToAttach, out int childCount))
                     {
                         childCount = 0;
@@ -186,7 +188,7 @@ namespace BozjaBuddy.Data
                         nodeIdToAttach
                     );
                     pQuestIdAndChildCount[idToAttach] = childCount + 1;
-                    PluginLog.LogDebug($"> (p={pQuestId}) ---> tResNodeId={tResNodeId}");
+                    //PluginLog.LogDebug($"> (p={pQuestId}) ---> tResNodeId={tResNodeId}");
                 }
             }
             // Add translation
@@ -201,7 +203,7 @@ namespace BozjaBuddy.Data
             pAdded.Add(pQuestId);
             foreach (var iChildId in tQuest.mNextQuestIds)
             {
-                PluginLog.LogDebug($"> (p={pQuestId}) ---> recur: cqid={iChildId} cExist={pBbdmQuests.ContainsKey(iChildId)}");
+                //PluginLog.LogDebug($"> (p={pQuestId}) ---> recur: cqid={iChildId} cExist={pBbdmQuests.ContainsKey(iChildId)}");
                 this.SetUpCanvasDriver(iChildId, ref pBbdmQuests, pAdded, pQuestIdAndChildCount, pQuestIdAndNonfirstStarterCount, pQuestIdToNodeId);
             }
         }

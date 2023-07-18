@@ -144,7 +144,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             return this.ImportCanvas(JsonConvert.SerializeObject(pCanvas));
         }
         /// <summary>Add new canvas to viewer using JSON. Return false if the deserialization fails, otherwise true.</summary>
-        private bool ImportCanvas(string pCanvasJson)
+        public bool ImportCanvas(string pCanvasJson)
         {
             return this.AddCanvas(pCanvasJson);
         }

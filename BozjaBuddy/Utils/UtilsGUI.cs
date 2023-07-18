@@ -193,6 +193,7 @@ namespace BozjaBuddy.Utils
             bool pIsAuxiLinked = true,
             InputPayload? pInputPayload = null,
             NodeGraphViewer? pNGViewer = null,          // the viewer to hook this link to
+            bool pBlockNGViewer = false,
             AuxNode? pAuxNode = null)
         {
             pInputPayload ??= new InputPayload();
@@ -255,22 +256,26 @@ namespace BozjaBuddy.Utils
             }
             else if (tRes)
             {
-                if (pAuxNode != null)
+                if (!pBlockNGViewer)
                 {
-                    pAuxNode.SetSeed(
-                        new(
-                            AuxNode.nodeType,
-                            new BBNodeContent(pPlugin, pTargetGenId, tObj.mName),
-                            ofsToPrevNode: new Vector2(40, 20)
-                            ));
-                }
-                else if (pNGViewer != null)
-                {
-                    pNGViewer.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
-                }
-                else if (pPlugin.Configuration.mIsAuxiUsingNGV)
-                {
-                    pPlugin.NodeGraphViewer_Auxi.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
+                    if (pAuxNode != null)
+                    {
+                        pAuxNode.SetSeed(
+                            new(
+                                AuxNode.nodeType,
+                                new BBNodeContent(pPlugin, pTargetGenId, tObj.mName),
+                                ofsToPrevNode: new Vector2(40, 20)
+                                ));
+                    }
+                    else if (pNGViewer != null)
+                    {
+                        pNGViewer.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
+                    }
+                    else if (pPlugin.Configuration.mIsAuxiUsingNGV)
+                    {
+                        pPlugin.NodeGraphViewer_Auxi.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
+                    }
+                    else pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
                 }
                 else pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
             }
@@ -334,6 +339,9 @@ namespace BozjaBuddy.Utils
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
+        /// <summary> 
+        /// <para> pDesc:       Text that appears on the button. If not given, the location's text will appear instead. </para>
+        /// </summary>
         public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false, float pRightAlignOffset = 0f, float pScaling = 1, Vector2? pFramePadding = null)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, UtilsGUI.FRAME_ROUNDING);
@@ -373,7 +381,7 @@ namespace BozjaBuddy.Utils
                     Message = SeString.CreateMapLink(pLocation.mTerritoryID, pLocation.mMapID, (float)pLocation.mMapCoordX, (float)pLocation.mMapCoordY)
                 });
             }
-            UtilsGUI.SetTooltipForLastItem($"Mark position on map + Link location to Chat (if available)\n\nat: {tButtonText}");
+            UtilsGUI.SetTooltipForLastItem($"Mark position on map + Link location to Chat (if available)\n\nat: {pLocation.mAreaFlag} ({pLocation.mMapCoordX:0.00}, {pLocation.mMapCoordY:0.00})");
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
@@ -528,6 +536,29 @@ namespace BozjaBuddy.Utils
                 pImageOverlayRGBA ?? new Vector4(1, 1, 1, 1),
                 pImageBorderColor ?? Vector4.Zero
                 );
+            return tRes;
+        }
+        public static bool SelectableLink_QuestChain(
+            Plugin pPlugin,
+            string pContent,
+            QuestChain pQuestChain,
+            NodeGraphViewer? pNGVToOpenQuestChainIn = null,
+            InputPayload? pInputPayload = null
+            )
+        {
+            bool tRes = UtilsGUI.SelectableLink_WithPopup(
+                    pPlugin,
+                    pContent,
+                    pQuestChain.GetGenId(),
+                    pIsAuxiLinked: false,
+                    pBlockNGViewer: true,
+                    pInputPayload: pInputPayload
+                );
+            if (tRes && pPlugin.Configuration.mIsAuxiUsingNGV)
+            {
+                NodeGraphViewer tNGV = pNGVToOpenQuestChainIn ?? pPlugin.NodeGraphViewer_Auxi;
+                tNGV.ImportCanvas(pQuestChain.GetCanvasData());
+            }
             return tRes;
         }
         /// <summary>
