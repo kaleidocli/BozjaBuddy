@@ -10,7 +10,7 @@ namespace BozjaBuddy.Filter
     /// Represents 1. Column header's GUI
     ///            2. The filter that is used to filter table content
     /// </summary>
-    internal abstract class Filter
+    public abstract class Filter
     {
         protected GUIFilter mGUI = new GUIFilter();
 

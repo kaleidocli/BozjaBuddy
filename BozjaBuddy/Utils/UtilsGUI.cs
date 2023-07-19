@@ -213,7 +213,7 @@ namespace BozjaBuddy.Utils
                 return tRes;
             }
             GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
-            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pTargetGenId}\n{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
+            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pTargetGenId}\n{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.mName}\n{tObj.GetReprUiTooltip()}");
 
             ImGui.PushID(pTargetGenId);
             if (!pInputPayload.mIsKeyShift && ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))

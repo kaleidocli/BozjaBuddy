@@ -9,7 +9,7 @@ namespace BozjaBuddy.GUI
     /// <summary>
     /// Represents a Section in a Tab
     /// </summary>
-    internal abstract class Section : IDrawable, IDisposable
+    public abstract class Section : IDrawable, IDisposable
     {
         protected abstract Plugin mPlugin { get; set; }
         protected virtual int mLastSortedColIndex { get; set; } = -1;

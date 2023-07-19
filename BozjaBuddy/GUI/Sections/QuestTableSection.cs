@@ -53,9 +53,9 @@ namespace BozjaBuddy.GUI.Sections
                 new Filter.QuestTableSection.FilterType(),
                 new Filter.QuestTableSection.FilterName(),
                 new Filter.QuestTableSection.FilterNpc(),
+                new Filter.QuestTableSection.FilterQuestChains(true, this.mPlugin),
                 new Filter.QuestTableSection.FilterPrevQuests(true, this.mPlugin),
-                new Filter.QuestTableSection.FilterNextQuests(true, this.mPlugin),
-                new Filter.QuestTableSection.FilterQuestChains(true, this.mPlugin)
+                new Filter.QuestTableSection.FilterNextQuests(true, this.mPlugin)
             };
             QuestTableSection.COLUMN_COUNT = this.mFilters.Length;
 
@@ -182,6 +182,15 @@ namespace BozjaBuddy.GUI.Sections
                             }
                             break;
                         case 3:
+                            foreach (int iiID in tQuest.mQuestChains)
+                            {
+                                QuestChain qChain = this.mPlugin.mBBDataManager.mQuestChains[iiID];
+                                ImGui.PushID($"{iID}{iiID}");
+                                UtilsGUI.SelectableLink_QuestChain(this.mPlugin, qChain.mName, qChain);
+                                ImGui.PopID();
+                            }
+                            break;
+                        case 4:
                             foreach (int iiID in tQuest.mPrevQuestIds)
                             {
                                 if (!this.mPlugin.mBBDataManager.mQuests.TryGetValue(iiID, out var q) || q == null) continue;
@@ -190,21 +199,12 @@ namespace BozjaBuddy.GUI.Sections
                                 ImGui.PopID();
                             }
                             break;
-                        case 4:
+                        case 5:
                             foreach (int iiID in tQuest.mNextQuestIds)
                             {
                                 if (!this.mPlugin.mBBDataManager.mQuests.TryGetValue(iiID, out var q) || q == null) continue;
                                 ImGui.PushID($"{iID}{iiID}");
                                 UtilsGUI.SelectableLink_WithPopup(mPlugin, q.mName, q.GetGenId());
-                                ImGui.PopID();
-                            }
-                            break;
-                        case 5:
-                            foreach (int iiID in tQuest.mQuestChains)
-                            {
-                                QuestChain qChain = this.mPlugin.mBBDataManager.mQuestChains[iiID];
-                                ImGui.PushID($"{iID}{iiID}");
-                                UtilsGUI.SelectableLink_QuestChain(this.mPlugin, qChain.mName, qChain);
                                 ImGui.PopID();
                             }
                             break;

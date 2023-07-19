@@ -8,7 +8,7 @@ using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI
 {
-    internal class GUIFilter
+    public class GUIFilter
     {
         public static int HEADER_TEXT_FIELD_SIZE_OFFSET = 12;
 

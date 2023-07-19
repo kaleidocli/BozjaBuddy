@@ -30,6 +30,10 @@ namespace BozjaBuddy.Utils
                                                                 Job.MNK, Job.DRG, Job.SAM, Job.NIN, Job.RPR,
                                                                 Job.BRD, Job.DNC, Job.MCH,
                                                                 Job.ALL};
+        public static HashSet<Job> kRelicValidJobs = UtilsGameData.kValidJobs
+                                                                .Where(j => j != Job.NONE && j != Job.RPR && j != Job.SGE)
+                                                                .Select(o => o)
+                                                                .ToHashSet<Job>();
         private static readonly Dictionary<Job, int> kJobIconIds = new()
         {
             { Job.WAR, 62121 },
