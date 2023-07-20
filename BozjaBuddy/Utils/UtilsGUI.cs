@@ -102,7 +102,7 @@ namespace BozjaBuddy.Utils
             return iconSize;
         }
         /// <summary>
-        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
+        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable. If false, genId doesn't matter. </para>
         /// <para>If pSize is not given, the size will be calculated from the size of pContent.</para>
         /// </summary>
         public static bool SelectableLink(
@@ -465,7 +465,7 @@ namespace BozjaBuddy.Utils
         }
         /// <summary>
         /// <para>A SelectableLink_WithPopup but in form of an image. Can be configured to be a normal Selectable.</para>
-        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
+        /// <para>pIsLink:              Whether the Link is a Link or just behaves like an ImGui.Selectable (If false, genId doesn't matter).</para>
         /// <para>pIsAuxiLinked:        Whether the Link will pop up an Auxiliary tab</para>
         /// <para>pContent:             Not advised to use.</para>
         /// <para>pLinkPadding:         Link padding from four sides of the image.</para>
