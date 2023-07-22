@@ -37,5 +37,11 @@ namespace BozjaBuddy.Utils
         {
             return new Vector4((float)R / 255, (float)G / 255, (float)B / 255, (float)A / 255);
         }
+
+        public enum NodeTagPrefix
+        {
+            SYS = 1000,
+            USER = 1001
+        }
     }
 }

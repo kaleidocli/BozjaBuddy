@@ -121,12 +121,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// </summary>
         protected string? AddNode<T>(
                 NodeContent.NodeContent pNodeContent,
-                Vector2 pDrawRelaPos
+                Vector2 pDrawRelaPos,
+                string? pTag = null
                           ) where T : Node, new()
         {
             // create node  (the node id is just a dummy. AddNode() should create from incremental static id val)
             T tNode = new();
-            tNode.Init("-1", -1, pNodeContent, _style: new(Vector2.Zero, Vector2.Zero, tNode.GetType() == typeof(AuxNode) ? AuxNode.minHandleSize : null));
+            tNode.Init("-1", -1, pNodeContent, _style: new(Vector2.Zero, Vector2.Zero, tNode.GetType() == typeof(AuxNode) ? AuxNode.minHandleSize : null), pTag: pTag);
             // add node
             if (this.AddNode(tNode, pDrawRelaPos) == null) return null;
 
@@ -168,12 +169,14 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 NodeContent.NodeContent pNodeContent,
                 Direction pCorner = Direction.NE,
                 Direction pDirection = Direction.E,
-                Vector2? pPadding = null
+                Vector2? pPadding = null,
+                string? pTag = null
                                   ) where T : Node, new()
         {
             return this.AddNode<T>(
                     pNodeContent,
-                    this.mOccuppiedRegion.GetAvailableRelaPos(pCorner, pDirection, pPadding ?? this.mConfig.nodeGap)
+                    this.mOccuppiedRegion.GetAvailableRelaPos(pCorner, pDirection, pPadding ?? this.mConfig.nodeGap),
+                    pTag: pTag
                 );
         }
         /// <summary>
@@ -221,7 +224,8 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public string? AddNodeAdjacent<T>(
                 NodeContent.NodeContent pNodeContent,
                 string pNodeIdToAdjoin,
-                Vector2? pOffset = null
+                Vector2? pOffset = null,
+                string? pTag = null
                 ) where T : Node, new()
         {
             if (!this.mNodes.TryGetValue(pNodeIdToAdjoin, out var pPrevNode) || pPrevNode == null) return null;
@@ -257,19 +261,21 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             return this.AddNode<T>(
                     pNodeContent,
-                    tRelaPosRes
+                    tRelaPosRes,
+                    pTag: pTag
                 );
         }
         public string? AddNodeAdjacent(
                 Seed pSeed,
-                string pNodeIdToAdjoin)
+                string pNodeIdToAdjoin,
+                string? pTag = null)
         {
             var tRes = pSeed.nodeType switch
             {
-                BasicNode.nodeType => this.AddNodeAdjacent<BasicNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode),
-                BBNode.nodeType => this.AddNodeAdjacent<BBNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode),
-                AuxNode.nodeType => this.AddNodeAdjacent<AuxNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode),
-                _ => this.AddNodeAdjacent<BasicNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode)
+                BasicNode.nodeType => this.AddNodeAdjacent<BasicNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode, pTag: pTag),
+                BBNode.nodeType => this.AddNodeAdjacent<BBNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode, pTag: pTag),
+                AuxNode.nodeType => this.AddNodeAdjacent<AuxNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode, pTag: pTag),
+                _ => this.AddNodeAdjacent<BasicNode>(pSeed.nodeContent, pNodeIdToAdjoin, pSeed.ofsToPrevNode, pTag: pTag)
             };
             // Connect node
             if (pSeed.isEdgeConnected && tRes != null)
@@ -326,7 +332,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             return tRes;
         }
-        public bool FocusOnNode(string pNodeId, Vector2? pExtraOfs = null) => this.mMap.FocusOnNode(pNodeId, (pExtraOfs ?? new Vector2(-90, -90)) * this.GetScaling());
+        public bool FocusOnNode(string pNodeId, Vector2? pExtraOfs = null)
+        {
+            return this.mMap.FocusOnNode(pNodeId, (pExtraOfs ?? new Vector2(-90, -90)) * this.GetScaling());
+        }
         private string? GetNodeIdWithNodeGraphId(int pNodeGraphId)
         {
             this._nodeIdAndNodeGraphId.TryGetValue(pNodeGraphId, out var iChildId);
@@ -630,6 +639,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._selectAllChildWalker(outEdge.Target);
             }
         }
+        public void MarkUnneedInitOfs() => this.mMap.MarkUnneedInitOfs();
         private bool AddNodeLookUpData(string pNodeId, string pData) => this._nodeLookUpData.TryAdd(pNodeId, pData);
         private bool RemoveNodeLookUpData(string pNodeId) => this._nodeLookUpData.Remove(pNodeId);
         /// <summary> Returns a list if node ids with matching value (partial match is allowed). </summary>
@@ -648,6 +658,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._cacheLookUpValue = new(pValue, tRes);
             }
             return this._cacheLookUpValue.Item2;
+        }
+        /// <summary> Returns a list if node ids with matching tag. </summary>
+        public List<string> LookUpNodeWithTag(string pTag)
+        {
+            List<string> tRes = new();
+            foreach (var n in this.mNodes.Values)
+            {
+                if (n.mTag == pTag) tRes.Add(n.mId);
+            }
+            return tRes;
         }
 
 

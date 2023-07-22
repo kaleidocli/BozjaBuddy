@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -47,6 +48,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (!this._nodeMap.TryGetValue(nodeId, out var nodeOfsFromLocalBase)) return false;
             this.ResetBaseOffset();
             this.AddBaseOffset(-nodeOfsFromLocalBase + (extraOfs ?? Vector2.Zero));
+            PluginLog.LogDebug($"> bO={this.GetBaseOffset()} lbO={nodeOfsFromLocalBase} eO={extraOfs}");
             return true;
         }
 

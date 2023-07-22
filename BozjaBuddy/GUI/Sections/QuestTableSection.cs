@@ -173,7 +173,8 @@ namespace BozjaBuddy.GUI.Sections
                             }
                             break;
                         case 1:
-                            UtilsGUI.SelectableLink_WithPopup(mPlugin, tQuest.mName, tQuest.GetGenId());
+                            //UtilsGUI.SelectableLink_WithPopup(mPlugin, tQuest.mName, tQuest.GetGenId());
+                            UtilsGUI.SelectableLink_Quest(mPlugin, tQuest.mName, tQuest);
                             break;
                         case 2:
                             if (tQuest.mIssuerLocation != null)

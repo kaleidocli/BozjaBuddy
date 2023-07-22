@@ -23,6 +23,7 @@ using System.IO.Pipes;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static FFXIVClientStructs.FFXIV.Client.Game.QuestManager.QuestListArray;
 
 namespace BozjaBuddy.Utils
 {
@@ -538,6 +539,10 @@ namespace BozjaBuddy.Utils
                 );
             return tRes;
         }
+        /// <summary> 
+        /// NGV only. Specifically for quest chain. Quest chain linking should be using this.
+        /// <para> Add a new canvas containing quest chain graph. If a canvas with the same quest chain already exists, set focus on that canvas instead. </para>
+        /// </summary>
         public static bool SelectableLink_QuestChain(
             Plugin pPlugin,
             string pContent,
@@ -557,7 +562,63 @@ namespace BozjaBuddy.Utils
             if (tRes && pPlugin.Configuration.mIsAuxiUsingNGV)
             {
                 NodeGraphViewer tNGV = pNGVToOpenQuestChainIn ?? pPlugin.NodeGraphViewer_Auxi;
-                tNGV.ImportCanvas(pQuestChain.GetCanvasData());
+                // Try to find and set focus on a canvas with the same quest chain tag
+                if (!tNGV.SetCanvasActive(pQuestChain.GetGenId().ToString()))
+                {
+                    tNGV.ImportCanvas(pQuestChain.GetCanvasData(), pQuestChain.GetGenId().ToString());
+                    tNGV.SetCanvasActive(pQuestChain.GetGenId().ToString());
+                }
+            }
+            return tRes;
+        }
+        /// <summary> 
+        /// NGV only. Specifically for quest.
+        /// <para> If the quest does not belong to a quest chain, it will behave like normal SelectableLink_PU </para>
+        /// <para> 
+        /// If the quest belongs to any quest chain, 
+        /// it will add/focus the tagged canvasses of all quest chains it belongs to, 
+        /// then focus on the node of the quest on that canvas.
+        /// </para>
+        /// </summary>
+        public static bool SelectableLink_Quest(
+            Plugin pPlugin,
+            string pContent,
+            BozjaBuddy.Data.Quest pQuest,
+            NodeGraphViewer? pNGVToOpenQuestChainIn = null,
+            InputPayload? pInputPayload = null
+            )
+        {
+            // case: normal SLPU
+            if (pQuest.mQuestChains.Count == 0)
+            {
+                return UtilsGUI.SelectableLink_WithPopup(pPlugin, pQuest.mName, pQuest.GetGenId());
+            }
+
+            bool tRes = UtilsGUI.SelectableLink_WithPopup(
+                    pPlugin,
+                    pContent,
+                    pQuest.GetGenId(),
+                    pIsAuxiLinked: false,
+                    pBlockNGViewer: true,
+                    pInputPayload: pInputPayload
+                );
+            if (tRes && pPlugin.Configuration.mIsAuxiUsingNGV)
+            {
+                NodeGraphViewer tNGV = pNGVToOpenQuestChainIn ?? pPlugin.NodeGraphViewer_Auxi;
+
+                foreach (var chainId in pQuest.mQuestChains)
+                {
+                    // Get chain
+                    if (!pPlugin.mBBDataManager.mQuestChains.TryGetValue(chainId, out var qChain) || qChain == null) continue;
+                    // Try to find and set focus on a canvas with the same quest chain tag
+                    if (!tNGV.SetCanvasActive(qChain.GetGenId().ToString()))
+                    {
+                        tNGV.ImportCanvas(qChain.GetCanvasData(), qChain.GetGenId().ToString(), noInitOfs: true);
+                        tNGV.SetCanvasActive(qChain.GetGenId().ToString());
+                    }
+                    // Focus on the node of the quest
+                    tNGV.FocusOnNodeTag_ActiveCanvas($"{Utils.NodeTagPrefix.SYS}{pQuest.GetGenId()}");
+                }
             }
             return tRes;
         }

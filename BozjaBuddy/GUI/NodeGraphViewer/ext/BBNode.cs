@@ -16,9 +16,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
         protected Plugin? mPlugin = null;
         protected int? mGenId = null;
 
-        public override void Init(string pNodeId, int pGraphId, NodeContent.NodeContent pContent, NodeStyle? _style = null)
+        public override void Init(string pNodeId, int pGraphId, NodeContent.NodeContent pContent, NodeStyle? _style = null, string? pTag = null)
         {
-            base.Init(pNodeId, pGraphId, pContent, _style);
+            base.Init(pNodeId, pGraphId, pContent, _style, pTag);
             if (pContent.GetType() == typeof(BBNodeContent))
             {
                 BBNodeContent tContent = (BBNodeContent)pContent;

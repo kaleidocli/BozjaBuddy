@@ -147,7 +147,8 @@ namespace BozjaBuddy.Data
             if (pIsStarter && this.mCanvas.mGraph.VertexCount == 0)                                  // Standalone or FIRST chain starter
             {
                 tResNodeId = this.mCanvas.AddNodeToAvailableCorner<AuxNode>(
-                    new BBNodeContent(this.mPlugin, tQuest.GetGenId(), tQuest.mName)
+                    new BBNodeContent(this.mPlugin, tQuest.GetGenId(), tQuest.mName),
+                    pTag: $"{Utils.Utils.NodeTagPrefix.SYS}{tQuest.GetGenId()}"
                 );
             }
             else if (pIsStarter && this.mCanvas.mGraph.VertexCount > 0)                              // Non-first starters (put this higher in terms of Y-axis)
@@ -164,7 +165,8 @@ namespace BozjaBuddy.Data
                         new(AuxNode.nodeType,
                             new BBNodeContent(this.mPlugin, tQuest.GetGenId(), tQuest.mName),
                             ofsToPrevNode: new Vector2(30, -100 * (starterCount + 1))),
-                        nodeIdToAttach
+                        nodeIdToAttach,
+                        pTag: $"{Utils.Utils.NodeTagPrefix.SYS}{tQuest.GetGenId()}"
                     );
                     pQuestIdAndNonfirstStarterCount[idToAttach] = starterCount + 1;
                 }
@@ -185,7 +187,8 @@ namespace BozjaBuddy.Data
                         new(AuxNode.nodeType,
                             new BBNodeContent(this.mPlugin, tQuest.GetGenId(), tQuest.mName),
                             ofsToPrevNode: new Vector2(70, 100 + 10 * childCount)),
-                        nodeIdToAttach
+                        nodeIdToAttach,
+                        pTag: $"{Utils.Utils.NodeTagPrefix.SYS}{tQuest.GetGenId()}"
                     );
                     pQuestIdAndChildCount[idToAttach] = childCount + 1;
                     //PluginLog.LogDebug($"> (p={pQuestId}) ---> tResNodeId={tResNodeId}");

@@ -35,6 +35,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.utils
                 };
                 string id = jo["mId"]?.ToString() ?? "-1";
                 int graphId = (int?)jo["mGraphId"] ?? -1;
+                string? tag = jo["mTag"]?.ToString();
                 Node.NodeStyle? style = jo["mStyle"]?.ToObject<Node.NodeStyle>(serializer);
 
                 Dictionary<string, string>? contentTemp = jo["mContent"]?.ToObject<Dictionary<string, string>>();
@@ -52,7 +53,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.utils
                     _ => jo["mContent"]?.ToObject<NodeContentError>(serializer)
                 } ?? new NodeContentError("NodeDeserializationError", "Unable to deserialize node's content for this node.");
 
-                node.Init(id, graphId, content, _style: style);
+                node.Init(id, graphId, content, _style: style, tag);
                 node.mPack = jo["mPack"]?.ToObject<HashSet<string>>() ?? new();
                 node.mPackerNodeId = jo["mPackerNodeId"] == null ? null : jo["mPackerNodeId"]!.ToString();
                 if (node.mPackerNodeId == string.Empty) node.mPackerNodeId = null;

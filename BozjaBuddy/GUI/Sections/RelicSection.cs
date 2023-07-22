@@ -84,7 +84,7 @@ namespace BozjaBuddy.GUI.Sections
                 if (this.mPlugin.Configuration.mIsRelicFirstTime)
                 {
                     if (ImGui.Selectable(this.mTopicHeaders[RelicStep.None], this.mCurrTopic == RelicStep.None)) this.mCurrTopic = RelicStep.None;
-                    UtilsGUI.TextDescriptionForWidget("======== ------ ========");
+                    UtilsGUI.TextDescriptionForWidget("========== ------ ==========");
                 }
                 // Relic steps
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(Vector2.One.X, ImGui.GetStyle().ItemSpacing.Y));
@@ -137,8 +137,8 @@ namespace BozjaBuddy.GUI.Sections
                             {
 
                             }
+                            else UtilsGUI.SetTooltipForLastItem($"Click to link item to chat.");
                         }
-                        else UtilsGUI.SetTooltipForLastItem($"Link item to chat.");
                     }
                     else ImGui.Text("----- ");
                     ImGui.PopID();
@@ -189,6 +189,10 @@ namespace BozjaBuddy.GUI.Sections
             {
                 
             }
+        }
+        public void DrawTopic_Intro()
+        {
+
         }
         public override void DrawGUIDebug() { }
 

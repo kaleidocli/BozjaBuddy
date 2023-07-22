@@ -381,8 +381,7 @@ namespace BozjaBuddy.GUI.GUIAssist
                                             {
                                                 this.ShowNode(iLostAction.mUINode);
                                             }
-                                            break;
-break;
+                                            break;;
                                         default: break;
                                     }
                                 }

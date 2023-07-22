@@ -101,7 +101,7 @@ namespace BozjaBuddy.Data
                             ", ",
                             q.Value.mNextQuestIds.Select(o => this.mQuests.TryGetValue(o, out Quest? tQuest) ? tQuest.mName : "")
                         ); ;
-                    PluginLog.LogDebug($"> BBDM: Loaded quest id={q.Value.mId} --- {q.Value.mName} ------> ({String.Join(", ", q.Value.mNextQuestIds)}) --- {temp}");
+                    //PluginLog.LogDebug($"> BBDM: Loaded quest id={q.Value.mId} --- {q.Value.mName} ------> ({String.Join(", ", q.Value.mNextQuestIds)}) --- {temp}");
                 }
             }
 

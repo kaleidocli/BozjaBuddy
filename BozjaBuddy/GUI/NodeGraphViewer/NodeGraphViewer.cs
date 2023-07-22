@@ -41,6 +41,11 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private bool _fistLoaded = true;
         private NodeCanvas mActiveCanvas;
         private ViewerNotificationManager mNotificationManager = new();
+        [JsonProperty]
+        private Dictionary<string, int> _tagAndCanvasId = new();
+        [JsonProperty]
+        private Dictionary<int, HashSet<string>> _canvasIdAndTags = new();       // a node can have multiple tags
+        private bool _activeCanvasDiffSwitchReq = false;
 
         private bool _isMouseHoldingViewer = false;
         private bool _isShowingRulerText = false;
@@ -85,14 +90,26 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this._canvasOrder.Add(t.mId);
             this._canvasCounter++;
         }
-        private bool AddCanvas(string pCanvasJson)
+        /// <summary> 
+        /// <para> tag:         add a canvas with tag. </para>
+        /// <para> noInitOfs:   By default, canvas will offset itself to align (0, 0) at the center of viewer. </para>
+        /// <para> Return null if there is already a canvas with the same tag. Otherwise, return the newly added canvas' id. </para>
+        /// </summary>
+        private int? AddCanvas(string pCanvasJson, string? pTag = null, bool noInitOfs = false)
         {
             var tCanvas = JsonConvert.DeserializeObject<NodeCanvas>(pCanvasJson, new utils.JsonConverters.NodeCanvasJsonConverter());
-            if (tCanvas == null) return false;
-            return this.AddCanvas(tCanvas);
+            if (tCanvas == null) return null;
+            return this.AddCanvas(tCanvas, pTag, noInitOfs: noInitOfs);
         }
-        private bool AddCanvas(NodeCanvas pCanvas)
+        /// <summary> 
+        /// <para> tag:         add a canvas with tag. </para>
+        /// <para> noInitOfs:   By default, canvas will offset itself to align (0, 0) at the center of viewer. </para>
+        /// <para> Return null if there is already a canvas with the same tag. Otherwise, return the newly added canvas' id. </para>
+        /// </summary>
+        private int? AddCanvas(NodeCanvas pCanvas, string? pTag = null, bool noInitOfs = false)
         {
+            // check if canvas with similar tag already exist
+            if (pTag != null && this._tagAndCanvasId.ContainsKey(pTag)) return null;
             // reassign canvas IDs every first time viewer is loaded to cache
             if (this._fistLoaded)
             {
@@ -120,7 +137,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this._canvases.Add(pCanvas.mId, pCanvas);
             this._canvasOrder.Add(pCanvas.mId);
             this._canvasCounter++;
-            return true;
+            if (pTag != null) this.TagCanvas(pCanvas.mId, pTag);
+            if (noInitOfs) pCanvas.MarkUnneedInitOfs();
+            return pCanvas.mId;
         }
         private NodeCanvas? GetCanvas(int pId)
         {
@@ -128,25 +147,20 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             return tCanvas;
         }
         private NodeCanvas? GetTopCanvas() => this._canvasOrder.Count == 0 ? null : this.GetCanvas(this._canvasOrder.First());
-        private bool RemoveCanvas(int pCanvasId)
+        private int? GetCanvasIdWithTag(string pTag) => this._tagAndCanvasId.TryGetValue(pTag, out var tCanvasId) ? tCanvasId : null;
+        /// <summary>'Deep-copy' given canvas, and add it to the viewer with a new id. Return null if the deserialization fails, otherwise return the newly imported canvas' id.</summary>
+        private int? ImportCanvas(NodeCanvas pCanvas, string? pTag = null)
         {
-            if (this._canvasOrder.Count == 1) return false;
-            if (!this._canvases.Remove(pCanvasId)) return false;
-            this._canvasOrder.Remove(pCanvasId);
-            var tTopCanvas = this.GetTopCanvas();
-            if (tTopCanvas == null) this.AddBlankCanvas();
-            if (this.mActiveCanvas.mId == pCanvasId) this.mActiveCanvas = tTopCanvas ?? this.GetTopCanvas()!;
-            return true;
+            return this.ImportCanvas(JsonConvert.SerializeObject(pCanvas), pTag);
         }
-        /// <summary>'Deep-copy' given canvas, and add it to the viewer with a new id.</summary>
-        private bool ImportCanvas(NodeCanvas pCanvas)
+        /// <summary>
+        /// <para> Add new canvas to viewer using JSON. Return null if the deserialization fails, otherwise return the newly imported canvas' id. </para>
+        /// <para> If tag is given, return null if a canvas with the same tag already exists. </para>
+        /// <para> noInitOfs:   By default, canvas will offset itself to align (0, 0) at the center of viewer. </para>
+        /// </summary>
+        public int? ImportCanvas(string pCanvasJson, string? pTag = null, bool noInitOfs = false)
         {
-            return this.ImportCanvas(JsonConvert.SerializeObject(pCanvas));
-        }
-        /// <summary>Add new canvas to viewer using JSON. Return false if the deserialization fails, otherwise true.</summary>
-        public bool ImportCanvas(string pCanvasJson)
-        {
-            return this.AddCanvas(pCanvasJson);
+            return this.AddCanvas(pCanvasJson, pTag, noInitOfs: noInitOfs);
         }
         /// <summary> Returns false if canvasId is not found, otherwise true. </summary>
         private string? ExportCanvasAsJson(int pCanvasId)
@@ -193,23 +207,99 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             if (tRes == null) return false;
 
             HashSet<int> tLoadedIds = new();
-            foreach (var id in tRes._canvasOrder)
+            foreach (var oldId in tRes._canvasOrder)
             {
-                if (tLoadedIds.Contains(id)) continue;      // prevent loading dupes
+                if (tLoadedIds.Contains(oldId)) continue;      // prevent loading dupes
 
-                var tCanvasIn = tRes.GetCanvas(id);
+                var tCanvasIn = tRes.GetCanvas(oldId);
                 if (tCanvasIn == null) continue;
-                this.AddCanvas(tCanvasIn);
+                var tNewId = this.AddCanvas(tCanvasIn);
+                if (tNewId != null && tRes._canvasIdAndTags.TryGetValue(oldId, out var tags))
+                {
+                    foreach (var tag in tags)
+                    {
+                        this._tagAndCanvasId.TryAdd(tag, tNewId.Value);
+                    }
+                    this._canvasIdAndTags.TryAdd(tNewId.Value, tags);
+                }
             }
             this.mConfig = tRes.mConfig;
             if (this.GetTopCanvas() == null) this.AddBlankCanvas();
             this.mActiveCanvas = this.GetTopCanvas()!;
             return true;
         }
+        /// <summary> Tag a canvas. Return false if tag already exists, or id not found. </summary>
+        private bool TagCanvas(int pCanvasId, string pTag)
+        {
+            if (!this._canvasOrder.Contains(pCanvasId)) return false;
+            if (this._tagAndCanvasId.ContainsKey(pTag)) return false;
+            this._tagAndCanvasId.TryAdd(pTag, pCanvasId);
+            if (this._canvasIdAndTags.ContainsKey(pCanvasId))
+            {
+                this._canvasIdAndTags[pCanvasId].Add(pTag);
+            }
+            else
+            {
+                this._canvasIdAndTags.TryAdd(pCanvasId, new() { pTag });
+            }
+            return true;
+        }
+        /// <summary> Untag a canvas. Returns false if canvas doeshn't have any tag. </summary>
+        private bool UntagCanvas(int pCanvasId)
+        {
+            if (this._canvasIdAndTags.TryGetValue(pCanvasId, out var tTags) && tTags != null)
+            {
+                foreach (var tag in tTags)
+                {
+                    this._tagAndCanvasId.Remove(tag);
+                }
+                this._canvasIdAndTags.Remove(pCanvasId);
+            }
+            else return false;
+            return true;
+        }
+        private bool RemoveCanvas(int pCanvasId)
+        {
+            if (this._canvasOrder.Count == 1) return false;
+            if (!this._canvases.Remove(pCanvasId)) return false;
+            this._canvasOrder.Remove(pCanvasId);
+            var tTopCanvas = this.GetTopCanvas();
+            if (tTopCanvas == null) this.AddBlankCanvas();
+            if (this.mActiveCanvas.mId == pCanvasId) this.mActiveCanvas = tTopCanvas ?? this.GetTopCanvas()!;
+
+            // removing canvas from tag's col if exist.
+            this.UntagCanvas(pCanvasId);
+
+            return true;
+        }
         public ViewerEventFlag GetViewerEventFlags() => this._eventFlags;
         public void AddNodeToActiveCanvas<T>(NodeContent.NodeContent pNodeContent) where T : Node, new()
         {
             var tNodeId = this.mActiveCanvas.AddNodeWithinView<T>(pNodeContent, this.mConfig.sizeLastKnown ?? NodeGraphViewer.kRecommendedViewerSizeToSearch);
+        }
+        /// <summary> Set a canvas active (focus). Returns false if id not found. </summary>
+        public bool SetCanvasActive(int pCanvasId)
+        {
+            if (this.mActiveCanvas.mId == pCanvasId) return true;
+            var c = this.GetCanvas(pCanvasId);
+            if (c == null) return false;
+            this.SetCanvasActive(c);
+            return true;
+        }
+        private void SetCanvasActive(NodeCanvas pCanvas)
+        {
+            if (this.mActiveCanvas.mId != pCanvas.mId)
+            {
+                this._activeCanvasDiffSwitchReq = true;
+            }
+            this.mActiveCanvas = pCanvas;
+        }
+        /// <summary> Set active (focus) on a canvas with given tag. Returns false if tag not found. </summary>
+        public bool SetCanvasActive(string pTag)
+        {
+            var tCanvasId = this.GetCanvasIdWithTag(pTag);
+            if (tCanvasId == null) return false;
+            return this.SetCanvasActive(tCanvasId.Value);
         }
 
         /// <summary> Draw at current cursor, with size as ContentRegionAvail </summary>
@@ -244,9 +334,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                     if (!this._canvases.TryGetValue(canvasId, out var c) || c == null) continue;
                     bool isOpened = true;
                     ImGui.SetNextItemWidth((tTabBarW - ImGui.GetStyle().ItemInnerSpacing.X * this._canvasOrder.Count) / this._canvasOrder.Count);
-                    if (ImGui.BeginTabItem($"{c.mName}##{c.mId}", ref isOpened))
+                    if (ImGui.BeginTabItem($"{c.mName}##{c.mId}", ref isOpened, (this._activeCanvasDiffSwitchReq && this.mActiveCanvas.mId == canvasId) ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
                     {
-                        this.mActiveCanvas = c;
+                        if (!this._activeCanvasDiffSwitchReq) this.SetCanvasActive(c);
+                        else if (this._activeCanvasDiffSwitchReq && this.mActiveCanvas.mId == canvasId) this._activeCanvasDiffSwitchReq = false;
                         ImGui.EndTabItem();
                     }
                     if (!isOpened) tCanvasToRemove.Add(c.mId);
@@ -599,7 +690,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             {
                 try
                 {
-                    if (this.ImportCanvas(ImGui.GetClipboardText()))
+                    if (this.ImportCanvas(ImGui.GetClipboardText()) != null)
                     {
                         this.mNotificationManager.Push(new ViewerNotification($"##cimpy", $"Canvas imported from clipboard!"));
                     }
@@ -693,7 +784,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
                     if (ImGui.Selectable(node.mContent.GetHeader(), false, ImGuiSelectableFlags.DontClosePopups))
                     {
-                        this.mActiveCanvas.FocusOnNode(node.mId);
+                        this.FocusOnNodeId_ActiveCanvas(node.mId);
                     }
                 }
                 if (!tIsInputActive && !ImGui.IsWindowFocused() && !tIsItemPUOpened)
@@ -702,6 +793,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 }
                 ImGui.EndPopup();
             }
+        }
+        private void FocusOnNodeId_ActiveCanvas(string pNodeId, Vector2? pExtraOfs = null) => this.mActiveCanvas.FocusOnNode(pNodeId, pExtraOfs);
+        public void FocusOnNodeTag_ActiveCanvas(string pTag, Vector2? pExtraOfs = null)
+        {
+            var tRes = this.mActiveCanvas.LookUpNodeWithTag(pTag);
+            if (tRes.Count == 0) return;
+            this.mActiveCanvas.FocusOnNode(tRes.First(), pExtraOfs);
         }
         private void CopySelectedNodes()
         {
