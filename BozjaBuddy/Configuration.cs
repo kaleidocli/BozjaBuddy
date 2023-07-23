@@ -61,7 +61,8 @@ namespace BozjaBuddy
         public string? mAuxiNGVSaveData = null;
         public Dictionary<Job, RelicSection.RelicStep> mRelicProgress = UtilsGameData.kRelicValidJobs.ToDictionary(o => o, o => RelicSection.RelicStep.None);
 
-        public bool mIsRelicFirstTime = false;
+        public bool mIsRelicFirstTime = true;
+        public bool mIsRelicBlu = false;
         public Job mRelicCurrJob = RelicSection.kDefaultCurrJob;
 
         public GuiAssistConfig mGuiAssistConfig = new();

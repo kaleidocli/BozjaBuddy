@@ -20,6 +20,7 @@ namespace BozjaBuddy.GUI.Sections
 
         protected override Plugin mPlugin { get; set; }
         private RelicStep mCurrTopic = 0;
+        private RelicSectionGuiFlag mGuiFlag = RelicSectionGuiFlag.None;
         private Dictionary<RelicStep, string> mTopicHeaders = new()
         {
             { RelicStep.None, "Intro" },
@@ -84,8 +85,14 @@ namespace BozjaBuddy.GUI.Sections
                 if (this.mPlugin.Configuration.mIsRelicFirstTime)
                 {
                     if (ImGui.Selectable(this.mTopicHeaders[RelicStep.None], this.mCurrTopic == RelicStep.None)) this.mCurrTopic = RelicStep.None;
-                    UtilsGUI.TextDescriptionForWidget("========== ------ ==========");
                 }
+                if (this.mPlugin.mBBDataManager.mQuestChains.TryGetValue(1, out var tQuestChain_Bozja) && tQuestChain_Bozja != null)
+                {
+                    UtilsGUI.SelectableLink_QuestChain(this.mPlugin, "Bozja Questline", tQuestChain_Bozja);
+                }
+                ImGui.Separator();
+                ImGui.Spacing();
+
                 // Relic steps
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(Vector2.One.X, ImGui.GetStyle().ItemSpacing.Y));
                 foreach (var step in this.mOrderedTopics)
@@ -150,13 +157,18 @@ namespace BozjaBuddy.GUI.Sections
 
                 // Configs
                 // First time
-                ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetContentRegionAvail().Y - 23 * 2.15f));
+                ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetContentRegionAvail().Y - 36f * 2.15f));
                 ImGui.Checkbox("##rlcFirst", ref this.mPlugin.Configuration.mIsRelicFirstTime);
-                //ImGuiComponents.ToggleButton("##rlcFirst", ref this.mPlugin.Configuration.mIsRelicFirstTime);
                 ImGui.SameLine();
                 UtilsGUI.TextDescriptionForWidget("First-time");
                 ImGui.SameLine();
                 UtilsGUI.ShowHelpMarker("Tick if this is the first time this character start the relic grind.\n- This helps tailoring the guide to what user's need.");
+                // BLU
+                ImGui.Checkbox("##rlcBlu", ref this.mPlugin.Configuration.mIsRelicBlu);
+                ImGui.SameLine();
+                UtilsGUI.TextDescriptionForWidget("BLU");
+                ImGui.SameLine();
+                UtilsGUI.ShowHelpMarker("Tick if you have BLU leveled and ready for grinding.\n- This helps tailoring the guide to what user's need.");
                 // Update
                 if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowsSpin))
                 {
@@ -187,11 +199,153 @@ namespace BozjaBuddy.GUI.Sections
         {
             switch (this.mCurrTopic)
             {
-                
+                case RelicStep.None: this.DrawTopic_Intro(); break;
+                case RelicStep.Resistance: this.DrawTopic_Resistance(); break;
             }
         }
         public void DrawTopic_Intro()
         {
+            ImGui.PushTextWrapPos();
+            ImGui.Text("- This plugin mainly serves as a checklist for your relic progress.");
+            UtilsGUI.TextDescriptionForWidget("  If you want the overall,");
+            ImGui.SameLine();
+            // detail
+            if (UtilsGUI.SelectableLink(this.mPlugin, $"click me {(this.mGuiFlag.HasFlag(RelicSectionGuiFlag.Intro_ShowingDetail) ? "▼" : "▲")}", -1, pIsClosingPUOnClick: false, pIsAuxiLinked: false))
+            {
+                if (this.mGuiFlag.HasFlag(RelicSectionGuiFlag.Intro_ShowingDetail)) this.mGuiFlag &= ~RelicSectionGuiFlag.Intro_ShowingDetail;
+                else this.mGuiFlag |= RelicSectionGuiFlag.Intro_ShowingDetail;
+            }
+            if (this.mGuiFlag.HasFlag(RelicSectionGuiFlag.Intro_ShowingDetail))
+            {
+                if (ImGui.BeginChild("##introDetail", new(ImGui.GetContentRegionAvail().X - ImGui.GetStyle().FramePadding.X * 2, 300), true))
+                {
+                    ImGui.Text("Players will be doing two things throughout the Bozja content:");
+                    UtilsGUI.TextDescriptionForWidget(
+                        """
+                        1. Progressing Bozja areas. (i.e. unlocking Bozja zones, raids, etc.)
+                        2. Progressing Bozja relics. (i.e. unlocking new relic steps)
+                        """
+                    );
+                    UtilsGUI.TextDescriptionForWidget("""As such, you can think of there being 2 mini-questlines running in parallel.""");
+                    ImGui.Text("You can kinda see that in the graph of the ");
+                    if (this.mPlugin.mBBDataManager.mQuestChains.TryGetValue(1, out var tQuestChain_ResWp) && tQuestChain_ResWp != null)
+                    {
+                        ImGui.SameLine();
+                        UtilsGUI.SelectableLink_QuestChain(this.mPlugin, "Resistance Weapons questline.", tQuestChain_ResWp);
+                    }
+
+                    ImGui.Separator();
+
+                    if (ImGui.CollapsingHeader("Progressing Bozja areas:"))
+                    {
+                        ImGui.PushTextWrapPos();
+                        UtilsGUI.TextDescriptionForWidget("""- Collecting mettles, turning them in to level up your rank. Rinse and repeat.""");
+                        ImGui.SameLine();
+                        UtilsGUI.ShowHelpMarker("- Quickest way to get mettles is doing FATEs and Critical engagement.\r\n- Get the riding maps ASAP (mount speed buff). Sold for 25 clusters, by NPC Quartermaster at the base in the instance.");
+
+                        UtilsGUI.TextDescriptionForWidget("- The wiki site does a great job at the basics.");
+                        ImGui.SameLine();
+                        UtilsGUI.UrlButton("https://ffxiv.consolegameswiki.com/wiki/The_Bozjan_Southern_Front");
+
+                        UtilsGUI.TextDescriptionForWidget(
+                            """
+                            - Join a community. 
+                            - They're super helpful and will make your experience much more enjoyable.
+                            """
+                            );
+                        ImGui.SameLine();
+                        UtilsGUI.ShowHelpMarker("some communities are included in the [DRS/Communities] tab in this plugin");
+                        UtilsGUI.TextDescriptionForWidget(
+                            """
+                        - Rank milestones: 
+                                1       unlock Bozja zone 1
+                                5       unlock Bozja zone 2
+                                8       unlock Bozja zone 3
+                                10      unlock CLL, then Delubrum Reginae, then Zadnor
+                                15      unlock Delubrum Reginae Savage
+                                18      unlock Zadnor zone 2
+                                22      unlock Zadnor zone 3
+                                25      unlock Dalriada
+                        """
+                            );
+                        ImGui.PopTextWrapPos();
+                    }
+                    
+                    if (ImGui.CollapsingHeader("Progressing Bozja relics:"))
+                    {
+                        ImGui.PushTextWrapPos();
+
+                        UtilsGUI.TextDescriptionForWidget("""- To progress in Bozja relics, you slso need to progress in Bozja content.""");
+                        UtilsGUI.TextDescriptionForWidget(
+                            """
+                            - A Bozja relic step generally has two approaches:
+                                    1. Bozja approach:                    grinding content related to Bozja.
+                                    2. Non-Bozja approach.           grinding content unrelated to Bozja.
+                            - If you have BLU, then non-Bozja approach is preferred for some steps.
+
+                            - If it's your first time doing Bozja relic, you will have the following changes:
+                                    + Extra two steps: One-time grind 1 & 2
+                                    + First step [Resistance] will not require any poetics.
+                                    + Other minor stuff.
+                            - Make sure to tick your [Fist Time] and [BLU preferred] at the bottom of the list on the left if those apply to you.
+                            """);
+
+                        ImGui.PopTextWrapPos();
+                    }
+
+                    ImGui.EndChild();
+                }
+            }
+
+            ImGui.Text("- You can link the relic to chat by clicking the relic item image.");
+            ImGui.Text("- You can update your progress by clicking the spinning arrow icon.");
+
+            ImGui.Separator();
+
+            UtilsGUI.TextDescriptionForWidget(
+                            """
+                            - A Bozja relic step generally has two approaches:
+                                    1. Bozja approach:                    grinding content related to Bozja.
+                                    2. Non-Bozja approach.           grinding content unrelated to Bozja.
+                            - If you have BLU, then non-Bozja approach is preferred for some steps.
+
+                            - If it's your first time doing Bozja relic, you will have the following changes:
+                                    + Extra two steps: One-time grind 1 & 2
+                                    + First step [Resistance] will not require any poetics.
+                                    + Other minor stuff.
+                            - Make sure to tick your [Fist Time] and [BLU preferred] at the bottom of the list on the left if those apply to you.
+                            """);
+
+            ImGui.PopTextWrapPos();
+        }
+        public void DrawTopic_Resistance()
+        {
+            var tConfig = this.mPlugin.Configuration;
+            var tHeight = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 3.48f);
+            tHeight = tHeight < this.kSectionHeight ? tHeight : this.kSectionHeight;
+
+            // Content
+            if (ImGui.BeginChild("##tr_content", new(ImGui.GetContentRegionAvail().X / 10 * 7.2f, tHeight)))
+            {
+                if (tConfig.mIsRelicFirstTime)
+                {
+                    ImGui.Text("Fox jumping something something");
+                }
+                else
+                {
+
+                }
+                ImGui.EndChild();
+            }
+
+            ImGui.SameLine();
+
+            // Prereq
+            if (ImGui.BeginChild("##tr_prereq", new(ImGui.GetContentRegionAvail().X - ImGui.GetStyle().FramePadding.X, tHeight), true))
+            {
+                ImGui.Text("aaa");
+                ImGui.EndChild();
+            }
 
         }
         public override void DrawGUIDebug() { }
@@ -210,6 +364,13 @@ namespace BozjaBuddy.GUI.Sections
             LawsOrderA = 32,
             OTG_2 = 64,
             Blades = 128
+        }
+
+        [Flags]
+        private enum RelicSectionGuiFlag
+        {
+            None = 0,
+            Intro_ShowingDetail = 1
         }
     }
 }
