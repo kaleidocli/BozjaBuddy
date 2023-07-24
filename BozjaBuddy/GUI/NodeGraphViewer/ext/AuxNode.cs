@@ -94,6 +94,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 case GeneralObject.GeneralObjectSalt.Fragment:
                     tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), TextureCollection.Sheet.Item, true);
                     break;
+                case GeneralObject.GeneralObjectSalt.Item:
+                    tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), TextureCollection.Sheet.Item, true);
+                    break;
                 case GeneralObject.GeneralObjectSalt.Fate:
                     tIconWrap = UtilsGameData.kTextureCollection?.GetStandardTexture((uint)this.mPlugin.mBBDataManager.mFates[pObj.mId].mType);
                     break;

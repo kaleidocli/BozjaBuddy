@@ -45,6 +45,7 @@ namespace BozjaBuddy.Data
         public Dictionary<int, FieldNote> mFieldNotes;
         public Dictionary<int, Quest> mQuests;
         public Dictionary<int, QuestChain> mQuestChains;
+        private Dictionary<int, Item> mItems;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Action>? mSheetAction;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? mSheetItem;
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Quest>? mSheetQuest;
@@ -67,6 +68,7 @@ namespace BozjaBuddy.Data
             this.mQuests = new();
             this.mQuestChains = new();
             this.mGeneralObjects = new Dictionary<int, GeneralObject>();
+            this.mItems = new();
 
             // lumina
             this.mSheetAction = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Action>();
@@ -502,6 +504,30 @@ namespace BozjaBuddy.Data
                 }
             }
             this.SaveLoadouts();
+        }
+        /// <summary> 
+        /// Get BozjaBuddy Item. 
+        /// If not available in cache, it will try to pull data from lumina item sheet and use that to create a BB Item, then cache it. 
+        /// Returns null if item id not found in lumina item sheet.
+        /// </summary>
+        public Item? GetItem(int pLuminaItemId)
+        {
+            if (!this.mItems.TryGetValue(pLuminaItemId, out var tItem) || tItem == null)
+            {
+                // Init data
+                var luminaItem = this.mSheetItem?.GetRow(Convert.ToUInt32(pLuminaItemId));
+                if (luminaItem == null) return null;
+                tItem = new(this.mPlugin, luminaItem);
+
+                // Add data
+                this.mItems.TryAdd(pLuminaItemId, tItem);
+
+                // Setups
+                this.mGeneralObjects[tItem.GetGenId()] = tItem;
+                AuxiliaryViewerSection.BindToGenObj(this.mPlugin, tItem.GetGenId());
+            }
+
+            return tItem;
         }
 
         public void Dispose()

@@ -46,13 +46,14 @@ namespace BozjaBuddy.Data
 
         public static int SaltMultiplier = 100000;
         public static int IdToGenId(int pId, int pIdSalt) => pId + (int)pIdSalt * GeneralObject.SaltMultiplier;
+        /// <summary> O(n) please be advised </summary>
         public static int[] GenIdToIdAndSalt(int pGenId)
         {
             foreach (GeneralObjectSalt tSalt in new GeneralObjectSalt[] {
                                         GeneralObjectSalt.Fate,
                                         GeneralObjectSalt.Mob,
                                         GeneralObjectSalt.Fragment,
-                                        GeneralObjectSalt.LostAction
+                                        GeneralObjectSalt.LostAction                // do not change the order. FIX THIS DUMMY ALGO!
                                                                         })
             {
                 if (pGenId > (int)tSalt * GeneralObject.SaltMultiplier) 
@@ -72,7 +73,8 @@ namespace BozjaBuddy.Data
             Loadout = 6,
             FieldNote = 7,
             Quest = 8,
-            QuestChain = 9
+            QuestChain = 9,
+            Item = 10
         }
     }
 }

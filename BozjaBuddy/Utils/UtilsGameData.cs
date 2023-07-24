@@ -250,6 +250,22 @@ namespace BozjaBuddy.Utils
         {
             UtilsGameData.kTextureCollection?.Dispose();
         }
+
+        public enum LuminaItemId          // basically a map of item's name and lumina id, for ease of use. Only for the ones that we use a lot.
+        {
+            Memory_Tortured = 31573,
+            Memory_Sorrowful = 31574,
+            Memory_Harrowing = 31575,
+            Memory_Bitter = 31576,
+
+            Memory_Loathsome = 32956,
+            Memory_Haunting = 32957,
+            Memory_Vexatious = 32958,
+            Memory_Bleak = 32959,
+            Memory_Lurid = 32960,
+
+            SaveThePrincess = 32855
+        }
     }
 
     public enum Job

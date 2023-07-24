@@ -330,6 +330,7 @@ namespace BozjaBuddy.GUI.Sections
                 if (tConfig.mIsRelicFirstTime)
                 {
                     ImGui.Text("Fox jumping something something");
+                    UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.SaveThePrincess);
                 }
                 else
                 {

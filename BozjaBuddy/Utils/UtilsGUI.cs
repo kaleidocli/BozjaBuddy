@@ -24,6 +24,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static FFXIVClientStructs.FFXIV.Client.Game.QuestManager.QuestListArray;
+using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace BozjaBuddy.Utils
 {
@@ -33,6 +34,10 @@ namespace BozjaBuddy.Utils
         private static Vector2 FRAME_PADDING { get; } = new(10f, 2f);
         private static DateTime kTimeSinceLastClipboardCopied = DateTime.Now;
         private unsafe static readonly AtkStage* stage = AtkStage.GetSingleton();
+
+        private static Dictionary<int, int> _cachedInventoryItemAndCount = new();
+        private static Dictionary<int, DateTime> _inventoryItemLastCacheTime = new();
+        private const float _inventoryCacheInterval = 1000;
 
         // https://www.programcreek.com/cpp/?code=kswaldemar%2Frewind-viewer%2Frewind-viewer-master%2Fsrc%2Fimgui_impl%2Fimgui_widgets.cpp
         public static void ShowHelpMarker(string desc, string markerText = "(?)", bool disabled = true)
@@ -652,6 +657,118 @@ namespace BozjaBuddy.Utils
             ImGui.PopID();
         }
         /// <summary>
+        /// <para> luminaItemId:            id of the item in the Item lumina sheet. If BBItem is not found, a text will be displayed instead of a SL_PU. </para>
+        /// </summary>
+        public static void InventoryItemWidget(
+            Plugin pPlugin, 
+            int pLuminaItemId, 
+            float pUpdateRate = UtilsGUI._inventoryCacheInterval, 
+            int? pMaxCount = null, 
+            Vector4? pColorItemName = null,
+            Vector4? pColorCount = null,
+            UtilsGUI.InventoryItemWidgetFlag pFlag = InventoryItemWidgetFlag.None)
+        {
+            // Retrieve data
+            uint tLuminaItemId = Convert.ToUInt32(pLuminaItemId);
+            var tItem = pPlugin.mBBDataManager.mSheetItem?.GetRow(tLuminaItemId);
+            if (tItem == null)
+            {
+                ImGui.Text($"<InvItemWdgt_err: lid={pLuminaItemId}>");
+                return;
+            }
+            TextureWrap? tItemTexture = pFlag.HasFlag(InventoryItemWidgetFlag.NoIcon)
+                ? null
+                : UtilsGameData.kTextureCollection?.GetTextureFromItemId(tLuminaItemId, TextureCollection.Sheet.Item, pTryLoadTexIfFailed: true);
+            int tCount = 0;
+            UtilsGUI._inventoryItemLastCacheTime.TryGetValue(pLuminaItemId, out DateTime tLastCacheTime);
+            // Check item validity in cache. If not, update cache.
+            if (!(UtilsGUI._cachedInventoryItemAndCount.TryGetValue(pLuminaItemId, out tCount)
+                && (DateTime.Now - tLastCacheTime).TotalMilliseconds < pUpdateRate)
+                )
+            {
+                PluginLog.LogDebug($"> UtilsGUI.ItemWidget: iid={pLuminaItemId} timeLast={(DateTime.Now - tLastCacheTime).TotalMilliseconds < pUpdateRate}");
+                tCount = 0;
+                unsafe 
+                {
+                    var ins = InventoryManager.Instance();
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.Inventory1);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.Inventory2);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.Inventory3);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.Inventory4);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.SaddleBag1);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.SaddleBag2);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.PremiumSaddleBag1);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.PremiumSaddleBag2);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage1);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage2);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage3);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage4);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage5);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage6);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage7);
+                    // Gears
+                    if (tItem.EquipSlotCategory.Value != null)
+                    {
+                        if (tItem.EquipSlotCategory.Value.Body == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryBody);
+                        if (tItem.EquipSlotCategory.Value.Ears == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryEar);
+                        if (tItem.EquipSlotCategory.Value.Feet == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryFeets);
+                        if (tItem.EquipSlotCategory.Value.Gloves == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryHands);
+                        if (tItem.EquipSlotCategory.Value.Head == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryHead);
+                        if (tItem.EquipSlotCategory.Value.Legs == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryLegs);
+                        if (tItem.EquipSlotCategory.Value.MainHand == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryMainHand);
+                        if (tItem.EquipSlotCategory.Value.Neck == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryNeck);
+                        if (tItem.EquipSlotCategory.Value.OffHand == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryOffHand);
+                        if (tItem.EquipSlotCategory.Value.FingerL == (sbyte)1 || tItem.EquipSlotCategory.Value.FingerR == (sbyte)1) 
+                            tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryRings);
+                        tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.EquippedItems);
+                    }
+                }
+                if (!UtilsGUI._cachedInventoryItemAndCount.TryAdd(pLuminaItemId, tCount))
+                {
+                    UtilsGUI._cachedInventoryItemAndCount[pLuminaItemId] = tCount;
+                }
+                if (!UtilsGUI._inventoryItemLastCacheTime.TryAdd(pLuminaItemId, DateTime.Now))
+                {
+                    UtilsGUI._inventoryItemLastCacheTime[pLuminaItemId] = DateTime.Now;
+                }
+            }
+
+            // Draw
+            // Item icon
+            if (tItemTexture != null && !pFlag.HasFlag(InventoryItemWidgetFlag.NoIcon))
+            {
+                UtilsGUI.SelectableLink_Image(pPlugin, -1, tItemTexture, pIsLink: false, pIsAuxiLinked: false, pImageScaling: ImGui.CalcTextSize("W").Y * 1.4f / tItemTexture.Height);
+                ImGui.SameLine();
+            }
+            // Item count
+            if (!pFlag.HasFlag(InventoryItemWidgetFlag.NoCount))
+            {
+                if (pColorCount != null) ImGui.PushStyleColor(ImGuiCol.Text, pColorCount.Value);
+                ImGui.Text($"[{tCount}{(pMaxCount != null ? $"/{pMaxCount}" : "")}]");
+                if (pColorCount != null) ImGui.PopStyleColor();
+                ImGui.SameLine();
+            }
+            // Item link
+            if (!pFlag.HasFlag(InventoryItemWidgetFlag.NoName))
+            {
+                ImGui.SameLine();
+                var tBBItem = pPlugin.mBBDataManager.GetItem(pLuminaItemId);
+                if (tBBItem != null && !pFlag.HasFlag(InventoryItemWidgetFlag.NoSelectableLink_PU))        // BBItem found
+                {
+                    UtilsGUI.SelectableLink_WithPopup(pPlugin, tBBItem.mName, tBBItem.GetGenId(), pTextColor: pColorItemName);
+                }
+                else                        // if not, use normal text with lumina data
+                {
+                    if (pColorItemName != null) ImGui.PushStyleColor(ImGuiCol.Text, pColorItemName.Value);
+                    ImGui.Text(tItem.Name);
+                    if (pColorItemName != null) ImGui.PopStyleColor();
+                }
+                ImGui.SameLine();
+            }
+
+            ImGui.Text("");     // dummy text for SameLine()
+        }
+        /// <summary>
         /// While rendering in a pop up, texture's width will not exceed half of the screen's width.
         /// </summary>
         public static bool DrawImgFromDb(
@@ -1056,6 +1173,16 @@ namespace BozjaBuddy.Utils
             {
                 this.mMouseWheelValue = this.CaptureMouseWheelInternal();
             }
+        }
+
+        [Flags]
+        public enum InventoryItemWidgetFlag
+        {
+            None = 0,
+            NoCount = 1,
+            NoName = 2,
+            NoIcon = 4,
+            NoSelectableLink_PU = 8
         }
     }
 }
