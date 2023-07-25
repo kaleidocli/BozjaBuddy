@@ -96,7 +96,7 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.BeginTabItem("Alarm"))
         {
             // Audio path
-            UtilsGUI.TextDescriptionForWidget("Audio path ");
+            UtilsGUI.GreyText("Audio path ");
             ImGui.SameLine();
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
             ImGui.InputText("##path", ref this.mFieldAudioPath, 1000);
@@ -149,7 +149,7 @@ public class ConfigWindow : Window, IDisposable
             }
             Utils.UtilsGUI.SetTooltipForLastItem("Test the audio.");
             // Volume slider
-            UtilsGUI.TextDescriptionForWidget("Audio volume ");
+            UtilsGUI.GreyText("Audio volume ");
             ImGui.SameLine();
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
             if (ImGui.SliderFloat("##vol", ref this.mPlugin.Configuration.mAudioVolume, 0.0f, 3.0f))
@@ -165,7 +165,7 @@ public class ConfigWindow : Window, IDisposable
             }
             Utils.UtilsGUI.SetTooltipForLastItem($"Restore to default. ({Configuration.kDefaultVolume})");
             // Duration slider
-            UtilsGUI.TextDescriptionForWidget("Default duration ");
+            UtilsGUI.GreyText("Default duration ");
             ImGui.SameLine();
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
             if (ImGui.SliderInt("##dura", ref this.mPlugin.Configuration.mDefaultAlarmDuration, Alarm.kDurationMin, Alarm.kDurationMax))
@@ -181,7 +181,7 @@ public class ConfigWindow : Window, IDisposable
             }
             Utils.UtilsGUI.SetTooltipForLastItem($"Restore to default. ({Configuration.kDefaultAlarmDuration}s)");
             // Offset slider
-            UtilsGUI.TextDescriptionForWidget("Default offset ");
+            UtilsGUI.GreyText("Default offset ");
             ImGui.SameLine();
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - this.mGuiButtonsPadding);
             if (ImGui.SliderInt("##off", ref this.mPlugin.Configuration.mDefaultAlarmOffset, Alarm.kOffsetMin, Alarm.kOffsetMax))
@@ -231,7 +231,7 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
                 ImGui.PushTextWrapPos();
-                UtilsGUI.TextDescriptionForWidget("1. All UI features for this section.");
+                UtilsGUI.GreyText("1. All UI features for this section.");
                 ImGui.SameLine();
                 UtilsGUI.ShowHelpMarker("Enable/Disable all UI features for this section such as Search all bar, Alarm reminder, etc.");
                 ImGui.PopTextWrapPos();
@@ -243,7 +243,7 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
                 ImGui.PushTextWrapPos();
-                UtilsGUI.TextDescriptionForWidget("1.1 Only click-able if the M&R window is focused.");
+                UtilsGUI.GreyText("1.1 Only click-able if the M&R window is focused.");
                 ImGui.SameLine();
                 UtilsGUI.ShowHelpMarker("Search all bar and buttons overlay on top of M&R window can be a nuisance when accidentally clicked. This option will make those widgets only click-able when the M&R window is focused, otherwise it'll be greyed out and untargetable.");
                 ImGui.PopTextWrapPos();
@@ -255,7 +255,7 @@ public class ConfigWindow : Window, IDisposable
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
                     ImGui.PushTextWrapPos();
-                    UtilsGUI.TextDescriptionForWidget("2. Draw a rectangle as a reminder to keep Recruting window open.");
+                    UtilsGUI.GreyText("2. Draw a rectangle as a reminder to keep Recruting window open.");
                     ImGui.SameLine();
                     UtilsGUI.ShowHelpMarker("Only visible when Fate/CE features are active, or when user is not in any CE or raids.\nFeatures like CE status report in Fate/CE table and CE alarm needs the Resistance Recruitment in-game window open to work, due to lack of better means.\nThis is understandably cumbersome for users, and will be worked on later. Any suggestion appreciated!");
                     ImGui.PopTextWrapPos();
@@ -295,7 +295,7 @@ public class ConfigWindow : Window, IDisposable
             pConfig.Save();
         }
         ImGui.SameLine();
-        UtilsGUI.TextDescriptionForWidget($"1. Info viewer type: {(pConfig.mIsAuxiUsingNGV ? "Node graph" : "Tab items")}");
+        UtilsGUI.GreyText($"1. Info viewer type: {(pConfig.mIsAuxiUsingNGV ? "Node graph" : "Tab items")}");
         ImGui.SameLine();
         UtilsGUI.ShowHelpMarker(
             """
@@ -312,9 +312,9 @@ public class ConfigWindow : Window, IDisposable
         {
             pConfig.Save();
         }
-        ImGui.SameLine(); UtilsGUI.TextDescriptionForWidget("[A] Alert for all actions");
+        ImGui.SameLine(); UtilsGUI.GreyText("[A] Alert for all actions");
         ImGui.SameLine(); UtilsGUI.ShowHelpMarker("This option [A] applies to all actions. Can be overwritten by [B] and [C].");
-        UtilsGUI.TextDescriptionForWidget("\t\t\t  Threshold: ");
+        UtilsGUI.GreyText("\t\t\t  Threshold: ");
         ImGui.SameLine(); ImGui.SetNextItemWidth(150);
         ImGui.InputInt("##agi", ref pPlugin.Configuration.mCacheAlertGeneralThreshold, 5);
         if (ImGui.IsItemDeactivatedAfterEdit())
@@ -335,7 +335,7 @@ public class ConfigWindow : Window, IDisposable
         {
             pConfig.Save();
         }
-        ImGui.SameLine(); UtilsGUI.TextDescriptionForWidget("[B] Alert for specific actions");
+        ImGui.SameLine(); UtilsGUI.GreyText("[B] Alert for specific actions");
         ImGui.SameLine(); UtilsGUI.ShowHelpMarker("This option [B] applies to specific actions.\n\n- If set, the threshold of this option [B] will be used instead of [A]'s.\n- If set to zero (0), this option will be disabled for selected action.");
         ImGui.Spacing();
         pFilter_CacheAlert1.Draw("", ImGui.GetContentRegionAvail().X);
@@ -371,7 +371,7 @@ public class ConfigWindow : Window, IDisposable
         {
             pConfig.Save();
         }
-        ImGui.SameLine(); UtilsGUI.TextDescriptionForWidget("[C] Actions to ignore");
+        ImGui.SameLine(); UtilsGUI.GreyText("[C] Actions to ignore");
         ImGui.SameLine(); UtilsGUI.ShowHelpMarker("This option [C] will disable option [A] & [B] for selected actions.");
         ImGui.Spacing();
         pFilter_CacheAlert2.Draw("", ImGui.GetContentRegionAvail().X);
@@ -452,7 +452,7 @@ public class ConfigWindow : Window, IDisposable
         }
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
-        UtilsGUI.TextDescriptionForWidget("1. Most UI features for this section.");
+        UtilsGUI.GreyText("1. Most UI features for this section.");
 
         // Toolbar
         bool tTemp2 = !pPlugin.Configuration.mGuiAssistConfig.itemBox.isDisabled_Toolbar;
@@ -463,7 +463,7 @@ public class ConfigWindow : Window, IDisposable
         }
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
-        UtilsGUI.TextDescriptionForWidget("2. Toolbar.");
+        UtilsGUI.GreyText("2. Toolbar.");
 
         // Loadout Miniview
         bool tTemp3 = !pPlugin.Configuration.mGuiAssistConfig.itemBox.isDisabled_LoadoutMiniview;
@@ -474,7 +474,7 @@ public class ConfigWindow : Window, IDisposable
         }
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
-        UtilsGUI.TextDescriptionForWidget("3. Loadout miniview.");
+        UtilsGUI.GreyText("3. Loadout miniview.");
 
         // Text filter
         bool tTemp4 = !pPlugin.Configuration.mGuiAssistConfig.itemBox.isDisabled_FilterText;
@@ -489,7 +489,7 @@ public class ConfigWindow : Window, IDisposable
         }
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
-        UtilsGUI.TextDescriptionForWidget("4. Text filters ");
+        UtilsGUI.GreyText("4. Text filters ");
         ImGui.SameLine();
         ImGui.PushItemWidth((pFixedSize == null ? ImGui.GetContentRegionAvail().X : (pFixedSize!.Value - ImGui.GetCursorPosX())));
         if (ImGui.SliderInt("##ibfl", ref pPlugin.Configuration.mGuiAssistConfig.itemBox.filterTextLevel, 0, 2))
@@ -514,7 +514,7 @@ public class ConfigWindow : Window, IDisposable
         }
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
-        UtilsGUI.TextDescriptionForWidget("5. Loadout filters ");
+        UtilsGUI.GreyText("5. Loadout filters ");
         ImGui.SameLine();
         ImGui.PushItemWidth((pFixedSize == null ? ImGui.GetContentRegionAvail().X : (pFixedSize!.Value - ImGui.GetCursorPosX())));
         if (ImGui.SliderInt("##ibll", ref pPlugin.Configuration.mGuiAssistConfig.itemBox.filterLoadoutLevel, 0, 2))
@@ -531,7 +531,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + tInnerSpacing);
 
         // Refresh rate
-        UtilsGUI.TextDescriptionForWidget("6. Refresh rate ");
+        UtilsGUI.GreyText("6. Refresh rate ");
         ImGui.SameLine();
         ImGui.PushItemWidth((pFixedSize == null ? ImGui.GetContentRegionAvail().X : (pFixedSize!.Value - ImGui.GetCursorPosX() - pGuiButtonsPadding)));
         if (ImGui.SliderFloat("##ibrf", ref pPlugin.Configuration.mGuiAssistConfig.itemBox.refreshRate, 0.1f, 1))
@@ -559,7 +559,7 @@ public class ConfigWindow : Window, IDisposable
         }
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
-        UtilsGUI.TextDescriptionForWidget("7. Auto Role-filter.");
+        UtilsGUI.GreyText("7. Auto Role-filter.");
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + tInnerSpacing);
         UtilsGUI.ShowHelpMarker($"Automatically apply your current role to the Lost Find Cahe every time you open it.\nDoes not clear the filter when disabled.");

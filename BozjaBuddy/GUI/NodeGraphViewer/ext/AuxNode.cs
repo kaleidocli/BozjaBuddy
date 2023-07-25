@@ -216,7 +216,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             {
                 var tQuest = (BozjaBuddy.Data.Quest)pObj;
                 // Prev
-                UtilsGUI.TextDescriptionForWidget("<<< Previous quests");
+                UtilsGUI.GreyText("<<< Previous quests");
                 foreach (var prevId in tQuest.mPrevQuestIds)
                 {
                     if (!this.mPlugin.mBBDataManager.mGeneralObjects.TryGetValue(GeneralObject.IdToGenId(prevId, (int)pObj.GetSalt()), out var tPrevObj)
@@ -229,7 +229,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 // Next
                 ImGui.Separator();
                 Utils.AlignRight(ImGui.CalcTextSize("Next quests >>>").X);
-                UtilsGUI.TextDescriptionForWidget("Next quests >>>");
+                UtilsGUI.GreyText("Next quests >>>");
                 foreach (var nextId in tQuest.mNextQuestIds)
                 {
                     if (!this.mPlugin.mBBDataManager.mGeneralObjects.TryGetValue(GeneralObject.IdToGenId(nextId, (int)pObj.GetSalt()), out var tNextObj)

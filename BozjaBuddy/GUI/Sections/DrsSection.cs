@@ -83,11 +83,11 @@ namespace BozjaBuddy.GUI.Sections
             if (ImGui.BeginListBox("##drsSectLb", ImGui.GetContentRegionAvail()))
             {
                 // Intro
-                UtilsGUI.TextDescriptionForWidget("======= ------ =======");
+                UtilsGUI.GreyText("======= ------ =======");
                 if (ImGui.Selectable(this.mTopics[0], this.mCurrTopicId == 0)) this.mCurrTopicId = 0;
                 if (ImGui.Selectable(this.mTopics[1], this.mCurrTopicId == 1)) this.mCurrTopicId = 1;
                 // Notes
-                UtilsGUI.TextDescriptionForWidget("======= TIPS =======");
+                UtilsGUI.GreyText("======= TIPS =======");
                 foreach (var t in this.mTopics)
                 {
                     if (t.Key < 2) continue;
@@ -119,37 +119,37 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.PushTextWrapPos();
             // #1
             ImGui.Text("Delubrum Reginae (Savage) is a 48-man duty.");
-            UtilsGUI.TextDescriptionForWidget("- The difficulty is only at around EX, mechanic wise.\n- Community runs happen quite often and are super friendly, newbies and vets alike.");
+            UtilsGUI.GreyText("- The difficulty is only at around EX, mechanic wise.\n- Community runs happen quite often and are super friendly, newbies and vets alike.");
 
             // #2
             ImGui.Text("But I'll have to grind for stuff to run, right?");
-            UtilsGUI.TextDescriptionForWidget("- Yes, generally it goes like this:");
-            UtilsGUI.TextDescriptionForWidget("\t1. You register for a role of your choice.");
-            UtilsGUI.TextDescriptionForWidget("\t2. You check what stuff are required for your role (Reraiser, Essence & Actions)");
-            UtilsGUI.TextDescriptionForWidget("\t3. You farm those stuff.");
+            UtilsGUI.GreyText("- Yes, generally it goes like this:");
+            UtilsGUI.GreyText("\t1. You register for a role of your choice.");
+            UtilsGUI.GreyText("\t2. You check what stuff are required for your role (Reraiser, Essence & Actions)");
+            UtilsGUI.GreyText("\t3. You farm those stuff.");
             ImGui.SameLine();
             UtilsGUI.ShowHelpMarker("+ Reraisers => sprite farming (super easy).\r\n+ Essence   => cluster farming (moderately easy).\r\n+ Actions     => cluster farming.\n\t\t\t\t\t\t\tOr a specific mob farming.\n\t\t\t\t\t\t\tOr marketboard.\r\nYou can use this plugin to find which actions drop from which fragments and their sources, and proceed from there.");
-            UtilsGUI.TextDescriptionForWidget("- Three hours of farming are prob sufficient for 3-5 runs. A clear is usually before 15 runs.");
+            UtilsGUI.GreyText("- Three hours of farming are prob sufficient for 3-5 runs. A clear is usually before 15 runs.");
 
             // #3
             ImGui.Text("This is overwhelming. Where do I even start?");
-            UtilsGUI.TextDescriptionForWidget("- First step of getting into DRS is to");
+            UtilsGUI.GreyText("- First step of getting into DRS is to");
             ImGui.SameLine(); ImGui.Text("join a community and seek advice.");
             ImGui.SameLine(); UtilsGUI.ShowHelpMarker("Wikis and plugins can only get you so far. The resources and supports provided by DRS communities will get you to the end and beyond.\n\nFor that reason, this plugin will not try to teach you how to do DRS, but rather pointers to the resources and communities that excel in such task.");
-            UtilsGUI.TextDescriptionForWidget("- Requirements are relatively clear-cut. Most DRS hosts only ask participants to:");
-            UtilsGUI.TextDescriptionForWidget("\t• Respect their guidelines.\t• Bring appropriate actions.\t• No toxic and have fun.");
-            UtilsGUI.TextDescriptionForWidget("- No parse, no hardcore raiding experience required.");
-            UtilsGUI.TextDescriptionForWidget("- Don't hesitate to DC travel between communities. Just make sure to stick with your static til the end, even if you've already cleared in another group!");
+            UtilsGUI.GreyText("- Requirements are relatively clear-cut. Most DRS hosts only ask participants to:");
+            UtilsGUI.GreyText("\t• Respect their guidelines.\t• Bring appropriate actions.\t• No toxic and have fun.");
+            UtilsGUI.GreyText("- No parse, no hardcore raiding experience required.");
+            UtilsGUI.GreyText("- Don't hesitate to DC travel between communities. Just make sure to stick with your static til the end, even if you've already cleared in another group!");
             ImGui.Text("Out of respect, we ask our users to AVOID mentioning this plugin in any community.");            
             ImGui.SameLine();
             UtilsGUI.ShowHelpMarker("First off, plugins are against ToS. Hence don't talk about it in the first place.\n- Info in this plugin should be taken with a grain of salt.\n- We don't want people to annoy the mods/hosts by bringing this plugin up as an argument or excuse (i.e. '...but Bozja Buddy made me bring wrong stuff').\n- We created this plugin to makes life easier, not to become a nuisance to anyone.");
-            UtilsGUI.TextDescriptionForWidget("- This plugin is not affiliated with any community or website. All content included in this plugin is NOT created/owned by the dev; they are community-effort.");
+            UtilsGUI.GreyText("- This plugin is not affiliated with any community or website. All content included in this plugin is NOT created/owned by the dev; they are community-effort.");
 
             ImGui.PopTextWrapPos();
         }
         public void DrawTopic_Communities()
         {
-            UtilsGUI.TextDescriptionForWidget("- Typically, there are three types of run: Static, Anyprog, and Reclear.");
+            UtilsGUI.GreyText("- Typically, there are three types of run: Static, Anyprog, and Reclear.");
             ImGui.SameLine(); UtilsGUI.ShowHelpMarker("- Anyprog are runs that anyone can join, regardless of their prog progress; usually on a first-come-first-serve basis. No clear promised!\n- Reclears may also accept TA enrage/Queen's prog, depends on host. Please make sure to check with the host.");
 
             ImGui.Text("NA region");
@@ -163,9 +163,9 @@ namespace BozjaBuddy.GUI.Sections
                     ImGui.TableNextColumn();
                     ImGui.Text(tRow[0]);
                     ImGui.TableNextColumn();
-                    UtilsGUI.TextDescriptionForWidget(tRow[1]);
+                    UtilsGUI.GreyText(tRow[1]);
                     ImGui.TableNextColumn();
-                    UtilsGUI.TextDescriptionForWidget(tRow[2]);
+                    UtilsGUI.GreyText(tRow[2]);
                     ImGui.TableNextColumn();
                     UtilsGUI.UrlButton(tRow[3]);
                 }
@@ -185,9 +185,9 @@ namespace BozjaBuddy.GUI.Sections
                     ImGui.TableNextColumn();
                     ImGui.Text(tRow[0]);
                     ImGui.TableNextColumn();
-                    UtilsGUI.TextDescriptionForWidget(tRow[1]);
+                    UtilsGUI.GreyText(tRow[1]);
                     ImGui.TableNextColumn();
-                    UtilsGUI.TextDescriptionForWidget(tRow[2]);
+                    UtilsGUI.GreyText(tRow[2]);
                     ImGui.TableNextColumn();
                     UtilsGUI.UrlButton(tRow[3]);
                 }
@@ -220,7 +220,7 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.Text("These are merely for references. Prioritize your host's instructions! POV playlist:");
             ImGui.SameLine(); UtilsGUI.UrlButton("https://youtube.com/playlist?list=PLfH2VGgD6CCwYv-7nTniyXBgIxnBZZYeQ");
             ImGui.Separator();
-            UtilsGUI.TextDescriptionForWidget("Just remember to re-apply your Reraiser after getting rezzed.");
+            UtilsGUI.GreyText("Just remember to re-apply your Reraiser after getting rezzed.");
         }
         public void DrawTopic_Dahu()
         {
@@ -266,7 +266,7 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.SameLine(); UtilsGUI.UrlButton("https://youtube.com/playlist?list=PLfH2VGgD6CCwYv-7nTniyXBgIxnBZZYeQ");
             ImGui.Separator();
 
-            UtilsGUI.TextDescriptionForWidget("Beware of Ice spike.");
+            UtilsGUI.GreyText("Beware of Ice spike.");
         }
         public void DrawTopic_TrinityAvowed()
         {

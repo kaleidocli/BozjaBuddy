@@ -1,4 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Keys;
+using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiScene;
 using System;
 using System.Collections.Generic;
@@ -36,6 +38,42 @@ namespace BozjaBuddy.Utils
         public static Vector4 RGBAtoVec4(int R, int G, int B, int A)
         {
             return new Vector4((float)R / 255, (float)G / 255, (float)B / 255, (float)A / 255);
+        }
+
+        // https://github.com/Ottermandias/GatherBuddy/blob/d2965b24c1693aae53fcfe859d3afaa8ebd16836/GatherBuddy/SeFunctions/Teleporter.cs
+        public static unsafe bool IsAttuned(Plugin pPlugin, uint aetheryteId)
+        {
+            var teleport = Telepo.Instance();
+            if (teleport == null)
+            {
+                PluginLog.LogWarning("Could not check attunement: Telepo is missing.");
+                return false;
+            }
+
+            if (pPlugin.ClientState.LocalPlayer == null)
+                return true;
+            teleport->UpdateAetheryteList();
+
+            var endPtr = teleport->TeleportList.Last;
+            for (var it = teleport->TeleportList.First; it != endPtr; ++it)
+            {
+                if (it->AetheryteId == aetheryteId)
+                    return true;
+            }
+
+            return false;
+        }
+        // https://github.com/Ottermandias/GatherBuddy/blob/d2965b24c1693aae53fcfe859d3afaa8ebd16836/GatherBuddy/SeFunctions/Teleporter.cs
+        public static unsafe bool Teleport(Plugin pPlugin, uint aetheryteId)
+        {
+            if (IsAttuned(pPlugin, aetheryteId))
+            {
+                Telepo.Instance()->Teleport(aetheryteId, 0);
+                return true;
+            }
+
+            PluginLog.LogWarning($"Teleport failed. (aetheryteId={aetheryteId})");
+            return false;
         }
 
         public enum NodeTagPrefix

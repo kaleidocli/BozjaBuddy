@@ -277,7 +277,7 @@ namespace BozjaBuddy.GUI.Sections
             }
             // Note Number
             ImGui.SetCursorPos(tAnchor + new Vector2(0, -2));
-            UtilsGUI.TextDescriptionForWidget(tFieldNote.mNumber.ToString());
+            UtilsGUI.GreyText(tFieldNote.mNumber.ToString());
 
             ImGui.PopStyleVar();
         }
@@ -286,7 +286,7 @@ namespace BozjaBuddy.GUI.Sections
         {
             ImGui.Text("Scan for obtained Notes:");
             ImGui.SameLine();
-            UtilsGUI.TextDescriptionForWidget("Type \"/collection\", choose \"Field Record\", then go through the page numbers.");
+            UtilsGUI.GreyText("Type \"/collection\", choose \"Field Record\", then go through the page numbers.");
             ImGui.SameLine();
             UtilsGUI.ShowHelpMarker("For safety reason, this plugin does not automatically update your Field note progress. As such, manual instruction is as follow:\n1. Open the Collection window, using text command \"/collection\".\n2. Choose \"Field Record\".\n3. At the bottom the Field Record in-game window are page numbers. Go through each page, and the plugin will get the data from there.\n\n- You can also add/remove a Field note from your progress by [Shift+LMB] on a field note's icon.");
             //ImGui.SameLine();

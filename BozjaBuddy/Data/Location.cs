@@ -41,6 +41,7 @@ namespace BozjaBuddy.Data
                             .Select(t => t.RowId).ToList();
             uint? tTemp2 = this.mPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(this.mTerritoryID)?.Map.Row;
             this.mMapID = tTemp2 ?? 0;
+            this.mReprString = this.mPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(this.mTerritoryID)?.PlaceName?.Value?.Name ?? string.Empty;
             this.UpdateAreaFlag();
             this.UpdateStringRepr();
         }
@@ -62,18 +63,29 @@ namespace BozjaBuddy.Data
             this.mReprString = string.Format(
                     "{0} ({1})",
                     pLevel.Territory.Value != null
-                                  ? pLevel.Territory.Value.PlaceName
+                                  ? pLevel.Territory.Value.PlaceName.Value?.Name ?? ""
                                   : "",
                     pLevel.Territory.Value != null
-                                  ? pLevel.Territory.Value.PlaceNameRegion
+                                  ? pLevel.Territory.Value.PlaceNameRegion.Value?.Name ?? ""
                                   : ""
                 );
             this.UpdateAreaFlag();
             this.UpdateStringRepr();
         }
+        /// <summary> X, Y not given, then use aetheryte's coords. If no aetheryte found, then coord is (20, 20) which is supposed to be the middle of the map. </summary>
+        public Location(Plugin pPlugin, string pTerritoryType) : this(pPlugin, pTerritoryType, 20, 20)
+        {
+            var tAetheryteLevel = this.mPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(this.mTerritoryID)?.Aetheryte?.Value?.Level.FirstOrDefault()?.Value;
+            if (tAetheryteLevel != null)
+            {
+                var tPayload = new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(this.mTerritoryID, this.mMapID, (int)(tAetheryteLevel.X * 1000), (int)(tAetheryteLevel.Z * 1000));
+                this.mMapCoordX = tPayload.XCoord;
+                this.mMapCoordY = tPayload.YCoord;
+            }
+        }
 
         public override string ToString() => this.mReprString;
-        public string ToStringFull() => $"{this} x:{this.mMapCoordX} y:{this.mMapCoordY}";
+        public string ToStringFull() => $"{this} x:{this.mMapCoordX:0.00} y:{this.mMapCoordY:0.00}";
 
         private void UpdateAreaFlag()
         {

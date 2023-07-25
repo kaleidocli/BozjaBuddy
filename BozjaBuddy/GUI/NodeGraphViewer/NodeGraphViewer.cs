@@ -665,21 +665,21 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         private void DrawExtraOptions(HashSet<string> pPUReqs)
         {
             // Canvas options =================================
-            UtilsGUI.TextDescriptionForWidget("Node");
+            UtilsGUI.GreyText("Node");
             ImGui.Spacing();
             this.DrawCanvasExtraOptions();
 
             ImGui.Separator();
 
             // Viewer options =================================
-            UtilsGUI.TextDescriptionForWidget("Canvas");
+            UtilsGUI.GreyText("Canvas");
             ImGui.Spacing();
             this.DrawViewerExtraOptions(pPUReqs);
 
             ImGui.Separator();
 
             // Config =========================================
-            UtilsGUI.TextDescriptionForWidget("Config");
+            UtilsGUI.GreyText("Config");
             ImGui.Spacing();
             this.DrawViewerConfig("");
         }

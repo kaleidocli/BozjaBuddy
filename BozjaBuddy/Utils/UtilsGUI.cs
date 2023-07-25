@@ -25,6 +25,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static FFXIVClientStructs.FFXIV.Client.Game.QuestManager.QuestListArray;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.MJI;
 
 namespace BozjaBuddy.Utils
 {
@@ -67,7 +68,7 @@ namespace BozjaBuddy.Utils
                 ImGui.Text(pText);
             ImGui.SameLine(); UtilsGUI.ShowHelpMarker(pHelpMarkerText);
         }
-        public static void TextDescriptionForWidget(string pText)
+        public static void GreyText(string pText)
         {
             ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, pText);
         }
@@ -348,11 +349,13 @@ namespace BozjaBuddy.Utils
         /// <summary> 
         /// <para> pDesc:       Text that appears on the button. If not given, the location's text will appear instead. </para>
         /// </summary>
-        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false, float pRightAlignOffset = 0f, float pScaling = 1, Vector2? pFramePadding = null)
+        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false, float pRightAlignOffset = 0f, float pScaling = 1, Vector2? pFramePadding = null, bool pIsTeleporting = false)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, UtilsGUI.FRAME_ROUNDING);
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, (pFramePadding ?? UtilsGUI.FRAME_PADDING) * pScaling);
-            string tButtonText = pDesc ?? $"{pLocation.mAreaFlag} ({pLocation.mMapCoordX}, {pLocation.mMapCoordY})";
+            string tButtonText = pDesc ?? (pLocation.mAreaFlag == Location.Area.None
+                                           ? pLocation.ToStringFull()
+                                           : $"{pLocation.mAreaFlag} ({pLocation.mMapCoordX}, {pLocation.mMapCoordY})");            // use area flag for bozja areas since they're too long. Otherwise, use normal location string.
             if (rightAlign)
             {
                 AuxiliaryViewerSection.GUIAlignRight(ImGui.CalcTextSize(tButtonText).X + pRightAlignOffset);
@@ -386,8 +389,20 @@ namespace BozjaBuddy.Utils
                 {
                     Message = SeString.CreateMapLink(pLocation.mTerritoryID, pLocation.mMapID, (float)pLocation.mMapCoordX, (float)pLocation.mMapCoordY)
                 });
+                // teleport
+                if (pIsTeleporting)
+                {
+                    var tAetheryteId = pPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(pLocation.mTerritoryID)?.Aetheryte?.Value?.RowId;
+                    if (tAetheryteId != null)
+                    {
+                        unsafe
+                        {
+                            Utils.Teleport(pPlugin, tAetheryteId.Value);
+                        }
+                    }
+                }
             }
-            UtilsGUI.SetTooltipForLastItem($"Mark position on map + Link location to Chat (if available)\n\nat: {pLocation.mAreaFlag} ({pLocation.mMapCoordX:0.00}, {pLocation.mMapCoordY:0.00})");
+            UtilsGUI.SetTooltipForLastItem($"Mark position on map + Link location to Chat (if available)\n\nat: {pLocation.ToStringFull()}");
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
@@ -627,6 +642,27 @@ namespace BozjaBuddy.Utils
             }
             return tRes;
         }
+        public static bool SelectableLink_Quest(
+            Plugin pPlugin,
+            int pQuestId,
+            string? pContent = null,
+            NodeGraphViewer? pNGVToOpenQuestChainIn = null,
+            InputPayload? pInputPayload = null
+            )
+        {
+            pPlugin.mBBDataManager.mQuests.TryGetValue(pQuestId, out var tQuest);
+            if (tQuest == null)
+            {
+                return ImGui.Selectable(pContent ?? "<unknown quest>");
+            }
+            return UtilsGUI.SelectableLink_Quest(
+                    pPlugin,
+                    pContent ?? tQuest.mName,
+                    tQuest,
+                    pNGVToOpenQuestChainIn,
+                    pInputPayload
+                );
+        }
         /// <summary>
         /// By default, display URL on hovering.
         /// </summary>
@@ -656,6 +692,19 @@ namespace BozjaBuddy.Utils
             }
             ImGui.PopID();
         }
+        /// <summary> Item that are in lumina Item sheet only! Other BB stuff won't work i.e. Fate, Fragment, etc. </summary>
+        public static void ItemLinkButton_Image(Plugin pPlugin, int pItemId, TextureWrap pItemTexture, float pImageScaling = 1)
+        {
+            var tItem = pPlugin.mBBDataManager.GetItem(pItemId);
+            if (UtilsGUI.SelectableLink_Image(pPlugin, -1, pItemTexture, pIsLink: false, pIsAuxiLinked: false, pImageScaling: pImageScaling, pCustomLinkSize: new(pItemTexture.Height * pImageScaling * 0.9f))
+                && tItem != null)
+            {
+                var tItemLink = tItem.GetReprItemLink();
+                if (tItemLink != null)
+                    pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry { Message = tItemLink });
+            }
+            else UtilsGUI.SetTooltipForLastItem("Click to link item to chat.");
+        }
         /// <summary>
         /// <para> luminaItemId:            id of the item in the Item lumina sheet. If BBItem is not found, a text will be displayed instead of a SL_PU. </para>
         /// </summary>
@@ -663,9 +712,7 @@ namespace BozjaBuddy.Utils
             Plugin pPlugin, 
             int pLuminaItemId, 
             float pUpdateRate = UtilsGUI._inventoryCacheInterval, 
-            int? pMaxCount = null, 
-            Vector4? pColorItemName = null,
-            Vector4? pColorCount = null,
+            int? pMaxCount = null,
             UtilsGUI.InventoryItemWidgetFlag pFlag = InventoryItemWidgetFlag.None)
         {
             // Retrieve data
@@ -686,7 +733,6 @@ namespace BozjaBuddy.Utils
                 && (DateTime.Now - tLastCacheTime).TotalMilliseconds < pUpdateRate)
                 )
             {
-                PluginLog.LogDebug($"> UtilsGUI.ItemWidget: iid={pLuminaItemId} timeLast={(DateTime.Now - tLastCacheTime).TotalMilliseconds < pUpdateRate}");
                 tCount = 0;
                 unsafe 
                 {
@@ -737,15 +783,15 @@ namespace BozjaBuddy.Utils
             // Item icon
             if (tItemTexture != null && !pFlag.HasFlag(InventoryItemWidgetFlag.NoIcon))
             {
-                UtilsGUI.SelectableLink_Image(pPlugin, -1, tItemTexture, pIsLink: false, pIsAuxiLinked: false, pImageScaling: ImGui.CalcTextSize("W").Y * 1.4f / tItemTexture.Height);
+                UtilsGUI.ItemLinkButton_Image(pPlugin, pLuminaItemId, tItemTexture, pImageScaling: ImGui.CalcTextSize("W").Y * 1.3f / tItemTexture.Height);
                 ImGui.SameLine();
             }
             // Item count
             if (!pFlag.HasFlag(InventoryItemWidgetFlag.NoCount))
             {
-                if (pColorCount != null) ImGui.PushStyleColor(ImGuiCol.Text, pColorCount.Value);
+                ImGui.PushStyleColor(ImGuiCol.Text, tCount < (pMaxCount ?? -1) ? UtilsGUI.Colors.NormalText_White : UtilsGUI.Colors.BackgroundText_Green);
                 ImGui.Text($"[{tCount}{(pMaxCount != null ? $"/{pMaxCount}" : "")}]");
-                if (pColorCount != null) ImGui.PopStyleColor();
+                ImGui.PopStyleColor();
                 ImGui.SameLine();
             }
             // Item link
@@ -755,13 +801,20 @@ namespace BozjaBuddy.Utils
                 var tBBItem = pPlugin.mBBDataManager.GetItem(pLuminaItemId);
                 if (tBBItem != null && !pFlag.HasFlag(InventoryItemWidgetFlag.NoSelectableLink_PU))        // BBItem found
                 {
-                    UtilsGUI.SelectableLink_WithPopup(pPlugin, tBBItem.mName, tBBItem.GetGenId(), pTextColor: pColorItemName);
+                    UtilsGUI.SelectableLink_WithPopup(
+                        pPlugin, 
+                        tBBItem.mName, 
+                        tBBItem.GetGenId(), 
+                        pTextColor: tCount < (pMaxCount ?? -1)
+                                    ? UtilsGUI.Colors.BackgroundText_Grey
+                                    : UtilsGUI.Colors.NormalText_White
+                        );
                 }
                 else                        // if not, use normal text with lumina data
                 {
-                    if (pColorItemName != null) ImGui.PushStyleColor(ImGuiCol.Text, pColorItemName.Value);
+                    if (tCount < (pMaxCount ?? -1)) ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.BackgroundText_Grey);
                     ImGui.Text(tItem.Name);
-                    if (pColorItemName != null) ImGui.PopStyleColor();
+                    if (tCount < (pMaxCount ?? -1)) ImGui.PopStyleColor();
                 }
                 ImGui.SameLine();
             }

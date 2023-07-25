@@ -206,7 +206,7 @@ namespace BozjaBuddy.GUI.Sections
             ImGuiIOPtr io = ImGui.GetIO();
             Loadout tLoadout = this.mPlugin.mBBDataManager.mLoadouts[pObj.mId];
             // Instruction
-            UtilsGUI.TextDescriptionForWidget("[Shift+LMB/RMB] on action's icon to add/remove action from loadout");
+            UtilsGUI.GreyText("[Shift+LMB/RMB] on action's icon to add/remove action from loadout");
             ImGui.SameLine();
             UtilsGUI.ShowHelpMarker("To edit your Custom Loadout, press the Pen icon button on the right.\n=========== WHILE EDITING ===========\n- There is an Action table below to add/remove actions from loadout.\n- Similar to in-game loadout, [Shift+LMB/RMB] on action's icon to add/remove action from loadout.\n- The grey number on the right of action's name is its weight.");
             ImGui.SameLine();

@@ -217,7 +217,7 @@ namespace BozjaBuddy.GUI.Sections
         }
         private void DrawOptionBar()
         {
-            UtilsGUI.TextDescriptionForWidget("Only covers ShB and later. Quest types may be inaccurate. Not sure if this tab would do any help, but might as well.");
+            UtilsGUI.GreyText("Only covers ShB and later. Quest types may be inaccurate. Not sure if this tab would do any help, but might as well.");
         }
         private void CalcTableHeight() => this.TABLE_SIZE_Y = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 2.3f);
         public override void DrawGUIDebug()
