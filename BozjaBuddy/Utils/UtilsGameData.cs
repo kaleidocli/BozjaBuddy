@@ -264,6 +264,13 @@ namespace BozjaBuddy.Utils
             Memory_Bleak = 32959,
             Memory_Lurid = 32960,
 
+            TimeWorn = 32959,
+            CompactAxle = 33757,
+            CompactSpring = 33758,
+            RealmBook = 33759,
+            RiftBook = 33760,
+            RawEmotion = 33767,
+
             SaveThePrincess = 32855
         }
     }

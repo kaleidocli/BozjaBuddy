@@ -55,7 +55,14 @@ namespace BozjaBuddy.GUI.Sections
             "d2f1",             // drav forelands
             "d2f3",             // churning mist
             "a2f2",             // azys lla
-            "d2f2"              // drav hinterlands
+            "d2f2",              // drav hinterlands
+
+            "g3f1",             // the fringes
+            "g3f2",             // the peaks
+            "g3f3",              // the lochs
+            "e3f1",             // ruby sea
+            "e3f2",             // yanxia
+            "e3f3",             // azim steppe
         };
 
         public RelicSection(Plugin pPlugin)
@@ -167,7 +174,7 @@ namespace BozjaBuddy.GUI.Sections
 
                 // Configs
                 // First time
-                ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetContentRegionAvail().Y - 36f * 2.15f));
+                ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetContentRegionAvail().Y - 12f * 2 * 2.15f));
                 if (ImGui.Checkbox("##rlcFirst", ref this.mPlugin.Configuration.mIsRelicFirstTime))
                 {
                     this.mPlugin.Configuration.Save();
@@ -176,12 +183,6 @@ namespace BozjaBuddy.GUI.Sections
                 UtilsGUI.GreyText("First-time");
                 ImGui.SameLine();
                 UtilsGUI.ShowHelpMarker("Tick if this is the first time this character start the relic grind.\n- This helps tailoring the guide to what user's need.");
-                // BLU
-                ImGui.Checkbox("##rlcBlu", ref this.mPlugin.Configuration.mIsRelicBlu);
-                ImGui.SameLine();
-                UtilsGUI.GreyText("BLU");
-                ImGui.SameLine();
-                UtilsGUI.ShowHelpMarker("Tick if you have BLU leveled and ready for grinding.\n- This helps tailoring the guide to what user's need.");
                 // Update
                 if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowsSpin))
                 {
@@ -210,6 +211,7 @@ namespace BozjaBuddy.GUI.Sections
         }
         public void DrawTopic()
         {
+            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, UtilsGUI.AdjustTransparency(UtilsGUI.Colors.BackgroundText_Grey, 0.3f));
             switch (this.mCurrTopic)
             {
                 case RelicStep.None: this.DrawTopic_Intro(); break;
@@ -217,7 +219,12 @@ namespace BozjaBuddy.GUI.Sections
                 case RelicStep.ResistanceA: this.DrawTopic_ResistanceA(); break;
                 case RelicStep.Recollection: this.DrawTopic_Recollection(); break;
                 case RelicStep.LawsOrder: this.DrawTopic_LawsOrder(); break;
+                case RelicStep.OTG_1: this.DrawTopic_OTG1(); break;
+                case RelicStep.LawsOrderA: this.DrawTopic_LawsOrderA(); break;
+                case RelicStep.OTG_2: this.DrawTopic_OTG2(); break;
+                case RelicStep.Blades: this.DrawTopic_Blades(); break;
             }
+            ImGui.PopStyleColor();
         }
         public void DrawTopic_Intro()
         {
@@ -303,7 +310,7 @@ namespace BozjaBuddy.GUI.Sections
                                     + Extra two steps: One-time grind 1 & 2
                                     + First step [Resistance] will not require any poetics.
                                     + Other minor stuff.
-                            - Make sure to tick your [Fist Time] and [BLU preferred] at the bottom of the list on the left if those apply to you.
+                            - Tick the [Fist Time] box at the bottom of the list on the left if it applies to you.
                             """);
 
                         ImGui.PopTextWrapPos();
@@ -314,18 +321,19 @@ namespace BozjaBuddy.GUI.Sections
             }
 
             UtilsGUI.GreyText("- You can link the relic to chat by clicking the relic item image.");
-            UtilsGUI.GreyText("- You can update your progress by clicking the spinning arrow icon.");
+            UtilsGUI.GreyText("- You can update your progress by clicking the spinning arrow button.");
             ImGui.Text(
                     """
                     - Prerequisites:
                             + Lv 80+
                             + Post-ShB 5.55 MSQ: "Death Unto Dawn"
-                            + Completed quest line "Return to Ivalice".
+                            + Completion of quest line "Return to Ivalice".
                     """
                 );
             ImGui.Text("- All steps must be done synced, and can be done using any class and any gear/weapon.");
 
-
+            ImGui.Spacing();
+            ImGui.Spacing();
             ImGui.Separator();
 
             UtilsGUI.GreyText(
@@ -339,7 +347,7 @@ namespace BozjaBuddy.GUI.Sections
                                     + Extra two steps: One-time grind 1 & 2
                                     + First step [Resistance] will not require any poetics.
                                     + Other minor stuff.
-                            - Make sure to tick your [Fist Time] and [BLU preferred] at the bottom of the list on the left if those apply to you.
+                            - Tick the [Fist Time] box at the bottom of the list on the left if it applies to you.
                             """);
 
             ImGui.PopTextWrapPos();
@@ -374,7 +382,8 @@ namespace BozjaBuddy.GUI.Sections
                         UtilsGUI.LocationLinkButton(this.mPlugin, tVendor.mLocation, pDesc: $"{tVendor.mName} ({tVendor.mLocation.ToStringFull()})");
                         ImGui.PopStyleColor();
                     }
-                    
+                    this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("(250 poetics each)");
+
                 }
                 ImGui.EndChild();
             }
@@ -464,10 +473,10 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.Text("Q:"); ImGui.SameLine(); UtilsGUI.SelectableLink_Quest(this.mPlugin, 69574);
                 // Loathsome
                 this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.Memory_Loathsome, pMaxCount: 15);
-                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("x 5 guaranteed per Castrum Lacus Litore clear"); ImGui.SameLine(); this._textLoc("e3ec", pUseIcon: true);
-                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("x 1 (low chance) per Bozja CE"); ImGui.SameLine(); this._textLoc("e3ec", pUseIcon: true);
-                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("x 1 guaranteed per any Crystal Tower raid clear");
-                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- Syrcus Tower");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 5) guaranteed per Castrum Lacus Litore clear"); ImGui.SameLine(); this._textLoc("e3ec", pUseIcon: true);
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) (low chance) per Bozja CE"); ImGui.SameLine(); this._textLoc("e3ec", pUseIcon: true);
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) guaranteed per any \"Crystal Tower\" raid clear");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- Syrcus Tower"); ImGui.SameLine(); this._textRecSign("Recommended for quickest");
                 this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- The World of Darkness");
                 this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- The Labyrinth of the Ancients");
                 ImGui.EndChild();
@@ -492,6 +501,187 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.EndChild();
             }
         }
+        public void DrawTopic_OTG1()
+        {
+            var tConfig = this.mPlugin.Configuration;
+            var tHeight = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 3.48f);
+            tHeight = tHeight < this.kSectionHeight ? tHeight : this.kSectionHeight;
+
+            ImGui.PushStyleColor(ImGuiCol.Button, UtilsGUI.AdjustTransparency(UtilsGUI.Colors.BackgroundText_Grey, 0.15f));
+            // Content
+            if (ImGui.BeginChild("##tr_content", new(ImGui.GetContentRegionAvail().X, tHeight)))
+            {
+                ImGui.Text("Q:"); ImGui.SameLine(); UtilsGUI.SelectableLink_Quest(this.mPlugin, 69575);
+                // Haunting
+                this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.Memory_Haunting, pMaxCount: 18);
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 3) guaranteed per any \"Shadow of the Mhach\" raid clear");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- The Void Ark"); ImGui.SameLine(); this._textRecSign("Recommended for quickest");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- The Weeping City of Mhach");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- Dun Scaith");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine();
+                ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.BackgroundText_Grey);
+                ImGui.TextUnformatted("(x 1) (66% chance) drops from FATEs in:");
+                ImGui.PopStyleColor();
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); this._textLoc("g3f1"); ImGui.SameLine(); this._textLoc("g3f2"); ImGui.SameLine(); this._textLoc("g3f3"); ImGui.SameLine(); this._textRecSign();
+                // Vexing
+                this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.Memory_Vexatious, pMaxCount: 18);
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 3) guaranteed per any \"Return to Ivalice\" raid clear");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- The Royal City of Rabanastre");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- The Ridorana Lighthouse");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- The Orbonne Monastery");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); 
+                ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.BackgroundText_Grey);
+                ImGui.TextUnformatted("(x 1) (66% chance) drops from FATEs in:");
+                ImGui.PopStyleColor();
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); this._textLoc("e3f1", "Ruby Sea"); ImGui.SameLine(); this._textLoc("e3f2"); ImGui.SameLine(); this._textLoc("e3f3", "Azim Steppes"); ImGui.SameLine(); this._textRecSign();
+
+                ImGui.EndChild();
+            }
+            ImGui.PopStyleColor();
+
+            ImGui.SameLine();
+        }
+        public void DrawTopic_LawsOrderA()
+        {
+            var tConfig = this.mPlugin.Configuration;
+            var tHeight = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 3.48f);
+            tHeight = tHeight < this.kSectionHeight ? tHeight : this.kSectionHeight;
+
+            ImGui.PushStyleColor(ImGuiCol.Button, UtilsGUI.AdjustTransparency(UtilsGUI.Colors.BackgroundText_Grey, 0.15f));
+            // Content
+            if (ImGui.BeginChild("##tr_content", new(ImGui.GetContentRegionAvail().X, tHeight)))
+            {
+                ImGui.Text("Q:"); ImGui.SameLine(); UtilsGUI.SelectableLink_Quest(this.mPlugin, 69576);
+                // Timeworn
+                this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.TimeWorn, pMaxCount: 15);
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) every 10 floors of Palace of the Dead");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- low chance, increase as progressing further");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 3) guaranteed per Delubrum Reginae clear");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionEnd(); ImGui.SameLine(); UtilsGUI.GreyText("- must use PF for this, or may join a community");
+
+                ImGui.EndChild();
+            }
+            ImGui.PopStyleColor();
+
+            ImGui.SameLine();
+        }
+        public void DrawTopic_OTG2()
+        {
+            var tConfig = this.mPlugin.Configuration;
+            var tHeight = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 3.48f);
+            tHeight = tHeight < this.kSectionHeight ? tHeight : this.kSectionHeight;
+            float tContent1Height = 20 * 6;
+
+            // Content 1
+            ImGui.PushStyleColor(ImGuiCol.Button, UtilsGUI.AdjustTransparency(UtilsGUI.Colors.BackgroundText_Grey, 0.15f));
+            if (ImGui.BeginChild("##tr_content1", new(ImGui.GetContentRegionAvail().X / 10 * 6f, tContent1Height)))
+            {
+                ImGui.Text("1. Q:"); ImGui.SameLine(); UtilsGUI.SelectableLink_Quest(this.mPlugin, 69632);
+                ImGui.Text("2. Grab these 3 following quests:");
+                this._textSectionCont(); ImGui.SameLine(); UtilsGUI.SelectableLink_Quest(this.mPlugin, 69633);
+                this._textSectionCont(); ImGui.SameLine(); UtilsGUI.SelectableLink_Quest(this.mPlugin, 69634);
+                this._textSectionCont(); ImGui.SameLine(); UtilsGUI.SelectableLink_Quest(this.mPlugin, 69635);
+                ImGui.EndChild();
+            }
+            ImGui.PopStyleColor();
+
+            ImGui.SameLine();
+
+            // Prereq
+            if (ImGui.BeginChild("##tr_prereq", new(ImGui.GetContentRegionAvail().X - ImGui.GetStyle().FramePadding.X, tContent1Height), true, ImGuiWindowFlags.MenuBar))
+            {
+                if (ImGui.BeginMenuBar())
+                {
+                    UtilsGUI.GreyText("Prerequisites");
+                    ImGui.EndMenuBar();
+                }
+                UtilsGUI.GreyText("Quests -------------------");
+                UtilsGUI.SelectableLink_Quest(this.mPlugin, 69620);
+                ImGui.PushTextWrapPos();
+                UtilsGUI.GreyText("(which unlock Zadnor, where this step is)");
+                ImGui.PopTextWrapPos();
+                ImGui.EndChild();
+            }
+
+            // Content 2
+            ImGui.PushStyleColor(ImGuiCol.Button, UtilsGUI.AdjustTransparency(UtilsGUI.Colors.BackgroundText_Grey, 0.15f));
+            if (ImGui.BeginChild("##tr_content2", new(ImGui.GetContentRegionAvail().X - ImGui.GetStyle().FramePadding.X * 2, tHeight - tContent1Height - ImGui.GetStyle().FramePadding.Y * 2 + 2)))
+            {
+                // Path options
+                ImGui.Text("3. Grind by");
+                ImGui.SameLine();
+                if (ImGui.BeginCombo("##cmbRelicOTG2Path", tConfig.mRelicOTG2Path == 0 ? "Zadnor Fate/CE" : "Raids"))
+                {
+                    Vector2 tAnchor = ImGui.GetCursorScreenPos();
+                    if (ImGui.Selectable("Zadnor Fate/CE")) tConfig.mRelicOTG2Path = 0;
+                    ImGui.SetCursorScreenPos(tAnchor + new Vector2(90, 0));
+                    UtilsGUI.GreyText("recommended until rank 25 for Dalriada");
+                    if (ImGui.Selectable("Raids")) tConfig.mRelicOTG2Path = 1;
+                    ImGui.EndCombo();
+                }
+                if (tConfig.mRelicOTG2Path == 0)
+                {
+                    ImGui.SameLine(); this._textLoc("e3ec", pUseIcon: true);
+                }
+                ImGui.SameLine(); UtilsGUI.ShowHelpMarker("You can switch between these 2 ways to grind, but it's probably more efficient to focus on a single one.");
+                // Path
+                if (tConfig.mRelicOTG2Path == 0)        // zadnor
+                {
+                    // zone 1
+                    UtilsGUI.GreyText("| Zone 1");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.CompactAxle, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("((x 1) per Fate)");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.CompactSpring, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("((x 2) per CE)");
+                    // zone 2
+                    UtilsGUI.GreyText("| Zone 2");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.RealmBook, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("((x 1) per Fate)");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.RiftBook, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("((x 2) per CE)");
+                    // zone 3
+                    UtilsGUI.GreyText("| Zone 3");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.Memory_Bleak, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("((x 1) per Fate)");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.Memory_Lurid, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("((x 2) per CE)");
+                }
+                else                                    // raids
+                {
+                    // alexander
+                    UtilsGUI.GreyText("| Alexander");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.CompactAxle, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) per Alexander (1, 2, 5, 6, 9, 10) clear");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.CompactSpring, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) per Alexander (3, 4, 7, 8, 11, 12) clear");
+                    // omega
+                    UtilsGUI.GreyText("| Omega");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.RealmBook, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) per Omega (1, 2, 5, 6, 9, 10) clear");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.RiftBook, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) per Omega (3, 4, 7, 8, 11, 12) clear");
+                    // eden
+                    UtilsGUI.GreyText("| Eden");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.Memory_Bleak, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) per Eden (1, 2, 5, 6, 9, 10) clear");
+                    this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.Memory_Lurid, pMaxCount: 30); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) per Eden (3, 4, 7, 8, 11, 12) clear");
+                }
+                ImGui.Text("4. Q:"); ImGui.SameLine(); UtilsGUI.SelectableLink_Quest(this.mPlugin, 69636);
+
+                ImGui.EndChild();
+            }
+            ImGui.PopStyleColor();
+        }
+        public void DrawTopic_Blades()
+        {
+            var tConfig = this.mPlugin.Configuration;
+            var tHeight = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 3.48f);
+            tHeight = tHeight < this.kSectionHeight ? tHeight : this.kSectionHeight;
+
+            // Content
+            ImGui.PushStyleColor(ImGuiCol.Button, UtilsGUI.AdjustTransparency(UtilsGUI.Colors.BackgroundText_Grey, 0.15f));
+            if (ImGui.BeginChild("##tr_content", new(ImGui.GetContentRegionAvail().X - ImGui.GetStyle().FramePadding.X * 2, tHeight)))
+            {
+                ImGui.Text("Q:"); ImGui.SameLine(); UtilsGUI.SelectableLink_Quest(this.mPlugin, 69637);
+                // Loathsome
+                this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.InventoryItemWidget(this.mPlugin, (int)UtilsGameData.LuminaItemId.RawEmotion, pMaxCount: 15);
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 3) guaranteed per Dalriada clear"); ImGui.SameLine(); this._textLoc("e3ec", pUseIcon: true);
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 2) guaranteed per Delubrum Reginae clear");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) guaranteed per any lv. 70 dungeon clear");
+                this._textSectionCont(); ImGui.SameLine(); this._textSectionBegin(); ImGui.SameLine(); UtilsGUI.GreyText("(x 1) every 10 floors of Heavens-on-High (low chance, increase as progress further)");
+                ImGui.EndChild();
+            }
+            ImGui.PopStyleColor();
+        }
 
         private void _textSectionBegin() => ImGui.Text("|___ ");
         private void _textSectionCont() => ImGui.Text("\t\t ");
@@ -505,6 +695,11 @@ namespace BozjaBuddy.GUI.Sections
                 UtilsGUI.LocationLinkButton(this.mPlugin, tLoc, pIsTeleporting: true, pDesc: pDesc ?? tLoc.ToString(), pUseIcon: pUseIcon);
                 ImGui.PopStyleColor();
             }
+        }
+        private void _textRecSign(string? pDesc = null)
+        {
+            ImGui.Text("*");
+            UtilsGUI.SetTooltipForLastItem(pDesc ?? "Recommended");
         }
 
         public override void DrawGUIDebug() { }
