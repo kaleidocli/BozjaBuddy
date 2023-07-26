@@ -421,7 +421,7 @@ namespace BozjaBuddy.Utils
                     }
                 }
             }
-            UtilsGUI.SetTooltipForLastItem($"Mark position on map + Link location to Chat (if available)\n\nat: {pLocation.ToStringFull()}");
+            UtilsGUI.SetTooltipForLastItem($"Mark on map + Link to Chat {(pIsTeleporting ? "+ Teleport" : "")}\n\nat: {pLocation.ToStringFull()}");
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
