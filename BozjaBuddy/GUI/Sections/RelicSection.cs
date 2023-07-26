@@ -183,14 +183,7 @@ namespace BozjaBuddy.GUI.Sections
                 UtilsGUI.GreyText("First-time");
                 ImGui.SameLine();
                 UtilsGUI.ShowHelpMarker("Tick if this is the first time this character start the relic grind.\n- This helps tailoring the guide to what user's need.");
-                // Update
-                if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowsSpin))
-                {
-
-                }
-                else UtilsGUI.SetTooltipForLastItem("Update relic progress");
                 // Job
-                ImGui.SameLine();
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
                 if (ImGui.BeginCombo("##rlcJobCmb", this.mPlugin.Configuration.mRelicCurrJob.ToString()))
                 {
@@ -321,7 +314,6 @@ namespace BozjaBuddy.GUI.Sections
             }
 
             UtilsGUI.GreyText("- You can link the relic to chat by clicking the relic item image.");
-            UtilsGUI.GreyText("- You can update your progress by clicking the spinning arrow button.");
             ImGui.Text(
                     """
                     - Prerequisites:

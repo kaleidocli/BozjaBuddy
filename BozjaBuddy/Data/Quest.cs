@@ -105,6 +105,27 @@ namespace BozjaBuddy.Data
         }
         protected override string GenReprUiTooltip()
         {
+            string tPrevQuests = string.Join(
+                                        "\n\t\t\t\t\t\t\t",
+                                        this.mPrevQuestIds.Select(o => this.mPlugin.mBBDataManager.mQuests.ContainsKey(o)
+                                                                    ? this.mPlugin.mBBDataManager.mQuests[o].mName
+                                                                    : "unknown")
+                                                            .ToList()
+                                        );
+            string tNextQuests = string.Join(
+                            "\n\t\t\t\t\t\t\t",
+                            this.mNextQuestIds.Select(o => this.mPlugin.mBBDataManager.mQuests.ContainsKey(o)
+                                                        ? this.mPlugin.mBBDataManager.mQuests[o].mName
+                                                        : "unknown")
+                                                .ToList()
+                            );
+            this.mUiTooltip = $"""
+                Name:               {this.mName}
+                NPC:                  {this.mIssuerName} 
+                Location:          {this.mIssuerLocation?.ToStringFull()}
+                Prev quests:    {tPrevQuests}
+                Next quests:    {tNextQuests}
+                """;
             return this.mUiTooltip;
         }
 

@@ -220,7 +220,7 @@ namespace BozjaBuddy.Utils
                 return tRes;
             }
             GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
-            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pTargetGenId}\n{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.mName}\n{tObj.GetReprUiTooltip()}");
+            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Options (marketboard, item link, etc.)\n────────────────────────────────\n{tObj.GetReprUiTooltip()}");
 
             ImGui.PushID(pTargetGenId);
             if (!pInputPayload.mIsKeyShift && ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
@@ -318,11 +318,28 @@ namespace BozjaBuddy.Utils
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
-        public static void ItemLinkButton(Plugin pPlugin, string pReprName, SeString? pReprItemLink = null)
+        public static void ItemLinkButton(Plugin pPlugin, string pReprName, SeString? pReprItemLink = null, bool pUseIcon = false, Vector2? pFramePadding = null)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, UtilsGUI.FRAME_ROUNDING);
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, UtilsGUI.FRAME_PADDING);
-            if (ImGui.Button("Link item"))
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, pFramePadding ?? UtilsGUI.FRAME_PADDING);
+            if (!pUseIcon && ImGui.Button("Link item"))
+            {
+                UtilsGUI.kTimeSinceLastClipboardCopied = DateTime.Now;
+                ImGui.SetClipboardText(pReprName);
+
+                if (pReprItemLink == null)
+                {
+                    ImGui.PopStyleVar();
+                    ImGui.PopStyleVar();
+                    return;
+                }
+                try
+                {
+                    pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry { Message = pReprItemLink });
+                }
+                catch (Exception e) { PluginLog.LogError(e.Message); }
+            }
+            else if (pUseIcon && ImGuiComponents.IconButton(FontAwesomeIcon.Comment))
             {
                 UtilsGUI.kTimeSinceLastClipboardCopied = DateTime.Now;
                 ImGui.SetClipboardText(pReprName);
@@ -406,9 +423,9 @@ namespace BozjaBuddy.Utils
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
-        public static void MarketboardButton(Plugin pPlugin, int pItemId, bool pIsDisabled = false)
+        public static void MarketboardButton(Plugin pPlugin, int pItemId, bool pIsDisabled = false, bool pUseIcon = false, Vector2? pFramePadding = null)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, UtilsGUI.FRAME_PADDING);
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, pFramePadding ?? UtilsGUI.FRAME_PADDING);
             if (pIsDisabled)
             {
                 ImGui.BeginDisabled();
@@ -417,7 +434,11 @@ namespace BozjaBuddy.Utils
                 ImGui.PopStyleVar();
                 return;
             }
-            if (ImGui.Button("Marketboard"))
+            if (!pUseIcon && ImGui.Button("Marketboard"))
+            {
+                pPlugin.CommandManager.ProcessCommand($"/pmb {pItemId}");
+            }
+            else if (pUseIcon && ImGuiComponents.IconButton(FontAwesomeIcon.ArrowTrendUp))
             {
                 pPlugin.CommandManager.ProcessCommand($"/pmb {pItemId}");
             }

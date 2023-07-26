@@ -73,12 +73,12 @@ public class MainWindow : Window, IDisposable
         }
         this.mGeneralSection.DrawGUI();
         if (ImGui.BeginTabBar("Tab Bat")) {
+            this.mRelicTab.DrawGUI();
             this.mLostActionTab.DrawGUI();
             this.mFateCeTab.DrawGUI();
             this.mMobTab.DrawGUI();
             this.mFieldNoteTab.DrawGUI();
             this.mQuestTab.DrawGUI();
-            this.mRelicTab.DrawGUI();
             this.mDrsTab.DrawGUI();
             this.mLoadoutTab.DrawGUI();
 

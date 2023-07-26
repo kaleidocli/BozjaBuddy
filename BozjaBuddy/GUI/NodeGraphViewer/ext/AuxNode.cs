@@ -148,7 +148,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     this._currTab = InnerBodyTab.Overview;
                     ImGui.EndTabItem();
                 }
-                // Alarm and Location button
+                // Alarm, Location, Marketboard, Item Link button
                 if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate)
                 {
                     ImGui.SameLine();
@@ -169,6 +169,15 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                         ImGui.SameLine();
                         UtilsGUI.LocationLinkButton(this.mPlugin, tQuest.mIssuerLocation, pScaling: pCanvasScaling, pUseIcon: true);
                     }
+                }
+                if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fragment)
+                {
+                    // Item link
+                    ImGui.SameLine();
+                    UtilsGUI.ItemLinkButton(this.mPlugin, pObj.mName, pReprItemLink: pObj.GetReprItemLink(), pUseIcon: true, pFramePadding: new(2.5f));
+                    // Marketboard
+                    ImGui.SameLine();
+                    UtilsGUI.MarketboardButton(mPlugin, pObj.mId, pUseIcon: true, pFramePadding: new(2.5f));
                 }
 
                 ImGui.EndTabBar();
