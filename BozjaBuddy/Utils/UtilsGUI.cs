@@ -233,7 +233,9 @@ namespace BozjaBuddy.Utils
                 UtilsGUI.SypnosisClipboardButton(tObj.GetReprClipboardTooltip());
                 ImGui.Separator();
                 // Map_link to Clipboard + Chat
-                var tLocation = tObj.GetReprLocation();
+                var tLocation = tObj.GetSalt() == GeneralObject.GeneralObjectSalt.Quest
+                                ? ((BozjaBuddy.Data.Quest)tObj).mIssuerLocation
+                                : tObj.GetReprLocation();
                 UtilsGUI.LocationLinkButton(pPlugin, tLocation!, pDesc: "Link position", pIsDisabled: tLocation == null ? true : false);
                 ImGui.Separator();
                 // Invoke: Marketboard
