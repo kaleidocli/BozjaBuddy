@@ -11,6 +11,7 @@ using Lumina.Excel.GeneratedSheets;
 using QuickGraph;
 using static BozjaBuddy.GUI.NodeGraphViewer.Node;
 using System.Numerics;
+using QuickGraph.Algorithms.Observers;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer.utils
 {
@@ -34,6 +35,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.utils
                 };
                 string id = jo["mId"]?.ToString() ?? "-1";
                 int graphId = (int?)jo["mGraphId"] ?? -1;
+                string? tag = jo["mTag"]?.ToString();
                 Node.NodeStyle? style = jo["mStyle"]?.ToObject<Node.NodeStyle>(serializer);
 
                 Dictionary<string, string>? contentTemp = jo["mContent"]?.ToObject<Dictionary<string, string>>();
@@ -51,18 +53,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.utils
                     _ => jo["mContent"]?.ToObject<NodeContentError>(serializer)
                 } ?? new NodeContentError("NodeDeserializationError", "Unable to deserialize node's content for this node.");
 
-                node.Init(id, graphId, content, _style: style);
+                node.Init(id, graphId, content, _style: style, tag);
                 node.mPack = jo["mPack"]?.ToObject<HashSet<string>>() ?? new();
                 node.mPackerNodeId = jo["mPackerNodeId"] == null ? null : jo["mPackerNodeId"]!.ToString();
                 if (node.mPackerNodeId == string.Empty) node.mPackerNodeId = null;
                 node.mIsPacked = jo["mIsPacked"] == null ? false : (bool)jo["mIsPacked"]!;
                 node.mPackingStatus = (PackingStatus)Convert.ToInt32(jo["mPackingStatus"]);
                 node._relaPosLastPackingCall = jo["_relaPosLastPackingCall"] == null ? null : jo["_relaPosLastPackingCall"]?.ToObject<Vector2?>();
-
-                if (node.GetType() == typeof(BBNode))
-                {
-
-                }
 
                 return node;
             }
@@ -128,6 +125,38 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.utils
             public override bool CanWrite => false;
 
             public override void WriteJson(JsonWriter writer, NodeCanvas canvas, JsonSerializer serializer)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class PartialCanvasDataConverter : JsonConverter<NodeCanvas.PartialCanvasData>
+        {
+            public override NodeCanvas.PartialCanvasData ReadJson(JsonReader reader, Type objectType, NodeCanvas.PartialCanvasData? existingValue,
+                                                                    bool hasExistingValue, JsonSerializer serializer)
+            {
+
+                JObject jo = JObject.Load(reader);
+
+                NodeCanvas.PartialCanvasData data = new();
+
+                List<Node> nodes = jo["nodes"] == null ? new() : (JsonConvert.DeserializeObject<List<Node>>(jo["nodes"]!.ToString(), new NodeJsonConverter()) ?? new());
+                List<Edge> relatedEdges = jo["relatedEdges"] == null ? new List<Edge>() : (jo["relatedEdges"]!.ToObject<List<Edge>>() ?? new List<Edge>());
+
+                string? anchorNodeId = jo["anchorNodeId"]?.ToString();
+                Dictionary<string, Vector2> offsetFromAnchor = jo["offsetFromAnchor"]?.ToObject<Dictionary<string, Vector2>>() ?? new();
+
+                data.nodes = nodes;
+                data.relatedEdges = relatedEdges;
+                data.offsetFromAnchor = offsetFromAnchor;
+                data.anchorNodeId = anchorNodeId;
+
+                return data;
+            }
+
+            public override bool CanWrite => false;
+
+            public override void WriteJson(JsonWriter writer, NodeCanvas.PartialCanvasData? graph, JsonSerializer serializer)
             {
                 throw new NotImplementedException();
             }

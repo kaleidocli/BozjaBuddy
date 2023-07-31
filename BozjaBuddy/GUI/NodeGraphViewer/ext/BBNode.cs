@@ -16,16 +16,16 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
         protected Plugin? mPlugin = null;
         protected int? mGenId = null;
 
-        public override void Init(string pNodeId, int pGraphId, NodeContent.NodeContent pContent, NodeStyle? _style = null)
+        public override void Init(string pNodeId, int pGraphId, NodeContent.NodeContent pContent, NodeStyle? _style = null, string? pTag = null)
         {
-            base.Init(pNodeId, pGraphId, pContent, _style);
+            base.Init(pNodeId, pGraphId, pContent, _style, pTag);
             if (pContent.GetType() == typeof(BBNodeContent))
             {
                 BBNodeContent tContent = (BBNodeContent)pContent;
                 this.mPlugin = tContent.GetPlugin();
                 if (this.mPlugin == null && BBNode.kPlugin != null) this.mPlugin = BBNode.kPlugin;
                 this.mGenId = tContent.GetGenObjId();
-                if (this.mPlugin != null && this.mGenId.HasValue)
+                if (this.mPlugin != null && this.mGenId.HasValue && this.mPlugin.mBBDataManager != null)
                 {
                     if (this.mPlugin.mBBDataManager.mGeneralObjects.TryGetValue(this.mGenId.Value, out var pObj) && pObj != null)
                     {

@@ -1,6 +1,7 @@
 using BozjaBuddy.GUI.IGMarkup;
 using BozjaBuddy.Utils;
 using Dalamud.Game.Text.SeStringHandling;
+using System;
 using System.Collections.Generic;
 
 namespace BozjaBuddy.Data
@@ -33,7 +34,7 @@ namespace BozjaBuddy.Data
         public virtual string GetReprName() => this.mName;
         public virtual string GetReprClipboardTooltip() => this.mDescription;
         protected virtual string GenReprUiTooltip() => " ";
-        public virtual string GetReprUiTooltip() 
+        public string GetReprUiTooltip() 
             => this.mUiTooltip == string.Empty ? this.GenReprUiTooltip() : this.mUiTooltip;
         public virtual string ResetReprUiTooltip() => this.mUiTooltip = string.Empty;
         public virtual Location? GetReprLocation() => this.mLocation;
@@ -48,14 +49,11 @@ namespace BozjaBuddy.Data
         public static int IdToGenId(int pId, int pIdSalt) => pId + (int)pIdSalt * GeneralObject.SaltMultiplier;
         public static int[] GenIdToIdAndSalt(int pGenId)
         {
-            foreach (GeneralObjectSalt tSalt in new GeneralObjectSalt[] {
-                                        GeneralObjectSalt.Fate,
-                                        GeneralObjectSalt.Mob,
-                                        GeneralObjectSalt.Fragment,
-                                        GeneralObjectSalt.LostAction
-                                                                        })
+            foreach (GeneralObjectSalt tSalt in (GeneralObjectSalt[])Enum.GetValues(typeof(GeneralObjectSalt)))
             {
-                if (pGenId > (int)tSalt * GeneralObject.SaltMultiplier) 
+                //if (pGenId > (int)tSalt * GeneralObject.SaltMultiplier) 
+                //    return new int[] { pGenId - (int)tSalt * GeneralObject.SaltMultiplier, (int)tSalt };
+                if (pGenId / GeneralObject.SaltMultiplier == (int)tSalt)
                     return new int[] { pGenId - (int)tSalt * GeneralObject.SaltMultiplier, (int)tSalt };
             }
             return new int[] { pGenId - (int)GeneralObjectSalt.None, (int)GeneralObjectSalt.None };
@@ -72,7 +70,8 @@ namespace BozjaBuddy.Data
             Loadout = 6,
             FieldNote = 7,
             Quest = 8,
-            QuestChain = 9
+            QuestChain = 9,
+            Item = 10
         }
     }
 }

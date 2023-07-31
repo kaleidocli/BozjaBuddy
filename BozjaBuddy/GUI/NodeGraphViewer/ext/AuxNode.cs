@@ -13,6 +13,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using System.Text.Json;
+using Lumina.Excel.GeneratedSheets;
 
 
 namespace BozjaBuddy.GUI.NodeGraphViewer.ext
@@ -93,6 +94,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 case GeneralObject.GeneralObjectSalt.Fragment:
                     tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), TextureCollection.Sheet.Item, true);
                     break;
+                case GeneralObject.GeneralObjectSalt.Item:
+                    tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), TextureCollection.Sheet.Item, true);
+                    break;
                 case GeneralObject.GeneralObjectSalt.Fate:
                     tIconWrap = UtilsGameData.kTextureCollection?.GetStandardTexture((uint)this.mPlugin.mBBDataManager.mFates[pObj.mId].mType);
                     break;
@@ -102,6 +106,19 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 case GeneralObject.GeneralObjectSalt.FieldNote:
                     tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), TextureCollection.Sheet.FieldNote, true);
                     if (tIconWrap != null) tExtraScaling = 1.24f;
+                    break;
+                case GeneralObject.GeneralObjectSalt.Quest:
+                    tIconWrap = UtilsGameData.kTextureCollection?.GetStandardTexture(
+                            ((BozjaBuddy.Data.Quest)pObj).mType switch
+                            {
+                                BozjaBuddy.Data.Quest.QuestType.Msq => TextureCollection.StandardIcon.QuestMSQ,
+                                BozjaBuddy.Data.Quest.QuestType.Side => TextureCollection.StandardIcon.QuestSide,
+                                BozjaBuddy.Data.Quest.QuestType.Key => TextureCollection.StandardIcon.QuestKey,
+                                BozjaBuddy.Data.Quest.QuestType.Repeatable => TextureCollection.StandardIcon.QuestRepeatable,
+                                _ => TextureCollection.StandardIcon.QuestSide
+                            }
+                        );
+                    if (tIconWrap != null) tExtraScaling = 1.3f;
                     break;
                 default:
                     tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(pObj.mId), pTryLoadTexIfFailed: true);
@@ -113,7 +130,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 UtilsGUI.SelectableLink_Image(this.mPlugin, pObj.GetGenId(), tIconWrap, pImageScaling: (2 - (float)tIconWrap.Height / tLinkHeight) * pCanvasScaling * tExtraScaling, pAuxNode: this);
                 ImGui.SameLine();           // Do not Sameline() if there's no image, since it'll Sameline() to the TabItem above
             }
-            // Alarm and Location button
+            // Details and location/alarm
             ImGui.BeginGroup();
             this.DrawDetailPackage(pObj, pCanvasScaling);
             // Tabs
@@ -131,7 +148,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     this._currTab = InnerBodyTab.Overview;
                     ImGui.EndTabItem();
                 }
-                // Alarm and Location button
+                // Alarm, Location, Marketboard, Item Link button
                 if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fate)
                 {
                     ImGui.SameLine();
@@ -143,6 +160,24 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 {
                     ImGui.SameLine();
                     UtilsGUI.LocationLinkButton(this.mPlugin, pObj.mLocation, pScaling: pCanvasScaling, pUseIcon: true);
+                }
+                else if (pObj is BozjaBuddy.Data.Quest)
+                {
+                    var tQuest = ((BozjaBuddy.Data.Quest)pObj);
+                    if (tQuest.mIssuerLocation != null)
+                    {
+                        ImGui.SameLine();
+                        UtilsGUI.LocationLinkButton(this.mPlugin, tQuest.mIssuerLocation, pScaling: pCanvasScaling, pUseIcon: true);
+                    }
+                }
+                if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Fragment)
+                {
+                    // Item link
+                    ImGui.SameLine();
+                    UtilsGUI.ItemLinkButton(this.mPlugin, pObj.mName, pReprItemLink: pObj.GetReprItemLink(), pUseIcon: true, pFramePadding: new(2.5f));
+                    // Marketboard
+                    ImGui.SameLine();
+                    UtilsGUI.MarketboardButton(mPlugin, pObj.mId, pUseIcon: true, pFramePadding: new(2.5f));
                 }
 
                 ImGui.EndTabBar();
@@ -184,6 +219,36 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                     ImGui.EndMenu();
                 }
                 ImGui.Separator();
+            }
+            // Quest's prev 'n next
+            if (pObj.GetSalt() == GeneralObject.GeneralObjectSalt.Quest)
+            {
+                var tQuest = (BozjaBuddy.Data.Quest)pObj;
+                // Prev
+                UtilsGUI.GreyText("<<< Previous quests");
+                foreach (var prevId in tQuest.mPrevQuestIds)
+                {
+                    if (!this.mPlugin.mBBDataManager.mGeneralObjects.TryGetValue(GeneralObject.IdToGenId(prevId, (int)pObj.GetSalt()), out var tPrevObj)
+                        || tPrevObj == null)
+                    {
+                        continue;
+                    }
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tPrevObj.mName}", tPrevObj.GetGenId(), pAuxNode: this);
+                }
+                // Next
+                ImGui.Separator();
+                Utils.AlignRight(ImGui.CalcTextSize("Next quests >>>").X);
+                UtilsGUI.GreyText("Next quests >>>");
+                foreach (var nextId in tQuest.mNextQuestIds)
+                {
+                    if (!this.mPlugin.mBBDataManager.mGeneralObjects.TryGetValue(GeneralObject.IdToGenId(nextId, (int)pObj.GetSalt()), out var tNextObj)
+                        || tNextObj == null)
+                    {
+                        continue;
+                    }
+                    Utils.AlignRight(ImGui.CalcTextSize($"{tNextObj.mName}").X + 11.5f * pCanvasScaling);
+                    UtilsGUI.SelectableLink_WithPopup(this.mPlugin, $"{tNextObj.mName}", tNextObj.GetGenId(), pAuxNode: this);
+                }
             }
 
             if (pObj.mLinkFragments.Count != 0 && ImGui.CollapsingHeader($"Fragment ({pObj.mLinkFragments.Count})"))
@@ -420,7 +485,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             {
                 if (tPackage.TryGetValue(TextureCollection.StandardIcon.None, out var v) && v != null)
                 {
-                    ImGui.SameLine();
                     ImGui.Text(v + "  ");
                     ImGui.SameLine();
                 }

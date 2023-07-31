@@ -56,8 +56,26 @@ namespace BozjaBuddy.GUI.Sections
                 return true;
             }
 
+            // Getting extra inputs
+            HashSet<ImGuiKey> tExtraKbInputs = new();
+            if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
+            {
+                if (this.mPlugin.isKeyPressed(Dalamud.Game.ClientState.Keys.VirtualKey.DELETE))
+                {
+                    tExtraKbInputs.Add(ImGuiKey.Delete);
+                }
+                if (this.mPlugin.isKeyPressed(Dalamud.Game.ClientState.Keys.VirtualKey.C))
+                {
+                    tExtraKbInputs.Add(ImGuiKey.C);
+                }
+                if (this.mPlugin.isKeyPressed(Dalamud.Game.ClientState.Keys.VirtualKey.V))
+                {
+                    tExtraKbInputs.Add(ImGuiKey.V);
+                }
+            }
+
             // Node graph viewer
-            this.mPlugin.NodeGraphViewer_Auxi.Draw();
+            this.mPlugin.NodeGraphViewer_Auxi.Draw(pExtraKeyboardInputs: tExtraKbInputs);
             var tSaveData = this.mPlugin.NodeGraphViewer_Auxi.GetLatestSaveDataSinceLastChange();
             if (tSaveData != null)
             {
@@ -188,7 +206,7 @@ namespace BozjaBuddy.GUI.Sections
             ImGuiIOPtr io = ImGui.GetIO();
             Loadout tLoadout = this.mPlugin.mBBDataManager.mLoadouts[pObj.mId];
             // Instruction
-            UtilsGUI.TextDescriptionForWidget("[Shift+LMB/RMB] on action's icon to add/remove action from loadout");
+            UtilsGUI.GreyText("[Shift+LMB/RMB] on action's icon to add/remove action from loadout");
             ImGui.SameLine();
             UtilsGUI.ShowHelpMarker("To edit your Custom Loadout, press the Pen icon button on the right.\n=========== WHILE EDITING ===========\n- There is an Action table below to add/remove actions from loadout.\n- Similar to in-game loadout, [Shift+LMB/RMB] on action's icon to add/remove action from loadout.\n- The grey number on the right of action's name is its weight.");
             ImGui.SameLine();

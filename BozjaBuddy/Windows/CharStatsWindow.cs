@@ -97,7 +97,7 @@ namespace BozjaBuddy.Windows
 
             ImGui.Separator();
 
-            UtilsGUI.TextDescriptionForWidget("Player's Cache:");
+            UtilsGUI.GreyText("Player's Cache:");
             ImGui.SameLine(); UtilsGUI.ShowHelpMarker("Lost actions in your possession and their amount.\n\n- The number next to the Lost action is the amount.\n- Red text alerts you of an action's amount is running low under the threshold.\n- This threshold can be configured in Config > Misc > [A], or the button slider button on the right.");
             ImGui.SameLine(); AuxiliaryViewerSection.GUIAlignRight(32);
             UtilsGUI.WindowLinkedButton(mPlugin, "Config - BozjaBuddy", Dalamud.Interface.FontAwesomeIcon.Cog, "Open config window.");

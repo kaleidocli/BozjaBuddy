@@ -42,6 +42,7 @@ namespace BozjaBuddy.Data
 
             this.mTabColor = UtilsGUI.Colors.GenObj_GreenMob;
             this.SetUpAuxiliary();
+            this.SetUpNodeInfo();
         }
         public void SetUpDb(SQLiteDataReader? pPackage)
         {
@@ -59,6 +60,7 @@ namespace BozjaBuddy.Data
             this.mType = this.mLumina.EventIconType.Value != null
                          ? (QuestType)this.mLumina.EventIconType.Value.RowId
                          : QuestType.None;
+            this.mType = this.mLumina.IsRepeatable ? QuestType.Repeatable : this.mType;
             var tNpc = this.mPlugin.DataManager.Excel.GetSheet<ENpcResident>()?.GetRow(this.mLumina.IssuerStart);
             this.mIssuerName = tNpc == null ? "unknown" : tNpc.Singular;
             if (this.mLumina.IssuerLocation.Value != null)
@@ -88,18 +90,42 @@ namespace BozjaBuddy.Data
         {
             return "";
         }
+        protected override void SetUpNodeInfo()
+        {
+            this.mDetailPackage = new()
+            {
+                { TextureCollection.StandardIcon.None, $"NPC: {this.mIssuerName}" }
+            };
+        }
         protected override void SetUpAuxiliary()
         {
             this.mDetail = "";
             this.mDescription = "This is Thancred.";
             this.mIGMarkup = new GUI.IGMarkup.IGMarkup("");
         }
-        protected override void SetUpNodeInfo()
-        {
-
-        }
         protected override string GenReprUiTooltip()
         {
+            string tPrevQuests = string.Join(
+                                        "\n\t\t\t\t\t\t\t",
+                                        this.mPrevQuestIds.Select(o => this.mPlugin.mBBDataManager.mQuests.ContainsKey(o)
+                                                                    ? this.mPlugin.mBBDataManager.mQuests[o].mName
+                                                                    : "unknown")
+                                                            .ToList()
+                                        );
+            string tNextQuests = string.Join(
+                            "\n\t\t\t\t\t\t\t",
+                            this.mNextQuestIds.Select(o => this.mPlugin.mBBDataManager.mQuests.ContainsKey(o)
+                                                        ? this.mPlugin.mBBDataManager.mQuests[o].mName
+                                                        : "unknown")
+                                                .ToList()
+                            );
+            this.mUiTooltip = $"""
+                Name:               {this.mName}
+                NPC:                  {this.mIssuerName} 
+                Location:          {this.mIssuerLocation?.ToStringFull()}
+                Prev quests:    {tPrevQuests}
+                Next quests:    {tNextQuests}
+                """;
             return this.mUiTooltip;
         }
 
@@ -131,7 +157,8 @@ namespace BozjaBuddy.Data
             None = 0,
             Msq = 3,
             Side = 1,
-            Key = 8
+            Key = 8,
+            Repeatable = 100
         }
     }
 }

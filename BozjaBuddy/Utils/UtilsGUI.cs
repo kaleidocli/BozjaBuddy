@@ -23,6 +23,9 @@ using System.IO.Pipes;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static FFXIVClientStructs.FFXIV.Client.Game.QuestManager.QuestListArray;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.MJI;
 
 namespace BozjaBuddy.Utils
 {
@@ -32,6 +35,10 @@ namespace BozjaBuddy.Utils
         private static Vector2 FRAME_PADDING { get; } = new(10f, 2f);
         private static DateTime kTimeSinceLastClipboardCopied = DateTime.Now;
         private unsafe static readonly AtkStage* stage = AtkStage.GetSingleton();
+
+        private static Dictionary<int, int> _cachedInventoryItemAndCount = new();
+        private static Dictionary<int, DateTime> _inventoryItemLastCacheTime = new();
+        private const float _inventoryCacheInterval = 1000;
 
         // https://www.programcreek.com/cpp/?code=kswaldemar%2Frewind-viewer%2Frewind-viewer-master%2Fsrc%2Fimgui_impl%2Fimgui_widgets.cpp
         public static void ShowHelpMarker(string desc, string markerText = "(?)", bool disabled = true)
@@ -61,7 +68,7 @@ namespace BozjaBuddy.Utils
                 ImGui.Text(pText);
             ImGui.SameLine(); UtilsGUI.ShowHelpMarker(pHelpMarkerText);
         }
-        public static void TextDescriptionForWidget(string pText)
+        public static void GreyText(string pText)
         {
             ImGui.TextColored(BozjaBuddy.Utils.UtilsGUI.Colors.BackgroundText_Grey, pText);
         }
@@ -102,7 +109,7 @@ namespace BozjaBuddy.Utils
             return iconSize;
         }
         /// <summary>
-        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
+        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable. If false, genId doesn't matter. </para>
         /// <para>If pSize is not given, the size will be calculated from the size of pContent.</para>
         /// </summary>
         public static bool SelectableLink(
@@ -193,6 +200,7 @@ namespace BozjaBuddy.Utils
             bool pIsAuxiLinked = true,
             InputPayload? pInputPayload = null,
             NodeGraphViewer? pNGViewer = null,          // the viewer to hook this link to
+            bool pBlockNGViewer = false,
             AuxNode? pAuxNode = null)
         {
             pInputPayload ??= new InputPayload();
@@ -212,7 +220,7 @@ namespace BozjaBuddy.Utils
                 return tRes;
             }
             GeneralObject tObj = pPlugin.mBBDataManager.mGeneralObjects[pTargetGenId];
-            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pTargetGenId}\n{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Show options\n===================================\n{tObj.GetReprUiTooltip()}");
+            if (!ImGui.GetIO().KeyShift) UtilsGUI.SetTooltipForLastItem($"{pAdditionalHoverText}[LMB] Show details\t\t[RMB] Options (marketboard, item link, etc.)\n────────────────────────────────\n{tObj.GetReprUiTooltip()}");
 
             ImGui.PushID(pTargetGenId);
             if (!pInputPayload.mIsKeyShift && ImGui.BeginPopupContextItem(pContent, ImGuiPopupFlags.MouseButtonRight))
@@ -225,7 +233,9 @@ namespace BozjaBuddy.Utils
                 UtilsGUI.SypnosisClipboardButton(tObj.GetReprClipboardTooltip());
                 ImGui.Separator();
                 // Map_link to Clipboard + Chat
-                var tLocation = tObj.GetReprLocation();
+                var tLocation = tObj.GetSalt() == GeneralObject.GeneralObjectSalt.Quest
+                                ? ((BozjaBuddy.Data.Quest)tObj).mIssuerLocation
+                                : tObj.GetReprLocation();
                 UtilsGUI.LocationLinkButton(pPlugin, tLocation!, pDesc: "Link position", pIsDisabled: tLocation == null ? true : false);
                 ImGui.Separator();
                 // Invoke: Marketboard
@@ -255,22 +265,26 @@ namespace BozjaBuddy.Utils
             }
             else if (tRes)
             {
-                if (pAuxNode != null)
+                if (!pBlockNGViewer)
                 {
-                    pAuxNode.SetSeed(
-                        new(
-                            AuxNode.nodeType,
-                            new BBNodeContent(pPlugin, pTargetGenId, tObj.mName),
-                            ofsToPrevNode: new Vector2(40, 20)
-                            ));
-                }
-                else if (pNGViewer != null)
-                {
-                    pNGViewer.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
-                }
-                else if (pPlugin.Configuration.mIsAuxiUsingNGV)
-                {
-                    pPlugin.NodeGraphViewer_Auxi.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
+                    if (pAuxNode != null)
+                    {
+                        pAuxNode.SetSeed(
+                            new(
+                                AuxNode.nodeType,
+                                new BBNodeContent(pPlugin, pTargetGenId, tObj.mName),
+                                ofsToPrevNode: new Vector2(40, 20)
+                                ));
+                    }
+                    else if (pNGViewer != null)
+                    {
+                        pNGViewer.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
+                    }
+                    else if (pPlugin.Configuration.mIsAuxiUsingNGV)
+                    {
+                        pPlugin.NodeGraphViewer_Auxi.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
+                    }
+                    else pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
                 }
                 else pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
             }
@@ -306,11 +320,28 @@ namespace BozjaBuddy.Utils
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
-        public static void ItemLinkButton(Plugin pPlugin, string pReprName, SeString? pReprItemLink = null)
+        public static void ItemLinkButton(Plugin pPlugin, string pReprName, SeString? pReprItemLink = null, bool pUseIcon = false, Vector2? pFramePadding = null)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, UtilsGUI.FRAME_ROUNDING);
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, UtilsGUI.FRAME_PADDING);
-            if (ImGui.Button("Link item"))
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, pFramePadding ?? UtilsGUI.FRAME_PADDING);
+            if (!pUseIcon && ImGui.Button("Link item"))
+            {
+                UtilsGUI.kTimeSinceLastClipboardCopied = DateTime.Now;
+                ImGui.SetClipboardText(pReprName);
+
+                if (pReprItemLink == null)
+                {
+                    ImGui.PopStyleVar();
+                    ImGui.PopStyleVar();
+                    return;
+                }
+                try
+                {
+                    pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry { Message = pReprItemLink });
+                }
+                catch (Exception e) { PluginLog.LogError(e.Message); }
+            }
+            else if (pUseIcon && ImGuiComponents.IconButton(FontAwesomeIcon.Comment))
             {
                 UtilsGUI.kTimeSinceLastClipboardCopied = DateTime.Now;
                 ImGui.SetClipboardText(pReprName);
@@ -334,11 +365,16 @@ namespace BozjaBuddy.Utils
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
-        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false, float pRightAlignOffset = 0f, float pScaling = 1, Vector2? pFramePadding = null)
+        /// <summary> 
+        /// <para> pDesc:       Text that appears on the button. If not given, the location's text will appear instead. </para>
+        /// </summary>
+        public static void LocationLinkButton(Plugin pPlugin, Location pLocation, bool rightAlign = false, bool pUseIcon = false, string? pDesc = null, bool pIsDisabled = false, float pRightAlignOffset = 0f, float pScaling = 1, Vector2? pFramePadding = null, bool pIsTeleporting = false)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, UtilsGUI.FRAME_ROUNDING);
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, (pFramePadding ?? UtilsGUI.FRAME_PADDING) * pScaling);
-            string tButtonText = pDesc ?? $"{pLocation.mAreaFlag} ({pLocation.mMapCoordX}, {pLocation.mMapCoordY})";
+            string tButtonText = pDesc ?? (pLocation.mAreaFlag == Location.Area.None
+                                           ? pLocation.ToStringFull()
+                                           : $"{pLocation.mAreaFlag} ({pLocation.mMapCoordX}, {pLocation.mMapCoordY})");            // use area flag for bozja areas since they're too long. Otherwise, use normal location string.
             if (rightAlign)
             {
                 AuxiliaryViewerSection.GUIAlignRight(ImGui.CalcTextSize(tButtonText).X + pRightAlignOffset);
@@ -370,20 +406,28 @@ namespace BozjaBuddy.Utils
                 // link to chat
                 pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry
                 {
-                    Message = SeString.CreateMapLink(pLocation.mTerritoryID,
-                            pLocation.mMapID,
-                            (float)pLocation.mMapCoordX,
-                            (float)pLocation.mMapCoordY)
+                    Message = SeString.CreateMapLink(pLocation.mTerritoryID, pLocation.mMapID, (float)pLocation.mMapCoordX, (float)pLocation.mMapCoordY)
                 });
-                //PluginLog.LogInformation($"Showing map: {pLocation.mTerritoryID} - {pLocation.mMapID} - {(float)pLocation.mMapCoordX} - {(float)pLocation.mMapCoordY}");
+                // teleport
+                if (pIsTeleporting)
+                {
+                    var tAetheryteId = pPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(pLocation.mTerritoryID)?.Aetheryte?.Value?.RowId;
+                    if (tAetheryteId != null)
+                    {
+                        unsafe
+                        {
+                            Utils.Teleport(pPlugin, tAetheryteId.Value);
+                        }
+                    }
+                }
             }
-            UtilsGUI.SetTooltipForLastItem($"Mark position on map + Link location to Chat (if available)\n\nat: {tButtonText}");
+            UtilsGUI.SetTooltipForLastItem($"Mark on map + Link to Chat {(pIsTeleporting ? "+ Teleport" : "")}\n\nat: {pLocation.ToStringFull()}");
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
-        public static void MarketboardButton(Plugin pPlugin, int pItemId, bool pIsDisabled = false)
+        public static void MarketboardButton(Plugin pPlugin, int pItemId, bool pIsDisabled = false, bool pUseIcon = false, Vector2? pFramePadding = null)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, UtilsGUI.FRAME_PADDING);
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, pFramePadding ?? UtilsGUI.FRAME_PADDING);
             if (pIsDisabled)
             {
                 ImGui.BeginDisabled();
@@ -392,7 +436,11 @@ namespace BozjaBuddy.Utils
                 ImGui.PopStyleVar();
                 return;
             }
-            if (ImGui.Button("Marketboard"))
+            if (!pUseIcon && ImGui.Button("Marketboard"))
+            {
+                pPlugin.CommandManager.ProcessCommand($"/pmb {pItemId}");
+            }
+            else if (pUseIcon && ImGuiComponents.IconButton(FontAwesomeIcon.ArrowTrendUp))
             {
                 pPlugin.CommandManager.ProcessCommand($"/pmb {pItemId}");
             }
@@ -461,7 +509,7 @@ namespace BozjaBuddy.Utils
         }
         /// <summary>
         /// <para>A SelectableLink_WithPopup but in form of an image. Can be configured to be a normal Selectable.</para>
-        /// <para>pIsLink:              Whether the Link is a Link or just a Selectable</para>
+        /// <para>pIsLink:              Whether the Link is a Link or just behaves like an ImGui.Selectable (If false, genId doesn't matter).</para>
         /// <para>pIsAuxiLinked:        Whether the Link will pop up an Auxiliary tab</para>
         /// <para>pContent:             Not advised to use.</para>
         /// <para>pLinkPadding:         Link padding from four sides of the image.</para>
@@ -534,6 +582,110 @@ namespace BozjaBuddy.Utils
                 );
             return tRes;
         }
+        /// <summary> 
+        /// NGV only. Specifically for quest chain. Quest chain linking should be using this.
+        /// <para> Add a new canvas containing quest chain graph. If a canvas with the same quest chain already exists, set focus on that canvas instead. </para>
+        /// </summary>
+        public static bool SelectableLink_QuestChain(
+            Plugin pPlugin,
+            string pContent,
+            QuestChain pQuestChain,
+            NodeGraphViewer? pNGVToOpenQuestChainIn = null,
+            InputPayload? pInputPayload = null
+            )
+        {
+            bool tRes = UtilsGUI.SelectableLink_WithPopup(
+                    pPlugin,
+                    pContent,
+                    pQuestChain.GetGenId(),
+                    pIsAuxiLinked: false,
+                    pBlockNGViewer: true,
+                    pInputPayload: pInputPayload
+                );
+            if (tRes && pPlugin.Configuration.mIsAuxiUsingNGV)
+            {
+                NodeGraphViewer tNGV = pNGVToOpenQuestChainIn ?? pPlugin.NodeGraphViewer_Auxi;
+                // Try to find and set focus on a canvas with the same quest chain tag
+                if (!tNGV.SetCanvasActive(pQuestChain.GetGenId().ToString()))
+                {
+                    tNGV.ImportCanvas(pQuestChain.GetCanvasData(), pQuestChain.GetGenId().ToString());
+                    tNGV.SetCanvasActive(pQuestChain.GetGenId().ToString());
+                }
+            }
+            return tRes;
+        }
+        /// <summary> 
+        /// NGV only. Specifically for quest.
+        /// <para> If the quest does not belong to a quest chain, it will behave like normal SelectableLink_PU </para>
+        /// <para> 
+        /// If the quest belongs to any quest chain, 
+        /// it will add/focus the tagged canvasses of all quest chains it belongs to, 
+        /// then focus on the node of the quest on that canvas.
+        /// </para>
+        /// </summary>
+        public static bool SelectableLink_Quest(
+            Plugin pPlugin,
+            string pContent,
+            BozjaBuddy.Data.Quest pQuest,
+            NodeGraphViewer? pNGVToOpenQuestChainIn = null,
+            InputPayload? pInputPayload = null
+            )
+        {
+            // case: normal SLPU
+            if (pQuest.mQuestChains.Count == 0)
+            {
+                return UtilsGUI.SelectableLink_WithPopup(pPlugin, pQuest.mName, pQuest.GetGenId());
+            }
+
+            bool tRes = UtilsGUI.SelectableLink_WithPopup(
+                    pPlugin,
+                    pContent,
+                    pQuest.GetGenId(),
+                    pIsAuxiLinked: false,
+                    pBlockNGViewer: true,
+                    pInputPayload: pInputPayload
+                );
+            if (tRes && pPlugin.Configuration.mIsAuxiUsingNGV)
+            {
+                NodeGraphViewer tNGV = pNGVToOpenQuestChainIn ?? pPlugin.NodeGraphViewer_Auxi;
+
+                foreach (var chainId in pQuest.mQuestChains)
+                {
+                    // Get chain
+                    if (!pPlugin.mBBDataManager.mQuestChains.TryGetValue(chainId, out var qChain) || qChain == null) continue;
+                    // Try to find and set focus on a canvas with the same quest chain tag
+                    if (!tNGV.SetCanvasActive(qChain.GetGenId().ToString()))
+                    {
+                        tNGV.ImportCanvas(qChain.GetCanvasData(), qChain.GetGenId().ToString(), noInitOfs: true);
+                        tNGV.SetCanvasActive(qChain.GetGenId().ToString());
+                    }
+                    // Focus on the node of the quest
+                    tNGV.FocusOnNodeTag_ActiveCanvas($"{Utils.NodeTagPrefix.SYS}{pQuest.GetGenId()}");
+                }
+            }
+            return tRes;
+        }
+        public static bool SelectableLink_Quest(
+            Plugin pPlugin,
+            int pQuestId,
+            string? pContent = null,
+            NodeGraphViewer? pNGVToOpenQuestChainIn = null,
+            InputPayload? pInputPayload = null
+            )
+        {
+            pPlugin.mBBDataManager.mQuests.TryGetValue(pQuestId, out var tQuest);
+            if (tQuest == null)
+            {
+                return ImGui.Selectable(pContent ?? "<unknown quest>");
+            }
+            return UtilsGUI.SelectableLink_Quest(
+                    pPlugin,
+                    pContent ?? tQuest.mName,
+                    tQuest,
+                    pNGVToOpenQuestChainIn,
+                    pInputPayload
+                );
+        }
         /// <summary>
         /// By default, display URL on hovering.
         /// </summary>
@@ -562,6 +714,135 @@ namespace BozjaBuddy.Utils
                 UtilsGUI.SetTooltipForLastItem($"[{pUrl}]\n\n[RMB] Copy URL to clipboard\n" + (pHoveredText ?? ""));
             }
             ImGui.PopID();
+        }
+        /// <summary> Item that are in lumina Item sheet only! Other BB stuff won't work i.e. Fate, Fragment, etc. </summary>
+        public static void ItemLinkButton_Image(Plugin pPlugin, int pItemId, TextureWrap pItemTexture, float pImageScaling = 1)
+        {
+            var tItem = pPlugin.mBBDataManager.GetItem(pItemId);
+            if (UtilsGUI.SelectableLink_Image(pPlugin, -1, pItemTexture, pIsLink: false, pIsAuxiLinked: false, pImageScaling: pImageScaling, pCustomLinkSize: new(pItemTexture.Height * pImageScaling * 0.9f))
+                && tItem != null)
+            {
+                var tItemLink = tItem.GetReprItemLink();
+                if (tItemLink != null)
+                    pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry { Message = tItemLink });
+            }
+            else UtilsGUI.SetTooltipForLastItem("Click to link item to chat.");
+        }
+        /// <summary>
+        /// <para> luminaItemId:            id of the item in the Item lumina sheet. If BBItem is not found, a text will be displayed instead of a SL_PU. </para>
+        /// </summary>
+        public static void InventoryItemWidget(
+            Plugin pPlugin, 
+            int pLuminaItemId, 
+            float pUpdateRate = UtilsGUI._inventoryCacheInterval, 
+            int? pMaxCount = null,
+            UtilsGUI.InventoryItemWidgetFlag pFlag = InventoryItemWidgetFlag.None)
+        {
+            // Retrieve data
+            uint tLuminaItemId = Convert.ToUInt32(pLuminaItemId);
+            var tItem = pPlugin.mBBDataManager.mSheetItem?.GetRow(tLuminaItemId);
+            if (tItem == null)
+            {
+                ImGui.Text($"<InvItemWdgt_err: lid={pLuminaItemId}>");
+                return;
+            }
+            TextureWrap? tItemTexture = pFlag.HasFlag(InventoryItemWidgetFlag.NoIcon)
+                ? null
+                : UtilsGameData.kTextureCollection?.GetTextureFromItemId(tLuminaItemId, TextureCollection.Sheet.Item, pTryLoadTexIfFailed: true);
+            int tCount = 0;
+            UtilsGUI._inventoryItemLastCacheTime.TryGetValue(pLuminaItemId, out DateTime tLastCacheTime);
+            // Check item validity in cache. If not, update cache.
+            if (!(UtilsGUI._cachedInventoryItemAndCount.TryGetValue(pLuminaItemId, out tCount)
+                && (DateTime.Now - tLastCacheTime).TotalMilliseconds < pUpdateRate)
+                )
+            {
+                tCount = 0;
+                unsafe 
+                {
+                    var ins = InventoryManager.Instance();
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.Inventory1);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.Inventory2);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.Inventory3);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.Inventory4);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.SaddleBag1);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.SaddleBag2);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.PremiumSaddleBag1);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.PremiumSaddleBag2);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage1);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage2);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage3);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage4);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage5);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage6);
+                    tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage7);
+                    // Gears
+                    if (tItem.EquipSlotCategory.Value != null)
+                    {
+                        if (tItem.EquipSlotCategory.Value.Body == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryBody);
+                        if (tItem.EquipSlotCategory.Value.Ears == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryEar);
+                        if (tItem.EquipSlotCategory.Value.Feet == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryFeets);
+                        if (tItem.EquipSlotCategory.Value.Gloves == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryHands);
+                        if (tItem.EquipSlotCategory.Value.Head == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryHead);
+                        if (tItem.EquipSlotCategory.Value.Legs == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryLegs);
+                        if (tItem.EquipSlotCategory.Value.MainHand == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryMainHand);
+                        if (tItem.EquipSlotCategory.Value.Neck == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryNeck);
+                        if (tItem.EquipSlotCategory.Value.OffHand == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryOffHand);
+                        if (tItem.EquipSlotCategory.Value.FingerL == (sbyte)1 || tItem.EquipSlotCategory.Value.FingerR == (sbyte)1) 
+                            tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryRings);
+                        tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.EquippedItems);
+                    }
+                }
+                if (!UtilsGUI._cachedInventoryItemAndCount.TryAdd(pLuminaItemId, tCount))
+                {
+                    UtilsGUI._cachedInventoryItemAndCount[pLuminaItemId] = tCount;
+                }
+                if (!UtilsGUI._inventoryItemLastCacheTime.TryAdd(pLuminaItemId, DateTime.Now))
+                {
+                    UtilsGUI._inventoryItemLastCacheTime[pLuminaItemId] = DateTime.Now;
+                }
+            }
+
+            // Draw
+            // Item icon
+            if (tItemTexture != null && !pFlag.HasFlag(InventoryItemWidgetFlag.NoIcon))
+            {
+                UtilsGUI.ItemLinkButton_Image(pPlugin, pLuminaItemId, tItemTexture, pImageScaling: ImGui.CalcTextSize("W").Y * 1.3f / tItemTexture.Height);
+                ImGui.SameLine();
+            }
+            // Item count
+            if (!pFlag.HasFlag(InventoryItemWidgetFlag.NoCount))
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, tCount < (pMaxCount ?? -1) ? UtilsGUI.Colors.NormalText_White : UtilsGUI.Colors.BackgroundText_Green);
+                ImGui.Text($"[{tCount}{(pMaxCount != null ? $"/{pMaxCount}" : "")}]");
+                ImGui.PopStyleColor();
+                ImGui.SameLine();
+            }
+            // Item link
+            if (!pFlag.HasFlag(InventoryItemWidgetFlag.NoName))
+            {
+                ImGui.SameLine();
+                var tBBItem = pPlugin.mBBDataManager.GetItem(pLuminaItemId);
+                if (tBBItem != null && !pFlag.HasFlag(InventoryItemWidgetFlag.NoSelectableLink_PU))        // BBItem found
+                {
+                    UtilsGUI.SelectableLink_WithPopup(
+                        pPlugin, 
+                        tBBItem.mName, 
+                        tBBItem.GetGenId(), 
+                        pTextColor: tCount < (pMaxCount ?? -1)
+                                    ? UtilsGUI.Colors.BackgroundText_Grey
+                                    : UtilsGUI.Colors.NormalText_White
+                        );
+                }
+                else                        // if not, use normal text with lumina data
+                {
+                    if (tCount < (pMaxCount ?? -1)) ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.BackgroundText_Grey);
+                    ImGui.Text(tItem.Name);
+                    if (tCount < (pMaxCount ?? -1)) ImGui.PopStyleColor();
+                }
+                ImGui.SameLine();
+            }
+
+            ImGui.Text("");     // dummy text for SameLine()
         }
         /// <summary>
         /// While rendering in a pop up, texture's width will not exceed half of the screen's width.
@@ -783,6 +1064,7 @@ namespace BozjaBuddy.Utils
             public readonly static Vector4 NodeFg = Utils.RGBAtoVec4(148, 121, 74, 255);
             public readonly static Vector4 NodeText = Utils.RGBAtoVec4(223, 211, 185, 255);
             public readonly static Vector4 NodePack = Utils.RGBAtoVec4(157, 189, 99, 255);
+            public readonly static Vector4 NodeEdgeHighlightNeg = Utils.RGBAtoVec4(246, 132, 118, 255);
             public readonly static Vector4 NodeGraphViewer_BackdropGrey = Utils.RGBAtoVec4(165, 165, 165, 255);
             public readonly static Vector4 NodeGraphViewer_SnaplineGold = Utils.RGBAtoVec4(148, 121, 74, 255);
             public readonly static Vector4 NodeNotifInfo = Utils.RGBAtoVec4(223, 211, 185, 255);
@@ -800,7 +1082,8 @@ namespace BozjaBuddy.Utils
             private const double kKeyClickValidityThreshold = 250;
             private static float kDelayBetweenMouseWheelCapture = 100;
             public static bool kWasLmbDragged = false;
-            private static string kGlobalCaptureId = "";
+            private static List<ImGuiKey> kKeysToCheck = new() { ImGuiKey.Delete, ImGuiKey.C, ImGuiKey.V };
+            private static Dictionary<ImGuiKey, bool> kKeysDown = new();
             private static double DeltaLastMouseClick() => (DateTime.Now - InputPayload.kLastMouseClicked).TotalMilliseconds;
             private static double DeltaLastKeyClick() => (DateTime.Now - InputPayload.kLastKeyClicked).TotalMilliseconds;
             public static bool CheckMouseClickValidity()
@@ -831,6 +1114,9 @@ namespace BozjaBuddy.Utils
             public bool mIsKeyShift = false;
             public bool mIsKeyAlt = false;
             public bool mIsKeyCtrl = false;
+            public bool mIsKeyDel = false;
+            public bool mIsKeyC = false;
+            public bool mIsKeyV = false;
             public Vector2 mMousePos = Vector2.Zero;
             private Vector2? mFirstMouseLeftHoldPos = null;
             public bool mIsALmbDragRelease = false;
@@ -839,7 +1125,11 @@ namespace BozjaBuddy.Utils
             public Vector2? mLmbDragDelta = null;
             public float mMouseWheelValue = 0;
 
-            public void CaptureInput(bool pCaptureMouseWheel = false, bool pCaptureMouseDrag = false)
+            /// <summary>
+            /// ExtraKeyboardInputs:            in case something is blocking ImGui keyboard non-mod input capture,
+            ///                                 use this to submit inputs.
+            /// </summary>
+            public void CaptureInput(bool pCaptureMouseWheel = false, bool pCaptureMouseDrag = false, HashSet<ImGuiKey>? pExtraKeyboardInputs = null)
             {
                 var io = ImGui.GetIO();
                 if (io.KeyShift) mIsKeyShift = true;
@@ -863,6 +1153,35 @@ namespace BozjaBuddy.Utils
                     InputPayload.kWasLmbDragged = false;
                     this.mIsALmbDragRelease = InputPayload.kWasLmbDragged;
                 }
+
+                // extra-inputs
+                if (pExtraKeyboardInputs != null)
+                {
+                    foreach (var imKey in InputPayload.kKeysToCheck)
+                    {
+                        // Try get state: Down
+                        if (pExtraKeyboardInputs.Contains(imKey))
+                        {
+                            if (!InputPayload.kKeysDown.TryAdd(imKey, true))
+                                InputPayload.kKeysDown[imKey] = true;
+                        }
+                        else
+                        {
+                            // Try get state: Released
+                            if (InputPayload.kKeysDown.TryGetValue(imKey, out var isKeyDown) && isKeyDown)
+                            {
+                                switch (imKey)
+                                {
+                                    case ImGuiKey.Delete: mIsKeyDel = true; break;
+                                    case ImGuiKey.C: mIsKeyC = true; break;
+                                    case ImGuiKey.V: mIsKeyV = true; break;
+                                }
+                                InputPayload.kKeysDown[imKey] = false;
+                            }
+                        }
+                    }
+                }
+                if (ImGui.IsKeyPressed(ImGuiKey.Delete)) mIsKeyDel = true;
             }
             /// <summary> https://git.anna.lgbt/ascclemens/QuestMap/src/commit/2030f8374eb65a64947b2bc37f35fc53ff3723f4/QuestMap/PluginUi.cs#L857 </summary>
             private Vector2? CaptureMouseDragDeltaInternal()
@@ -930,6 +1249,16 @@ namespace BozjaBuddy.Utils
             {
                 this.mMouseWheelValue = this.CaptureMouseWheelInternal();
             }
+        }
+
+        [Flags]
+        public enum InventoryItemWidgetFlag
+        {
+            None = 0,
+            NoCount = 1,
+            NoName = 2,
+            NoIcon = 4,
+            NoSelectableLink_PU = 8
         }
     }
 }

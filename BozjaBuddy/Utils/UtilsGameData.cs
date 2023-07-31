@@ -1,4 +1,5 @@
 ﻿using BozjaBuddy.Data;
+using BozjaBuddy.GUI.Sections;
 using Dalamud.Game.ClientState;
 using Dalamud.Logging;
 using ImGuiNET;
@@ -30,6 +31,10 @@ namespace BozjaBuddy.Utils
                                                                 Job.MNK, Job.DRG, Job.SAM, Job.NIN, Job.RPR,
                                                                 Job.BRD, Job.DNC, Job.MCH,
                                                                 Job.ALL};
+        public static HashSet<Job> kRelicValidJobs = UtilsGameData.kValidJobs
+                                                                .Where(j => j != Job.NONE && j != Job.ALL && j != Job.RPR && j != Job.SGE)
+                                                                .Select(o => o)
+                                                                .ToHashSet<Job>();
         private static readonly Dictionary<Job, int> kJobIconIds = new()
         {
             { Job.WAR, 62121 },
@@ -116,6 +121,18 @@ namespace BozjaBuddy.Utils
             { "castrum", Location.Area.Dalriada }
         };
 
+        private static Dictionary<RelicSection.RelicStep, Tuple<int, int>> kRelicIdRanges = new()
+        {
+            { RelicSection.RelicStep.Resistance, new(30228, 30245) },
+            { RelicSection.RelicStep.ResistanceA, new(30767, 30784) },
+            { RelicSection.RelicStep.Recollection, new(30785, 30802) },
+            { RelicSection.RelicStep.LawsOrder, new(32651, 32668) },
+            { RelicSection.RelicStep.LawsOrderA, new(32669, 32686) },
+            { RelicSection.RelicStep.Blades, new(33462, 33479) }
+        };
+
+        public static Dictionary<RelicSection.RelicStep, Dictionary<Job, int>> kRelicsAndJobs = new();
+
         public static void Init(Plugin pPlugin)
         {
             UtilsGameData.kTextureCollection = new(pPlugin);
@@ -132,6 +149,19 @@ namespace BozjaBuddy.Utils
             UtilsGameData.kTexCol_LostAction.AddTextureFromItemId(pPlugin.mBBDataManager.mLostActions.Keys.ToList());
             UtilsGameData.kTexCol_FieldNote = new(pPlugin);
             UtilsGameData.kTexCol_FieldNote.AddTextureFromItemId(pPlugin.mBBDataManager.mFieldNotes.Keys.ToList(), pSheet: TextureCollection.Sheet.FieldNote);
+
+            // Relic info initial mapping
+            foreach (var idRange in UtilsGameData.kRelicIdRanges)
+            {
+                var step = idRange.Key;
+                if (!UtilsGameData.kRelicsAndJobs.ContainsKey(step)) UtilsGameData.kRelicsAndJobs.TryAdd(step, new());
+                for (int id = idRange.Value.Item1; id < idRange.Value.Item2; id++)
+                {
+                    Job? job = (Job?)pPlugin.mBBDataManager.mSheetItem?.GetRow(Convert.ToUInt32(id))?.ClassJobUse?.Value?.RowId;
+                    if (job == null) continue;
+                    UtilsGameData.kRelicsAndJobs[step].TryAdd(job.Value, id);
+                }
+            }
         }
 
         public static Job? GetUserJob(Plugin pPlugin)
@@ -219,6 +249,29 @@ namespace BozjaBuddy.Utils
         public static void Dispose()
         {
             UtilsGameData.kTextureCollection?.Dispose();
+        }
+
+        public enum LuminaItemId          // basically a map of item's name and lumina id, for ease of use. Only for the ones that we use a lot.
+        {
+            Memory_Tortured = 31573,
+            Memory_Sorrowful = 31574,
+            Memory_Harrowing = 31575,
+            Memory_Bitter = 31576,
+
+            Memory_Loathsome = 32956,
+            Memory_Haunting = 32957,
+            Memory_Vexatious = 32958,
+            Memory_Bleak = 32959,
+            Memory_Lurid = 32960,
+
+            TimeWorn = 32959,
+            CompactAxle = 33757,
+            CompactSpring = 33758,
+            RealmBook = 33759,
+            RiftBook = 33760,
+            RawEmotion = 33767,
+
+            SaveThePrincess = 32855
         }
     }
 

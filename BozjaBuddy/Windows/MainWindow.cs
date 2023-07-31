@@ -18,6 +18,8 @@ public class MainWindow : Window, IDisposable
     private GeneralSection mGeneralSection;
     private FieldNoteTab mFieldNoteTab;
     private DrsTab mDrsTab;
+    private QuestTab mQuestTab;
+    private RelicTab mRelicTab;
  
     public MainWindow(Plugin plugin) : base(
         "Bozja Buddy", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
@@ -33,6 +35,8 @@ public class MainWindow : Window, IDisposable
         this.mGeneralSection = new GeneralSection(this.Plugin);
         this.mFieldNoteTab = new FieldNoteTab(this.Plugin);
         this.mDrsTab = new(this.Plugin);
+        this.mQuestTab = new(this.Plugin);
+        this.mRelicTab = new(this.Plugin);
     }
 
     public void RearrangeSection()
@@ -43,6 +47,8 @@ public class MainWindow : Window, IDisposable
         this.mLoadoutTab.RearrangeSection();
         this.mFieldNoteTab.RearrangeSection();
         this.mDrsTab.RearrangeSection();
+        this.mQuestTab.RearrangeSection();
+        this.mRelicTab.RearrangeSection();
     }
     public void Dispose()
     {
@@ -52,6 +58,8 @@ public class MainWindow : Window, IDisposable
         this.mLoadoutTab.Dispose();
         this.mFieldNoteTab.Dispose();
         this.mDrsTab.Dispose();
+        this.mQuestTab.Dispose();
+        this.mRelicTab.Dispose();
     }
 
     public override void Draw()
@@ -65,10 +73,12 @@ public class MainWindow : Window, IDisposable
         }
         this.mGeneralSection.DrawGUI();
         if (ImGui.BeginTabBar("Tab Bat")) {
+            this.mRelicTab.DrawGUI();
             this.mLostActionTab.DrawGUI();
             this.mFateCeTab.DrawGUI();
             this.mMobTab.DrawGUI();
             this.mFieldNoteTab.DrawGUI();
+            this.mQuestTab.DrawGUI();
             this.mDrsTab.DrawGUI();
             this.mLoadoutTab.DrawGUI();
 

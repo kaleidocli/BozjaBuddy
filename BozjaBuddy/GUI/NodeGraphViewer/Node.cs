@@ -35,6 +35,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public HashSet<string> mPack = new();           // represents the nodes that this node packs
         public string? mPackerNodeId = null;        // represents the node which packs this node (the master packer, not just the parent node). Only ONE packer per node.
         public bool mIsPacked = false;
+        public string? mTag = null;
         public PackingStatus mPackingStatus = PackingStatus.None;
         public Vector2? _relaPosLastPackingCall = null;
 
@@ -69,9 +70,10 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// Fix this smelly thing prob?
         /// Used for json.
         /// </summary>
-        public virtual void Init(string pNodeId, int pGraphId, NodeContent.NodeContent pContent, NodeStyle? _style = null)
+        public virtual void Init(string pNodeId, int pGraphId, NodeContent.NodeContent pContent, NodeStyle? _style = null, string? pTag = null)
         {
             this.mId = pNodeId;
+            this.mTag = pTag;
             this.mGraphId = pGraphId;
             this.mContent = pContent;
             if (_style != null) this.mStyle = _style;
@@ -97,6 +99,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             this.SetHeader(this.mContent.GetHeader());               // adjust minSize to new header
             this.mStyle.SetSize(this.mRecommendedInitSize);        // adjust size to the new minSize
         }
+        public void _setId(string pId) => this.mId = pId;
 
         /// <summary>
         /// <para>pAdjustWidthOnly:         (requires: autoSizing) Adjust node's width only, keep node's height the same.</para>
@@ -279,7 +282,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             Vector2 tBSize = new(Node.handleButtonBoxItemWidth, this.mStyle.GetHandleSize().Y * 0.8f);
             tBSize *= pCanvasScaling;
-            if (ImGui.Selectable(this.mIsMinimized ? "  ^" : "  v", false, ImGuiSelectableFlags.DontClosePopups, tBSize))
+            if (ImGui.Selectable(this.mIsMinimized ? "  ▲" : "  ▼", false, ImGuiSelectableFlags.DontClosePopups, tBSize))
             {
                 this.mIsMinimized = !this.mIsMinimized;
             }

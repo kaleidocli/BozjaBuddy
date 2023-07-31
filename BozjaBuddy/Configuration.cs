@@ -14,6 +14,7 @@ using System.Security.Cryptography;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.GeneratedSheets;
 using System.Runtime.CompilerServices;
+using BozjaBuddy.GUI.Sections;
 
 namespace BozjaBuddy
 {
@@ -58,6 +59,11 @@ namespace BozjaBuddy
         public HashSet<int> mUserFieldNotes = new();
         public bool mIsAuxiUsingNGV = true;
         public string? mAuxiNGVSaveData = null;
+        public Dictionary<Job, RelicSection.RelicStep> mRelicProgress = UtilsGameData.kRelicValidJobs.ToDictionary(o => o, o => RelicSection.RelicStep.None);
+
+        public bool mIsRelicFirstTime = true;
+        public int mRelicOTG2Path = 0;
+        public Job mRelicCurrJob = RelicSection.kDefaultCurrJob;
 
         public GuiAssistConfig mGuiAssistConfig = new();
 

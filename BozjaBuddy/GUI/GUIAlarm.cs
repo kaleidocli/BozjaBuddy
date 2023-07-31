@@ -389,7 +389,7 @@ namespace BozjaBuddy.GUI
                 GUIAlarm.DrawACPUTextInput_Default();
 
                 // Fate/CE combo
-                UtilsGUI.TextDescriptionForWidget("For specific Fate/CE: ");
+                UtilsGUI.GreyText("For specific Fate/CE: ");
                 ImGui.SameLine();
                 if (pIsLabelEditable || pAlarmToEdit != null)
                 {
@@ -431,7 +431,7 @@ namespace BozjaBuddy.GUI
                     || GUIAlarm.kFieldExOptFCE_OnlyFate
                     || GUIAlarm.kFieldExOptFCE_OnlyCe)
                 {
-                    UtilsGUI.TextDescriptionForWidget("For specific location: ");
+                    UtilsGUI.GreyText("For specific location: ");
                     if (GUIAlarm.kFieldTriggerString == null
                         || !UtilsGameData.kAreaAndCode.ContainsKey(GUIAlarm.kFieldTriggerString))
                         GUIAlarm.kFieldTriggerString = "none";
@@ -454,7 +454,7 @@ namespace BozjaBuddy.GUI
                     ImGui.BeginDisabled();
                     int tDummyInt = 0;
                     GUIAlarm.kFieldTriggerString = null;
-                    UtilsGUI.TextDescriptionForWidget("For specific location: ");
+                    UtilsGUI.GreyText("For specific location: ");
                     ImGui.SameLine(); ImGui.Combo("##exoCombo", ref tDummyInt, "---------------");
                     ImGui.EndDisabled();
                 }

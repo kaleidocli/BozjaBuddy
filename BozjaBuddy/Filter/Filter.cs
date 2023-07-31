@@ -10,7 +10,7 @@ namespace BozjaBuddy.Filter
     /// Represents 1. Column header's GUI
     ///            2. The filter that is used to filter table content
     /// </summary>
-    internal abstract class Filter
+    public abstract class Filter
     {
         protected GUIFilter mGUI = new GUIFilter();
 
@@ -34,6 +34,7 @@ namespace BozjaBuddy.Filter
         public virtual bool CanPassFilter(Mob tMob) => true;
         public virtual bool CanPassFilter(Loadout tLoadout) => true;
         public virtual bool CanPassFilter(FieldNote tFieldNote) => true;
+        public virtual bool CanPassFilter(Quest tQuest) => true;
         protected bool CanPassFilter(string pEntityValue)
             => !mIsFilteringActive | pEntityValue.Contains(mCurrValue.ToString(), StringComparison.CurrentCultureIgnoreCase);
 

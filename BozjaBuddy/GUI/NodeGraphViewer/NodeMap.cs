@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Dalamud.Logging;
 
 namespace BozjaBuddy.GUI.NodeGraphViewer
 {
@@ -42,6 +43,13 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         public Vector2 GetBaseOffset() => this.ofsBase;
         public void AddBaseOffset(Vector2 offset) => ofsBase += offset;
         public void ResetBaseOffset() => ofsBase = Vector2.Zero;
+        public bool FocusOnNode(string nodeId, Vector2? extraOfs = null)
+        {
+            if (!this._nodeMap.TryGetValue(nodeId, out var nodeOfsFromLocalBase)) return false;
+            this.ResetBaseOffset();
+            this.AddBaseOffset(-nodeOfsFromLocalBase + (extraOfs ?? Vector2.Zero));
+            return true;
+        }
 
         // ========================= NODE =========================
         public Vector2? GetNodeScreenPos(string nodeId, Vector2 canvasOrigninScreenPos, float canvasScaling)
