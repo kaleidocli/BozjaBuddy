@@ -114,6 +114,8 @@ namespace BozjaBuddy.GUI.Sections
                 ImGui.Separator();
                 ImGui.Spacing();
                 // ===================================
+                // Tip
+                UtilsGUI.GreyText("(click image to link chat)");
                 // Relic steps
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(Vector2.One.X, ImGui.GetStyle().ItemSpacing.Y));
                 foreach (var step in this.mOrderedTopics)
@@ -313,7 +315,7 @@ namespace BozjaBuddy.GUI.Sections
                 }
             }
 
-            UtilsGUI.GreyText("- You can link the relic to chat by clicking the relic item image.");
+            UtilsGUI.GreyText("- Tick the [Fist Time] box at the bottom of the list on the left if it applies to you.");
             ImGui.Text(
                     """
                     - Prerequisites:
@@ -339,7 +341,6 @@ namespace BozjaBuddy.GUI.Sections
                                     + Extra two steps: One-time grind 1 & 2
                                     + First step [Resistance] will not require any poetics.
                                     + Other minor stuff.
-                            - Tick the [Fist Time] box at the bottom of the list on the left if it applies to you.
                             """);
 
             ImGui.PopTextWrapPos();
