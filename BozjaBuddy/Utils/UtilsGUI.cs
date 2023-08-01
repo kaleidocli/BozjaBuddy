@@ -846,17 +846,18 @@ namespace BozjaBuddy.Utils
         }
         /// <summary>
         /// While rendering in a pop up, texture's width will not exceed half of the screen's width.
+        /// <para> ImgFilename:     name of the img file, located in BozjaBuddy </para>
         /// </summary>
         public static bool DrawImgFromDb(
             Plugin pPlugin, 
-            string pImgKey, 
+            string pImgFilename, 
             bool pIsScaledToRegionWidth = false,
             float pExtraScaling = 1,
             bool pIsPU = false)
         {
             bool tRes = false;
 
-            if (pPlugin.mBBDataManager.mImages.TryGetValue(pImgKey, out TextureWrap? tImg)
+            if (pPlugin.mBBDataManager.mImages.TryGetValue(pImgFilename, out TextureWrap? tImg)
                 && tImg != null)
             {
                 float tScale = (pIsScaledToRegionWidth
@@ -886,13 +887,13 @@ namespace BozjaBuddy.Utils
                         // img pu
                         if (tInput.mIsMouseRmb)
                         {
-                            ImGui.OpenPopup($"##imgpu{pImgKey}");
+                            ImGui.OpenPopup($"##imgpu{pImgFilename}");
                         }
                     }
                 }
-                if (ImGui.BeginPopup($"##imgpu{pImgKey}"))
+                if (ImGui.BeginPopup($"##imgpu{pImgFilename}"))
                 {
-                    UtilsGUI.DrawImgFromDb(pPlugin, pImgKey, pIsPU: true);
+                    UtilsGUI.DrawImgFromDb(pPlugin, pImgFilename, pIsPU: true);
                     ImGui.EndPopup();
                 }
 

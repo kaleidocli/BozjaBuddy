@@ -20,6 +20,7 @@ public class MainWindow : Window, IDisposable
     private DrsTab mDrsTab;
     private QuestTab mQuestTab;
     private RelicTab mRelicTab;
+    private FarmTab mFarmTab;
  
     public MainWindow(Plugin plugin) : base(
         "Bozja Buddy", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
@@ -37,6 +38,7 @@ public class MainWindow : Window, IDisposable
         this.mDrsTab = new(this.Plugin);
         this.mQuestTab = new(this.Plugin);
         this.mRelicTab = new(this.Plugin);
+        this.mFarmTab = new(this.Plugin);
     }
 
     public void RearrangeSection()
@@ -49,6 +51,7 @@ public class MainWindow : Window, IDisposable
         this.mDrsTab.RearrangeSection();
         this.mQuestTab.RearrangeSection();
         this.mRelicTab.RearrangeSection();
+        this.mFarmTab.RearrangeSection();
     }
     public void Dispose()
     {
@@ -60,6 +63,7 @@ public class MainWindow : Window, IDisposable
         this.mDrsTab.Dispose();
         this.mQuestTab.Dispose();
         this.mRelicTab.Dispose();
+        this.mFarmTab.Dispose();
     }
 
     public override void Draw()
@@ -74,6 +78,7 @@ public class MainWindow : Window, IDisposable
         this.mGeneralSection.DrawGUI();
         if (ImGui.BeginTabBar("Tab Bat")) {
             this.mRelicTab.DrawGUI();
+            this.mFarmTab.DrawGUI();
             this.mLostActionTab.DrawGUI();
             this.mFateCeTab.DrawGUI();
             this.mMobTab.DrawGUI();
