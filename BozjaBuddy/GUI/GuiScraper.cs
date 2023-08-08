@@ -27,7 +27,8 @@ namespace BozjaBuddy.GUI
             this.mPlugin = pPlugin;
         }
 
-        public void Start()
+        /// <summary> DEPRECATED as threading is not advised when interacting with the game. </summary>
+        private void Start()
         {
             if (this.mScrapper == null)
             {
@@ -37,9 +38,22 @@ namespace BozjaBuddy.GUI
                 this.mScrapper.Start();
             }
         }
-        public void Stop()
+        /// <summary> DEPRECATED as threading is not advised when interacting with the game. </summary>
+        private void Stop()
         {
             this.mIsActive = false;
+        }
+        /// <summary> Main thread scraping. Put this in Framework.OnUpdate. </summary>
+        public void Scrape() 
+        {
+            unsafe
+            {
+                if (!this.mCycles.CheckCycle("mycInfo", 0.2f)) return;
+                if (AtkStage.GetSingleton() == null || AtkStage.GetSingleton()->RaptureAtkUnitManager == null) return;      // null on logging out
+                if (this.mCycles.CheckCycle("mycInfo", 5)) this.Scraper_MycInfo();
+                if (this.mCycles.CheckCycle("mycWarResultNotebook", 0.2f)) this.Scraper_MycWarResultNotebook();
+                if (this.mCycles.CheckCycle("save", 60)) this.mPlugin.Configuration.Save();
+            }
         }
 
         private void Scraper()

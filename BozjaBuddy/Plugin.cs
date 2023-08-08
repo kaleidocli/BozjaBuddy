@@ -21,6 +21,7 @@ using System.Numerics;
 using BozjaBuddy.GUI.NodeGraphViewer;
 using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Game;
 
 namespace BozjaBuddy
 {
@@ -52,6 +53,7 @@ namespace BozjaBuddy
         public GUIAssistManager GUIAssistManager { get; init; }
         public MainWindow MainWindow { get; init; }
         public NodeGraphViewer NodeGraphViewer_Auxi { get; init; }
+        public Framework Framework { get; init; }
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -61,7 +63,8 @@ namespace BozjaBuddy
             [RequiredVersion("1.0")] FateTable fateTable,
             [RequiredVersion("1.0")] ChatGui chatGui,
             [RequiredVersion("1.0")] ClientState clientState,
-            [RequiredVersion("1.0")] KeyState keyState)
+            [RequiredVersion("1.0")] KeyState keyState,
+            [RequiredVersion("1.0")] Framework framework)
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
@@ -71,6 +74,7 @@ namespace BozjaBuddy
             this.ChatGui = chatGui;
             this.ClientState = clientState;
             this.KeyState = keyState;
+            this.Framework = framework;
 
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
@@ -112,7 +116,7 @@ namespace BozjaBuddy
             this.AlarmManager.Start();
 
             this.GuiScraper = new(this);
-            this.GuiScraper.Start();
+            this.Framework.Update += this.OnUpdate;
 
             this.GUIAssistManager = new(this);
 
@@ -144,7 +148,6 @@ namespace BozjaBuddy
             this.AlarmManager.Dispose();
             this.PluginInterface.UiBuilder.BuildFonts -= this.BuildFont;
             UtilsGameData.Dispose();
-            this.GuiScraper.Stop();
             this.mBBDataManager.Dispose();
             this.NodeGraphViewer_Auxi.Dispose();
         }
@@ -153,6 +156,12 @@ namespace BozjaBuddy
         {
             // in response to the slash command, just display our main ui
             WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
+        }
+        // Called every frame, before Imgui's draw.
+        private void OnUpdate(Framework framework)
+        {
+            if (!ClientState.IsLoggedIn) return;
+            this.GuiScraper.Scrape();
         }
 
         private void DrawUI()
