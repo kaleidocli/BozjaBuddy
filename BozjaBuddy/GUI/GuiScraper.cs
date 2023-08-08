@@ -49,6 +49,7 @@ namespace BozjaBuddy.GUI
                 while (this.mIsActive)
                 {
                     Thread.Sleep(200);
+                    if (AtkStage.GetSingleton() == null || AtkStage.GetSingleton()->RaptureAtkUnitManager == null) return;      // null on logging out
                     if (this.mCycles.CheckCycle("mycInfo", 5)) this.Scraper_MycInfo();
                     if (this.mCycles.CheckCycle("mycWarResultNotebook", 0.2f)) this.Scraper_MycWarResultNotebook();
                     if (this.mCycles.CheckCycle("save", 60)) this.mPlugin.Configuration.Save();
