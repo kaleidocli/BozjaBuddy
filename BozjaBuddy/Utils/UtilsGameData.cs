@@ -261,8 +261,8 @@ namespace BozjaBuddy.Utils
             Memory_Loathsome = 32956,
             Memory_Haunting = 32957,
             Memory_Vexatious = 32958,
-            Memory_Bleak = 32959,
-            Memory_Lurid = 32960,
+            Memory_Bleak = 33763,
+            Memory_Lurid = 33764,
 
             TimeWorn = 32959,
             CompactAxle = 33757,

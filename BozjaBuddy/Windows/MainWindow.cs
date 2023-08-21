@@ -68,13 +68,6 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
-        if (ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows)
-            && ImGui.GetIO().KeyAlt
-            && UtilsGUI.InputPayload.CheckKeyClickValidity())
-        {
-            this.Plugin.Configuration.mIsAuxiFocused = !this.Plugin.Configuration.mIsAuxiFocused;
-            this.Plugin.MainWindow.RearrangeSection();
-        }
         this.mGeneralSection.DrawGUI();
         if (ImGui.BeginTabBar("Tab Bat")) {
             this.mRelicTab.DrawGUI();

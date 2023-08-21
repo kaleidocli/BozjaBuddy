@@ -64,7 +64,7 @@ namespace BozjaBuddy.GUI.Sections
             }
             else
             {
-                UtilsGUI.SetTooltipForLastItem("Keybinds\n\n1. [Alt] to toggle alternative layout while plugin's main window is focused.\n2. With a link (hinted by symbol »):\n- Hover for quick info.\n- [LMB] to open link in info viewer section at the bottom.\n- [RMB] to see more options (marketboard, location, alarm, etc.).\n- For action's icon link, [Shift+LMB/RMB] will add the selected action to the currently edited Custom Loadout.");
+                UtilsGUI.SetTooltipForLastItem("Keybinds\n\n1. With a link (hinted by symbol »):\n- Hover for quick info.\n- [LMB] to open link in info viewer section at the bottom.\n- [RMB] to see more options (marketboard, location, alarm, etc.).\n- For action's icon link, [Shift+LMB/RMB] will add the selected action to the currently edited Custom Loadout.");
             }
             if (ImGui.BeginPopup("##helperpu", ImGuiWindowFlags.NoResize))
             {
@@ -82,7 +82,7 @@ namespace BozjaBuddy.GUI.Sections
             }
             else
             {
-                UtilsGUI.SetTooltipForLastItem($"Expanding info-viewer: {(this.mPlugin.Configuration.mIsAuxiFocused ? "ON" : "OFF")}\n\n(can be toggled by pressing [Alt] while this plugin window is being focused)");
+                UtilsGUI.SetTooltipForLastItem($"Expanding info-viewer: {(this.mPlugin.Configuration.mIsAuxiFocused ? "ON" : "OFF")}");
             }
 
             return true;
