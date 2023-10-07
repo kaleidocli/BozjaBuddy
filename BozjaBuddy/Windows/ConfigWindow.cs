@@ -18,6 +18,7 @@ using ImGuiNET;
 using ImGuiScene;
 using NAudio.Wave;
 using static BozjaBuddy.GUI.GUIAssist.GUIAssistManager;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.Windows;
 
@@ -582,7 +583,7 @@ public class ConfigWindow : Window, IDisposable
             foreach (Job iJob in UtilsGameData.kJobToRole[iRole])
             {
                 if (!UtilsGameData.kValidJobs.Contains(iJob)) continue;
-                TextureWrap? tJobIcon = UtilsGameData.GetJobIcon(iJob);
+                IDalamudTextureWrap? tJobIcon = UtilsGameData.GetJobIcon(iJob);
                 // Job icon
                 if (tJobIcon != null) { ImGui.Image(tJobIcon.ImGuiHandle, Utils.Utils.ResizeToIcon(pPlugin, tJobIcon)); }
                 else { ImGui.Text(iJob.ToString()); }   // Job abbv

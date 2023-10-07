@@ -23,7 +23,6 @@ using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game;
 using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace BozjaBuddy
 {
@@ -102,11 +101,11 @@ namespace BozjaBuddy
             this.NodeGraphViewer_Auxi = new(this.Configuration.mAuxiNGVSaveData);
             UtilsGameData.Init(this);
             this.MainWindow = new(this);
-            Plugin.AddWindow(new ConfigWindow(this));
-            Plugin.AddWindow(this.MainWindow);
-            Plugin.AddWindow(new AlarmWindow(this));
-            Plugin.AddWindow(new CharStatsWindow(this));
-            Plugin.AddWindow(new TestWindow(this));
+            Plugin.AddWindow(this.WindowSystem, new ConfigWindow(this));
+            Plugin.AddWindow(this.WindowSystem, this.MainWindow);
+            Plugin.AddWindow(this.WindowSystem, new AlarmWindow(this));
+            Plugin.AddWindow(this.WindowSystem, new CharStatsWindow(this));
+            Plugin.AddWindow(this.WindowSystem, new TestWindow(this));
 
             this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
 
@@ -194,7 +193,11 @@ namespace BozjaBuddy
 
         public bool isKeyPressed(VirtualKey key) => this.KeyState.IsVirtualKeyValid(key) && KeyState[key];
 
-        private static bool AddWindow(Window window) => Plugin.WINDOWS.TryAdd(window.WindowName, window);
+        private static bool AddWindow(WindowSystem winSys, Window window) {
+            if (!Plugin.WINDOWS.TryAdd(window.WindowName, window)) return false;
+            winSys.AddWindow(window);
+            return true;
+        }
         public static Window? GetWindow(string windowName) => Plugin.WINDOWS.TryGetValue(windowName, out Window? window) && window != null ? window : null;
     }
 }

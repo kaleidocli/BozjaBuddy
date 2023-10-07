@@ -9,9 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.Utils
 {
@@ -223,13 +221,13 @@ namespace BozjaBuddy.Utils
             }
             return Role.None;
         }
-        public static TextureWrap? GetJobIcon(Job pJob)
+        public static IDalamudTextureWrap? GetJobIcon(Job pJob)
         {
             if (!UtilsGameData.kJobIconIds.ContainsKey(pJob)) return null;
             if (UtilsGameData.kTextureCollection == null) return null;
             return UtilsGameData.kTextureCollection.GetTexture((uint)UtilsGameData.kJobIconIds[pJob], TextureCollection.Sheet.Job);
         }
-        public static TextureWrap? GetRoleIcon(Role pRole)
+        public static IDalamudTextureWrap? GetRoleIcon(Role pRole)
         {
             if (!UtilsGameData.kRoleIconIds.ContainsKey(pRole)) return null;
             if (UtilsGameData.kTextureCollection == null) return null;

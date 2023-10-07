@@ -10,6 +10,7 @@ using System.Text.Json;
 using Dalamud.Logging;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Style;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -130,7 +131,7 @@ namespace BozjaBuddy.GUI.Sections
         public void DrawTabHeader(GeneralObject pObj)
         {
             // Icon
-            TextureWrap? tIconWrap;
+            IDalamudTextureWrap? tIconWrap;
             Vector2? tSize = null;
             switch (pObj.GetSalt())
             {
@@ -276,7 +277,7 @@ namespace BozjaBuddy.GUI.Sections
                 {
                     // icon
                     AuxiliaryViewerSection.mTextureCollection!.AddTextureFromItemId(Convert.ToUInt32(iActionId));
-                    TextureWrap? tIconWrap = AuxiliaryViewerSection.mTextureCollection.GetTextureFromItemId(Convert.ToUInt32(iActionId));
+                    IDalamudTextureWrap? tIconWrap = AuxiliaryViewerSection.mTextureCollection.GetTextureFromItemId(Convert.ToUInt32(iActionId));
                     if (tIconWrap != null)
                     {
                         UtilsGUI.SelectableLink_Image(
@@ -352,7 +353,7 @@ namespace BozjaBuddy.GUI.Sections
                 {
                     // icon
                     AuxiliaryViewerSection.mTextureCollection!.AddTextureFromItemId(Convert.ToUInt32(iActionId));
-                    TextureWrap? tIconWrap = AuxiliaryViewerSection.mTextureCollection.GetTextureFromItemId(Convert.ToUInt32(iActionId));
+                    IDalamudTextureWrap? tIconWrap = AuxiliaryViewerSection.mTextureCollection.GetTextureFromItemId(Convert.ToUInt32(iActionId));
                     if (tIconWrap != null
                         && UtilsGUI.SelectableLink_Image(
                                 this.mPlugin,

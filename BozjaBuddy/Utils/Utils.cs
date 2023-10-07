@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.Utils
 {
@@ -19,7 +20,7 @@ namespace BozjaBuddy.Utils
             return new Vector2(pWidth * (pPlugin.Configuration.STYLE_ICON_SIZE / pWidth), 
                                 pHeight * (pPlugin.Configuration.STYLE_ICON_SIZE / pHeight));
         }
-        public static Vector2 ResizeToIcon(Plugin pPlugin, TextureWrap tTexture)
+        public static Vector2 ResizeToIcon(Plugin pPlugin, IDalamudTextureWrap tTexture)
         {
             return Utils.ResizeToIcon(pPlugin, tTexture.Width, tTexture.Height);
         }

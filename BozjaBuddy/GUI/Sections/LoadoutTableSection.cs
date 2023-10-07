@@ -6,14 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BozjaBuddy.Utils;
-using System.ComponentModel;
-using System.Data.Entity.Core;
-using Dalamud.Logging;
-using ImGuiScene;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using BozjaBuddy.Windows;
 using System.Security.Cryptography;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -264,7 +261,7 @@ namespace BozjaBuddy.GUI.Sections
             ImGui.PushItemWidth(35);
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
             ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, new Vector2(0, 0));
-            TextureWrap? tCurrJobIcon = UtilsGameData.GetJobIcon((Job)pGuiVar_TextFiltersCurrVal[tGuiKey]);
+            IDalamudTextureWrap? tCurrJobIcon = UtilsGameData.GetJobIcon((Job)pGuiVar_TextFiltersCurrVal[tGuiKey]);
             // Button job type
             if (!tFlag
                 ? ImGui.Button("  ANY JOB  ")

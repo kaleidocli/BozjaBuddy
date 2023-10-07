@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BozjaBuddy.Utils;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -115,7 +116,7 @@ namespace BozjaBuddy.GUI.Sections
 
                 ImGui.TableNextRow(ImGuiTableRowFlags.None, this.FIXED_LINE_HEIGHT);
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(1, 0));
-                TextureWrap? tIconWrap = this.mTextureCollection.GetStandardTexture(Convert.ToUInt32(tMob.mType));
+                IDalamudTextureWrap? tIconWrap = this.mTextureCollection.GetStandardTexture(Convert.ToUInt32(tMob.mType));
 
                 for (int i = 0; i < MobTableSection.COLUMN_COUNT; i++)
                 {

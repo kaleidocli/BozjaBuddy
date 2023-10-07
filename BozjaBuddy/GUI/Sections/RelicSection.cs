@@ -3,14 +3,12 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
 using ImGuiScene;
 using BozjaBuddy.Data;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -156,14 +154,14 @@ namespace BozjaBuddy.GUI.Sections
                     float tIconHeight = 15;
                     if (step != RelicStep.None && step != RelicStep.OTG_1 && step != RelicStep.OTG_2)
                     {
-                        TextureWrap? tTextureWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(
+                        IDalamudTextureWrap? tIDalamudTextureWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(
                                                         Convert.ToUInt32(UtilsGameData.kRelicsAndJobs[step][tCurrJob]),
                                                         pSheet: Data.TextureCollection.Sheet.Item,
                                                         pTryLoadTexIfFailed: true
                                                         );
-                        if (tTextureWrap != null)
+                        if (tIDalamudTextureWrap != null)
                         {
-                            UtilsGUI.ItemLinkButton_Image(this.mPlugin, UtilsGameData.kRelicsAndJobs[step][tCurrJob], tTextureWrap, pImageScaling: tIconHeight / tTextureWrap.Height * 1.53f);
+                            UtilsGUI.ItemLinkButton_Image(this.mPlugin, UtilsGameData.kRelicsAndJobs[step][tCurrJob], tIDalamudTextureWrap, pImageScaling: tIconHeight / tIDalamudTextureWrap.Height * 1.53f);
                         }
                     }
                     else ImGui.Text("----- ");

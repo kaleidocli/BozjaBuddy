@@ -2,7 +2,7 @@ using BozjaBuddy.Utils;
 using ImGuiScene;
 using System;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.Data
 {
@@ -84,9 +84,9 @@ namespace BozjaBuddy.Data
 
             return tRes;
         }
-        public static List<TextureWrap?> FlagToIcon(Role pRole)
+        public static List<IDalamudTextureWrap?> FlagToIcon(Role pRole)
         {
-            List<TextureWrap?> tRes = new()
+            List<IDalamudTextureWrap?> tRes = new()
             {
                 // THMRC
                 UtilsGameData.GetRoleIcon(pRole.HasFlag(Role.Tank) ? Role.Tank : Role.None),

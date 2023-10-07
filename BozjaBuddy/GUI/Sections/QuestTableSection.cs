@@ -1,8 +1,5 @@
 ﻿using BozjaBuddy.Data;
 using BozjaBuddy.Utils;
-using BozjaBuddy.Windows;
-using Dalamud.Interface.Components;
-using Dalamud.Interface;
 using ImGuiNET;
 using ImGuiScene;
 using System;
@@ -12,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
 using static BozjaBuddy.Utils.UtilsGUI;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -144,7 +142,7 @@ namespace BozjaBuddy.GUI.Sections
 
                 ImGui.TableNextRow(ImGuiTableRowFlags.None, this.FIXED_LINE_HEIGHT);
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, ImGui.GetStyle().CellPadding.Y));
-                TextureWrap? tIconWrap = this.mTextureCollection.GetStandardTexture(
+                IDalamudTextureWrap? tIconWrap = this.mTextureCollection.GetStandardTexture(
                             tQuest.mType switch
                             {
                                 Quest.QuestType.Msq => TextureCollection.StandardIcon.QuestMSQ,

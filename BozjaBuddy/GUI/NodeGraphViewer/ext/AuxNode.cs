@@ -14,6 +14,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using System.Text.Json;
 using Lumina.Excel.GeneratedSheets;
+using Dalamud.Interface.Internal;
 
 
 namespace BozjaBuddy.GUI.NodeGraphViewer.ext
@@ -87,7 +88,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
             if (this.mPlugin == null) return NodeInteractionFlags.None;
 
             // Icon
-            TextureWrap? tIconWrap;
+            IDalamudTextureWrap? tIconWrap;
             float tExtraScaling = 1;
             switch (pObj.GetSalt())
             {
@@ -584,7 +585,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 {
                     // icon
                     UtilsGameData.kTextureCollection?.AddTextureFromItemId(Convert.ToUInt32(iActionId));
-                    TextureWrap? tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(iActionId));
+                    IDalamudTextureWrap? tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(iActionId));
                     if (tIconWrap != null)
                     {
                         UtilsGUI.SelectableLink_Image(
@@ -680,7 +681,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer.ext
                 {
                     // icon
                     UtilsGameData.kTextureCollection?.AddTextureFromItemId(Convert.ToUInt32(iActionId));
-                    TextureWrap? tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(iActionId));
+                    IDalamudTextureWrap? tIconWrap = UtilsGameData.kTextureCollection?.GetTextureFromItemId(Convert.ToUInt32(iActionId));
                     if (tIconWrap != null
                         && UtilsGUI.SelectableLink_Image(
                                 this.mPlugin,

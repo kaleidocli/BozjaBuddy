@@ -9,12 +9,9 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Lumina.Excel.GeneratedSheets;
 using BozjaBuddy.Data.Alarm;
-using BozjaBuddy.Utils;
-using System.Runtime.CompilerServices;
 using System.Linq;
 using ImGuiScene;
-using System.Data.Entity.Infrastructure;
-using System.Drawing;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.Data
 {
@@ -52,7 +49,7 @@ namespace BozjaBuddy.Data
         public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>? mSheetMycWarResultNotebook;
         public Lumina.Excel.ExcelSheet<ENpcResident>? mSheetNpc;
         public List<List<int>> mUiMap_MycItemBox;
-        public Dictionary<string, TextureWrap?> mImages;
+        public Dictionary<string, IDalamudTextureWrap?> mImages;
 
         public BBDataManager(Plugin pPlugin) 
         {
@@ -151,7 +148,7 @@ namespace BozjaBuddy.Data
                                     SearchOption.TopDirectoryOnly
                 ))
                 {
-                    // get texturewrap
+                    // get IDalamudTextureWrap
                     var b = File.ReadAllBytes(tImagePath);
                     var twrap = this.mPlugin.PluginInterface.UiBuilder.LoadImage(b);
                     // prep key

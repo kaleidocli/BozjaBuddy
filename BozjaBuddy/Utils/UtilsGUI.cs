@@ -24,7 +24,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.MJI;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.Utils
 {
@@ -519,7 +519,7 @@ namespace BozjaBuddy.Utils
         public static bool SelectableLink_Image(
             Plugin pPlugin,
             int pTargetGenId,
-            TextureWrap pImage,
+            IDalamudTextureWrap pImage,
             string pContent = "",
             bool pIsLink = true,
             bool pIsAuxiLinked = true,
@@ -715,7 +715,7 @@ namespace BozjaBuddy.Utils
             ImGui.PopID();
         }
         /// <summary> Item that are in lumina Item sheet only! Other BB stuff won't work i.e. Fate, Fragment, etc. </summary>
-        public static void ItemLinkButton_Image(Plugin pPlugin, int pItemId, TextureWrap pItemTexture, float pImageScaling = 1)
+        public static void ItemLinkButton_Image(Plugin pPlugin, int pItemId, IDalamudTextureWrap pItemTexture, float pImageScaling = 1)
         {
             var tItem = pPlugin.mBBDataManager.GetItem(pItemId);
             if (UtilsGUI.SelectableLink_Image(pPlugin, -1, pItemTexture, pIsLink: false, pIsAuxiLinked: false, pImageScaling: pImageScaling, pCustomLinkSize: new(pItemTexture.Height * pImageScaling * 0.9f))
@@ -745,7 +745,7 @@ namespace BozjaBuddy.Utils
                 ImGui.Text($"<InvItemWdgt_err: lid={pLuminaItemId}>");
                 return;
             }
-            TextureWrap? tItemTexture = pFlag.HasFlag(InventoryItemWidgetFlag.NoIcon)
+            IDalamudTextureWrap? tItemTexture = pFlag.HasFlag(InventoryItemWidgetFlag.NoIcon)
                 ? null
                 : UtilsGameData.kTextureCollection?.GetTextureFromItemId(tLuminaItemId, TextureCollection.Sheet.Item, pTryLoadTexIfFailed: true);
             int tCount = 0;
@@ -856,7 +856,7 @@ namespace BozjaBuddy.Utils
         {
             bool tRes = false;
 
-            if (pPlugin.mBBDataManager.mImages.TryGetValue(pImgFilename, out TextureWrap? tImg)
+            if (pPlugin.mBBDataManager.mImages.TryGetValue(pImgFilename, out IDalamudTextureWrap? tImg)
                 && tImg != null)
             {
                 float tScale = (pIsScaledToRegionWidth
@@ -903,11 +903,11 @@ namespace BozjaBuddy.Utils
         }
         public static void DrawRoleFlagAsIconString(Plugin pPlugin, RoleFlag pRoleFlag)
         {
-            List<TextureWrap?> tRoleIcons = RoleFlag.FlagToIcon(pRoleFlag.mRoleFlagBit);
+            List<IDalamudTextureWrap?> tRoleIcons = RoleFlag.FlagToIcon(pRoleFlag.mRoleFlagBit);
             int tDrawCounter = 0;
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
             ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, new Vector2(0, 0));
-            foreach (TextureWrap? iIcon in tRoleIcons)
+            foreach (IDalamudTextureWrap? iIcon in tRoleIcons)
             {
                 if (iIcon == null) continue;
                 if (tDrawCounter != 0) ImGui.SameLine();

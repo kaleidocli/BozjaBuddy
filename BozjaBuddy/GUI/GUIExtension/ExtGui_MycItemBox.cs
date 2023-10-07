@@ -96,7 +96,7 @@ namespace BozjaBuddy.GUI.GUIExtension
             ImGui.SetCursorScreenPos(tOrigin + new Vector2(5f, 0));
             if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowUpRightFromSquare))
             {
-                this.mPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = !(this.mPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen);
+                Plugin.GetWindow("Bozja Buddy")!.IsOpen = !(Plugin.GetWindow("Bozja Buddy")!.IsOpen);
             }
             UtilsGUI.SetTooltipForLastItem("Open Bozja Buddy window");
             // Disable UI Assist for MycItemBox and MycItemBagTrade

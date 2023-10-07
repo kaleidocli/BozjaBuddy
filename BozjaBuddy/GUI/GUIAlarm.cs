@@ -234,7 +234,7 @@ namespace BozjaBuddy.GUI
                 pPlugin.AlarmManager.AddAlarm(tTempAlarm);
 
                 ImGui.CloseCurrentPopup();
-                pPlugin.WindowSystem.GetWindow("Alarm - BozjaBuddy")!.IsOpen = true;
+                Plugin.GetWindow("Alarm - BozjaBuddy")!.IsOpen = true;
             }
         }
         private static void DrawACPUButton_Edit<T>(Plugin pPlugin, Alarm pAlarm) where T : Alarm
@@ -264,7 +264,7 @@ namespace BozjaBuddy.GUI
                 pPlugin.AlarmManager.SaveAlarmListsToDisk();
 
                 ImGui.CloseCurrentPopup();
-                pPlugin.WindowSystem.GetWindow("Alarm - BozjaBuddy")!.IsOpen = true;
+                Plugin.GetWindow("Alarm - BozjaBuddy")!.IsOpen = true;
             }            
         }
         public static void DrawACPU_Weather(Plugin pPlugin,

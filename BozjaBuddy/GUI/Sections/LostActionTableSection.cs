@@ -12,6 +12,7 @@ using Dalamud.Interface;
 using System.Security.Cryptography;
 using BozjaBuddy.Windows;
 using static BozjaBuddy.Utils.UtilsGUI;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -176,7 +177,7 @@ namespace BozjaBuddy.GUI.Sections
 
                 ImGui.TableNextRow(ImGuiTableRowFlags.None, this.FIXED_LINE_HEIGHT);
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(ImGui.GetStyle().ItemSpacing.X, ImGui.GetStyle().CellPadding.Y));
-                TextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(Convert.ToUInt32(iID));
+                IDalamudTextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(Convert.ToUInt32(iID));
                 for (int i = 0; i < LostActionTableSection.COLUMN_COUNT; i++)
                 {
                     ImGui.TableSetColumnIndex(i);
@@ -296,7 +297,7 @@ namespace BozjaBuddy.GUI.Sections
             bool tIsValid = this.CheckFilter(tLostAction);
 
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(1, 0));
-            TextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(
+            IDalamudTextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(
                             Convert.ToUInt32(tLostAction.mId),
                             pSheet: TextureCollection.Sheet.Action);
             float tScaling = 1;

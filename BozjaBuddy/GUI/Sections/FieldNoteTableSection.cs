@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -144,7 +145,7 @@ namespace BozjaBuddy.GUI.Sections
 
                 ImGui.TableNextRow(ImGuiTableRowFlags.None, this.FIXED_LINE_HEIGHT);
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(1, 0));
-                TextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(
+                IDalamudTextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(
                                 Convert.ToUInt32(tFieldNote.mId), 
                                 pSheet: TextureCollection.Sheet.FieldNote);
 
@@ -243,7 +244,7 @@ namespace BozjaBuddy.GUI.Sections
             bool tIsValid = this.CheckFilter(tFieldNote);
 
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(1, 0));
-            TextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(
+            IDalamudTextureWrap? tIconWrap = this.mTextureCollection.GetTextureFromItemId(
                             Convert.ToUInt32(tFieldNote.mId),
                             pSheet: TextureCollection.Sheet.FieldNote);
             float tScaling = 1;

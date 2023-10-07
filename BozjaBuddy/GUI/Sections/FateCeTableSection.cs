@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState.Fates;
 using BozjaBuddy.Utils;
+using Dalamud.Interface.Internal;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -131,7 +132,7 @@ namespace BozjaBuddy.GUI.Sections
 
             ImGui.TableNextRow(ImGuiTableRowFlags.None, this.FIXED_LINE_HEIGHT);
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(1, 0));
-            TextureWrap? tIconWrap = this.mTextureCollection.GetStandardTexture(Convert.ToUInt32(tFate.mType));
+            IDalamudTextureWrap? tIconWrap = this.mTextureCollection.GetStandardTexture(Convert.ToUInt32(tFate.mType));
 
             for (int i = 0; i < FateCeTableSection.COLUMN_COUNT; i++)
             {
