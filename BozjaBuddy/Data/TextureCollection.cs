@@ -69,6 +69,11 @@ namespace BozjaBuddy.Data
             {
                 //PluginLog.LogInformation($"Loading texture iconId {pIconId}");
                 TexFile? tTexFile = this.mPlugin.DataManager.GameData.GetIcon(pIconId);
+                var a = this.mPlugin.PluginInterface.UiBuilder.LoadImageRaw(tTexFile.GetRgbaImageData(),
+                                                                                            Convert.ToInt32(tTexFile.Header.Width),
+                                                                                            Convert.ToInt32(tTexFile.Header.Height),
+                                                                                            4);
+                this.mPlugin.TextureProvider.
                 return tTexFile == null
                     ? null
                     : this.mPlugin.PluginInterface.UiBuilder.LoadImageRaw(tTexFile.GetRgbaImageData(),

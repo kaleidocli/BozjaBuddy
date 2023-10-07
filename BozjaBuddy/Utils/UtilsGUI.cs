@@ -23,7 +23,6 @@ using System.IO.Pipes;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static FFXIVClientStructs.FFXIV.Client.Game.QuestManager.QuestListArray;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.MJI;
 
@@ -284,9 +283,9 @@ namespace BozjaBuddy.Utils
                     {
                         pPlugin.NodeGraphViewer_Auxi.AddNodeToActiveCanvas<AuxNode>(new BBNodeContent(pPlugin, pTargetGenId, tObj.mName));
                     }
-                    else pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
+                    else Plugin.GetWindow("Bozja Buddy")!.IsOpen = true;
                 }
-                else pPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
+                else Plugin.GetWindow("Bozja Buddy")!.IsOpen = true;
             }
             ImGui.PopID();
             // Lost action's cache amount
@@ -337,7 +336,7 @@ namespace BozjaBuddy.Utils
                 }
                 try
                 {
-                    pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry { Message = pReprItemLink });
+                    pPlugin.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry { Message = pReprItemLink });
                 }
                 catch (Exception e) { PluginLog.LogError(e.Message); }
             }
@@ -354,7 +353,7 @@ namespace BozjaBuddy.Utils
                 }
                 try
                 {
-                    pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry { Message = pReprItemLink });
+                    pPlugin.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry { Message = pReprItemLink });
                 }
                 catch (Exception e) { PluginLog.LogError(e.Message); }
             }
@@ -404,7 +403,7 @@ namespace BozjaBuddy.Utils
                         (float)pLocation.mMapCoordY)
                     );
                 // link to chat
-                pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry
+                pPlugin.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry
                 {
                     Message = SeString.CreateMapLink(pLocation.mTerritoryID, pLocation.mMapID, (float)pLocation.mMapCoordX, (float)pLocation.mMapCoordY)
                 });
@@ -451,7 +450,7 @@ namespace BozjaBuddy.Utils
         {
             if (ImGuiComponents.IconButton(pButtonIcon))
             {
-                pPlugin.WindowSystem.GetWindow(pWinHandle)!.IsOpen = !(pPlugin.WindowSystem.GetWindow(pWinHandle)!.IsOpen);
+                Plugin.GetWindow(pWinHandle)!.IsOpen = !(Plugin.GetWindow(pWinHandle)!.IsOpen);
             }
             if (pHoveredText != null && ImGui.IsItemHovered())
             {
@@ -464,7 +463,7 @@ namespace BozjaBuddy.Utils
         {
             if (ImGui.Button(pButtonText))
             {
-                pPlugin.WindowSystem.GetWindow(pWinHandle)!.IsOpen = !(pPlugin.WindowSystem.GetWindow(pWinHandle)!.IsOpen);
+                Plugin.GetWindow(pWinHandle)!.IsOpen = !(Plugin.GetWindow(pWinHandle)!.IsOpen);
             }
             if (pHoveredText != null && ImGui.IsItemHovered())
             {
@@ -724,7 +723,7 @@ namespace BozjaBuddy.Utils
             {
                 var tItemLink = tItem.GetReprItemLink();
                 if (tItemLink != null)
-                    pPlugin.ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry { Message = tItemLink });
+                    pPlugin.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry { Message = tItemLink });
             }
             else UtilsGUI.SetTooltipForLastItem("Click to link item to chat.");
         }
@@ -996,17 +995,12 @@ namespace BozjaBuddy.Utils
         /// </summary>
         public static bool IsAddonFocused(string name)
         {
-            unsafe
-            {
+            unsafe {
                 try
                 {
-                    var focusedUnitsList = &stage->RaptureAtkUnitManager->AtkUnitManager.FocusedUnitsList;
-                    var focusedAddonList = &focusedUnitsList->AtkUnitEntries;
-
-                    for (var i = 0; i < focusedUnitsList->Count; i++)
+                    foreach (var addon in stage->RaptureAtkUnitManager->AtkUnitManager.FocusedUnitsList.EntriesSpan)
                     {
-                        var addon = focusedAddonList[i];
-                        var addonName = Marshal.PtrToStringAnsi(new IntPtr(addon->Name));
+                        var addonName = Marshal.PtrToStringAnsi(new IntPtr(addon.Value->Name));
 
                         if (addonName == name)
                         {

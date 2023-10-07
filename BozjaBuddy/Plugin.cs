@@ -22,6 +22,8 @@ using BozjaBuddy.GUI.NodeGraphViewer;
 using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game;
+using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace BozjaBuddy
 {
@@ -32,18 +34,20 @@ namespace BozjaBuddy
         public bool mIsMainWindowActive = false;
         private DateTime _mCycle1 = DateTime.Now;
         public static bool _isImGuiSafe = false;
+        private static Dictionary<string, Window> WINDOWS = new();
 
         public float TEXT_BASE_HEIGHT = ImGui.GetTextLineHeightWithSpacing();
         public Dictionary<string, string> DATA_PATHS = new Dictionary<string, string>();
 
         public DalamudPluginInterface PluginInterface { get; init; }
-        public CommandManager CommandManager { get; init; }
-        public GameGui GameGui { get; init; }
-        public FateTable FateTable { get; init; }
-        public ChatGui ChatGui { get; init; }
-        public ClientState ClientState { get; init; }
-        public DataManager DataManager { get; init; }
-        public KeyState KeyState { get; init; }
+        public ICommandManager CommandManager { get; init; }
+        public IGameGui GameGui { get; init; }
+        public IFateTable FateTable { get; init; }
+        public IChatGui ChatGui { get; init; }
+        public IClientState ClientState { get; init; }
+        public IDataManager DataManager { get; init; }
+        public IKeyState KeyState { get; init; }
+        public ITextureProvider TextureProvider { get; init; }
         public BBDataManager mBBDataManager;
 
         public Configuration Configuration { get; init; }
@@ -53,18 +57,19 @@ namespace BozjaBuddy
         public GUIAssistManager GUIAssistManager { get; init; }
         public MainWindow MainWindow { get; init; }
         public NodeGraphViewer NodeGraphViewer_Auxi { get; init; }
-        public Framework Framework { get; init; }
+        public IFramework Framework { get; init; }
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-            [RequiredVersion("1.0")] CommandManager commandManager,
-            [RequiredVersion("1.0")] DataManager dataManager,
-            [RequiredVersion("1.0")] GameGui gameGui,
-            [RequiredVersion("1.0")] FateTable fateTable,
-            [RequiredVersion("1.0")] ChatGui chatGui,
-            [RequiredVersion("1.0")] ClientState clientState,
-            [RequiredVersion("1.0")] KeyState keyState,
-            [RequiredVersion("1.0")] Framework framework)
+            [RequiredVersion("1.0")] ICommandManager commandManager,
+            [RequiredVersion("1.0")] IDataManager dataManager,
+            [RequiredVersion("1.0")] IGameGui gameGui,
+            [RequiredVersion("1.0")] IFateTable fateTable,
+            [RequiredVersion("1.0")] IChatGui chatGui,
+            [RequiredVersion("1.0")] IClientState clientState,
+            [RequiredVersion("1.0")] IKeyState keyState,
+            [RequiredVersion("1.0")] IFramework framework,
+            [RequiredVersion("1.0")] ITextureProvider textureProvider)
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
@@ -75,6 +80,7 @@ namespace BozjaBuddy
             this.ClientState = clientState;
             this.KeyState = keyState;
             this.Framework = framework;
+            this.TextureProvider = textureProvider;
 
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
@@ -96,11 +102,11 @@ namespace BozjaBuddy
             this.NodeGraphViewer_Auxi = new(this.Configuration.mAuxiNGVSaveData);
             UtilsGameData.Init(this);
             this.MainWindow = new(this);
-            WindowSystem.AddWindow(new ConfigWindow(this));
-            WindowSystem.AddWindow(this.MainWindow);
-            WindowSystem.AddWindow(new AlarmWindow(this));
-            WindowSystem.AddWindow(new CharStatsWindow(this));
-            WindowSystem.AddWindow(new TestWindow(this));
+            Plugin.AddWindow(new ConfigWindow(this));
+            Plugin.AddWindow(this.MainWindow);
+            Plugin.AddWindow(new AlarmWindow(this));
+            Plugin.AddWindow(new CharStatsWindow(this));
+            Plugin.AddWindow(new TestWindow(this));
 
             this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
 
@@ -155,10 +161,10 @@ namespace BozjaBuddy
         private void OnCommand(string command, string args)
         {
             // in response to the slash command, just display our main ui
-            WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = true;
+            Plugin.GetWindow("Bozja Buddy")!.IsOpen = true;
         }
         // Called every frame, before Imgui's draw.
-        private void OnUpdate(Framework framework)
+        private void OnUpdate(IFramework framework)
         {
             if (!ClientState.IsLoggedIn) return;
             this.GuiScraper.Scrape();
@@ -174,7 +180,7 @@ namespace BozjaBuddy
 
             if ((DateTime.Now - this._mCycle1).TotalSeconds > 2)
             {
-                this.mIsMainWindowActive = WindowSystem.GetWindow("Bozja Buddy")!.IsOpen;
+                this.mIsMainWindowActive = Plugin.GetWindow("Bozja Buddy")!.IsOpen;
 
                 this._mCycle1 = DateTime.Now;
             }
@@ -183,9 +189,12 @@ namespace BozjaBuddy
         public void DrawConfigUI()
         {
             Plugin._isImGuiSafe = true;
-            WindowSystem.GetWindow("Config - BozjaBuddy")!.IsOpen = true;
+            Plugin.GetWindow("Config - BozjaBuddy")!.IsOpen = true;
         }
 
         public bool isKeyPressed(VirtualKey key) => this.KeyState.IsVirtualKeyValid(key) && KeyState[key];
+
+        private static bool AddWindow(Window window) => Plugin.WINDOWS.TryAdd(window.WindowName, window);
+        public static Window? GetWindow(string windowName) => Plugin.WINDOWS.TryGetValue(windowName, out Window? window) && window != null ? window : null;
     }
 }

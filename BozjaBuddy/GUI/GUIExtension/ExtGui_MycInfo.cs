@@ -49,7 +49,7 @@ namespace BozjaBuddy.GUI.GUIExtension
             // Open main window button
             if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowUpRightFromSquare))
             {
-                this.mPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen = !(this.mPlugin.WindowSystem.GetWindow("Bozja Buddy")!.IsOpen);
+                Plugin.GetWindow("Bozja Buddy")!.IsOpen = !(Plugin.GetWindow("Bozja Buddy")!.IsOpen);
             }
             UtilsGUI.SetTooltipForLastItem("Open Bozja Buddy window. To turn off this UI: Config > UI Assist > [A] > [1]");
 
