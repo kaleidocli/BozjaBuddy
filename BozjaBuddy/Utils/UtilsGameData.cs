@@ -131,6 +131,78 @@ namespace BozjaBuddy.Utils
 
         public static Dictionary<RelicSection.RelicStep, Dictionary<Job, int>> kRelicsAndJobs = new();
 
+        public static Dictionary<Location.Area, Tuple<int, int>> kCeExp = new()
+        {
+            { Location.Area.Bozja_Zone1, new(516420, 532950) },
+            { Location.Area.Bozja_Zone2, new(543600, 561000) },
+            { Location.Area.Bozja_Zone3, new(570780, 589050) },
+            { Location.Area.Zadnor_Zone1, new(516420, 532950) },
+            { Location.Area.Zadnor_Zone2, new(543600, 561000) },
+            { Location.Area.Zadnor_Zone3, new(570780, 589050) },
+            { Location.Area.Castrum, new(2174400, 2244000) },
+            { Location.Area.Delubrum, new(0, 0) },
+            { Location.Area.DelubrumSavage, new(0, 0) },
+            { Location.Area.Dalriada, new(2174400, 2244000) }
+        };
+        public static Dictionary<Location.Area, Tuple<int, int>> kFateExp = new()
+        {
+            { Location.Area.Bozja_Zone1, new(206568, 213180) },
+            { Location.Area.Bozja_Zone2, new(217440, 224400) },
+            { Location.Area.Bozja_Zone3, new(228312, 235620) },
+            { Location.Area.Zadnor_Zone1, new(206568, 213180) },
+            { Location.Area.Zadnor_Zone2, new(217440, 224400) },
+            { Location.Area.Zadnor_Zone3, new(228312, 235620) },
+            { Location.Area.Castrum, new(0, 0) },
+            { Location.Area.Dalriada, new(0, 0) }
+        };
+        public static Dictionary<Location.Area, Tuple<int, int>> kCeMettle = new()
+        {
+            { Location.Area.Bozja_Zone1, new(500, 15000) },
+            { Location.Area.Bozja_Zone2, new(2700, 27000) },
+            { Location.Area.Bozja_Zone3, new(5850, 39000) },
+            { Location.Area.Zadnor_Zone1, new(96250, 525000) },
+            { Location.Area.Zadnor_Zone2, new(460000, 600000) },
+            { Location.Area.Zadnor_Zone3, new(607500, 675000) },
+            { Location.Area.Castrum, new(110000, 600000) },
+            { Location.Area.Delubrum, new(115500, 630000) },
+            { Location.Area.DelubrumSavage, new(115500, 630000) },
+            { Location.Area.Dalriada, new(3375000, 3375000) }
+        };
+        public static Dictionary<Location.Area, Tuple<int, int>> kFateMettle = new()
+        {
+            { Location.Area.Bozja_Zone1, new(200, 6000) },
+            { Location.Area.Bozja_Zone2, new(1080, 10800) },
+            { Location.Area.Bozja_Zone3, new(2340, 15600) },
+            { Location.Area.Zadnor_Zone1, new(38500, 210000) },
+            { Location.Area.Zadnor_Zone2, new(184000, 240000) },
+            { Location.Area.Zadnor_Zone3, new(243000, 270000) },
+            { Location.Area.Castrum, new(0, 0) },
+            { Location.Area.Delubrum, new(0, 0) },
+            { Location.Area.Dalriada, new(0, 0) }
+        };
+        public static Dictionary<int, int> kLevelAndMaxExp = new()
+        {
+            { 71, 3018000 },
+            { 72, 3153000 },
+            { 73, 3324000 },
+            { 74, 3532000 },
+            { 75, 3770600 },
+            { 76, 4066000 },
+            { 77, 4377000 },
+            { 78, 4777000 },
+            { 79, 5256000 },
+            { 80, 5992000 },
+            { 81, 6171000 },
+            { 82, 6942000 },
+            { 83, 7205000 },
+            { 84, 7948000 },
+            { 85, 8287000 },
+            { 86, 9231000 },
+            { 87, 9529000 },
+            { 88, 10459000 },
+            { 89, 10838000 }
+        };
+
         public static void Init(Plugin pPlugin)
         {
             UtilsGameData.kTextureCollection = new(pPlugin);
