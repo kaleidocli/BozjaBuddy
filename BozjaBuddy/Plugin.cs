@@ -114,9 +114,6 @@ namespace BozjaBuddy
                 HelpMessage = "Open the main menu"
             }); 
 
-            this.PluginInterface.UiBuilder.Draw += DrawUI;
-            this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
-
             this.AlarmManager = new AlarmManager(this);
             this.AlarmManager.Start();
 
@@ -124,6 +121,9 @@ namespace BozjaBuddy
             this.Framework.Update += this.OnUpdate;
 
             this.GUIAssistManager = new(this);
+
+            this.PluginInterface.UiBuilder.Draw += DrawUI;
+            this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
             if (this.Configuration.UserLoadouts == null) { this.mBBDataManager.ReloadLoadoutsPreset(); }    // for first install
             this.Configuration.SizeConstraints = new()      // overwrite on-disk config's size constraint
