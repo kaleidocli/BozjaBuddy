@@ -54,9 +54,8 @@ namespace BozjaBuddy.Utils.UtilsAudio
                 tAudioReader = new LoopStream(new MediaFoundationReader(pPath));
                 tAudioReader.EnableLooping = pIsLooping;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                PluginLog.LogError($"Path might be invalid: {pPath}\n{e.Message}");
                 return;
             }
             using var tChannel = new WaveChannel32(tAudioReader)
@@ -83,9 +82,8 @@ namespace BozjaBuddy.Utils.UtilsAudio
                         Thread.Sleep(500);
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    PluginLog.LogError(e.Message);
                     return;
                 }
             }

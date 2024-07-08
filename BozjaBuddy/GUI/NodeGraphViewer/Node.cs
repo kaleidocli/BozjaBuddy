@@ -5,8 +5,6 @@ using System.Runtime.CompilerServices;
 using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
 using Dalamud.Interface;
-using Dalamud.Logging;
-using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using QuickGraph;

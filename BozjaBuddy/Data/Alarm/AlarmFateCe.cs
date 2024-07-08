@@ -86,7 +86,7 @@ namespace BozjaBuddy.Data.Alarm
             if (AlarmManager.CheckMsg("fatece", tReceiverMsg)) return true;
 
             // Checking for Fate in vanilla way
-            foreach (Dalamud.Game.ClientState.Fates.Fate iFate in pPlugin!.FateTable)
+            foreach (Dalamud.Game.ClientState.Fates.IFate iFate in pPlugin!.FateTable)
             {
                 // Check: By Zone
                 if (this._getExtraOptions().HasFlag(ExtraCheckOption.ByZone))

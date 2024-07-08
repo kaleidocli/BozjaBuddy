@@ -23,6 +23,9 @@ using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game;
 using Dalamud.Plugin.Services;
+using Dalamud.Interface;
+using Dalamud.Interface.ManagedFontAtlas;
+using System.Reflection;
 
 namespace BozjaBuddy
 {
@@ -37,8 +40,10 @@ namespace BozjaBuddy
 
         public float TEXT_BASE_HEIGHT = ImGui.GetTextLineHeightWithSpacing();
         public Dictionary<string, string> DATA_PATHS = new Dictionary<string, string>();
+        public static IPluginLog PluginLog { get; private set; }        // should be init when first booted up
+        public IPluginLog PLog { get; init; }                           // a local one for ease of update
 
-        public DalamudPluginInterface PluginInterface { get; init; }
+        public IDalamudPluginInterface PluginInterface { get; init; }
         public ICommandManager CommandManager { get; init; }
         public IGameGui GameGui { get; init; }
         public IFateTable FateTable { get; init; }
@@ -58,17 +63,20 @@ namespace BozjaBuddy
         public NodeGraphViewer NodeGraphViewer_Auxi { get; init; }
         public IFramework Framework { get; init; }
 
+        public IUiBuilder UIBuilder { get; set; }
+
         public Plugin(
-            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-            [RequiredVersion("1.0")] ICommandManager commandManager,
-            [RequiredVersion("1.0")] IDataManager dataManager,
-            [RequiredVersion("1.0")] IGameGui gameGui,
-            [RequiredVersion("1.0")] IFateTable fateTable,
-            [RequiredVersion("1.0")] IChatGui chatGui,
-            [RequiredVersion("1.0")] IClientState clientState,
-            [RequiredVersion("1.0")] IKeyState keyState,
-            [RequiredVersion("1.0")] IFramework framework,
-            [RequiredVersion("1.0")] ITextureProvider textureProvider)
+            IDalamudPluginInterface pluginInterface,
+            ICommandManager commandManager,
+            IDataManager dataManager,
+            IGameGui gameGui,
+            IFateTable fateTable,
+            IChatGui chatGui,
+            IClientState clientState,
+            IKeyState keyState,
+            IFramework framework,
+            ITextureProvider textureProvider,
+            IPluginLog pLog)
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
@@ -80,6 +88,10 @@ namespace BozjaBuddy
             this.KeyState = keyState;
             this.Framework = framework;
             this.TextureProvider = textureProvider;
+            this.UIBuilder = this.PluginInterface.UiBuilder;
+            PluginLog = pLog;
+            this.PLog = pLog;
+            
 
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
             this.DATA_PATHS["db"] = Path.Combine(tDir, @"db\LostAction.db");
@@ -91,7 +103,7 @@ namespace BozjaBuddy
             this.DATA_PATHS["YurukaStd-UB-AlphaNum.ttf"] = Path.Combine(tDir, @"db\YurukaStd-UB-AlphaNum.otf");
 
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            PluginLog.LogDebug($"> configPath: {this.PluginInterface.ConfigDirectory}");
+            PluginLog.Debug($"> configPath: {this.PluginInterface.ConfigDirectory}");
             this.Configuration.Initialize(this.PluginInterface);
             if (this.Configuration.mAudioPath == null) this.Configuration.mAudioPath = this.DATA_PATHS["alarm_audio"];
             this.Configuration.Save();
@@ -124,6 +136,7 @@ namespace BozjaBuddy
 
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
+            this.PluginInterface.UiBuilder.OpenMainUi += OpenMain;
 
             if (this.Configuration.UserLoadouts == null) { this.mBBDataManager.ReloadLoadoutsPreset(); }    // for first install
             this.Configuration.SizeConstraints = new()      // overwrite on-disk config's size constraint
@@ -132,8 +145,9 @@ namespace BozjaBuddy
                 MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
             };
 
-            this.PluginInterface.UiBuilder.BuildFonts += this.BuildFont;
-            this.PluginInterface.UiBuilder.RebuildFonts();
+            //this.PluginInterface.UiBuilder.BuildFonts += this.BuildFont;
+            //this.PluginInterface.UiBuilder.RebuildFonts();
+            this.BuildFont();
 
             this.MainWindow.RearrangeSection();
         }
@@ -142,7 +156,18 @@ namespace BozjaBuddy
         {
             unsafe
             {
-                UtilsGameData.kFont_Yuruka = ImGui.GetIO().Fonts.AddFontFromFileTTF(this.DATA_PATHS["YurukaStd-UB-AlphaNum.ttf"], 30);
+                //UtilsGameData.kFont_Yuruka = ImGui.GetIO().Fonts.AddFontFromFileTTF(this.DATA_PATHS["YurukaStd-UB-AlphaNum.ttf"], 30);
+                UtilsGameData.kFontHandle_Yuruka = this.UIBuilder.FontAtlas.NewDelegateFontHandle(
+                        e => e.OnPreBuild(
+                            tk =>
+                            {
+                                var config = new SafeFontConfig { SizePx = 30};
+                                config.MergeFont = tk.AddFontFromFile(this.DATA_PATHS["YurukaStd-UB-AlphaNum.ttf"], config);
+
+                                tk.Font = config.MergeFont;
+                            }
+                        )
+                    );
             }
         }
 
@@ -151,7 +176,7 @@ namespace BozjaBuddy
             this.WindowSystem.RemoveAllWindows();
             this.CommandManager.RemoveHandler(CommandName);
             this.AlarmManager.Dispose();
-            this.PluginInterface.UiBuilder.BuildFonts -= this.BuildFont;
+            //this.PluginInterface.UiBuilder.BuildFonts -= this.BuildFont;
             UtilsGameData.Dispose();
             this.mBBDataManager.Dispose();
             this.NodeGraphViewer_Auxi.Dispose();
@@ -168,6 +193,11 @@ namespace BozjaBuddy
             if (!ClientState.IsLoggedIn) return;
             this.GuiScraper.Scrape();
         }
+        private void OpenMain()
+        {
+            Plugin._isImGuiSafe = true;
+            Plugin.GetWindow("Bozja Buddy")!.IsOpen = true;
+        }
 
         private void DrawUI()
         {
@@ -176,7 +206,6 @@ namespace BozjaBuddy
             this.WindowSystem.Draw();
             this.GUIAssistManager.Draw();
             ImGui.PopStyleVar();
-
             if ((DateTime.Now - this._mCycle1).TotalSeconds > 2)
             {
                 this.mIsMainWindowActive = Plugin.GetWindow("Bozja Buddy")!.IsOpen;

@@ -149,7 +149,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 this._nodeRenderZOrder.AddLast(pNode.mId);
                 this.mMap.AddNode(pNode.mId, pDrawRelaPos);
             }
-            catch (Exception e) { PluginLog.LogDebug(e.Message); }
+            catch (Exception e) {  }
 
             this.mOccuppiedRegion.Update(this.mNodes, this.mMap);
             // add node vertex to graph

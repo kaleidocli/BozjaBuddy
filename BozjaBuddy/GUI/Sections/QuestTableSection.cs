@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Numerics;
 using static BozjaBuddy.Utils.UtilsGUI;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace BozjaBuddy.GUI.Sections
 {

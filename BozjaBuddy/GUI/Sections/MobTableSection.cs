@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace BozjaBuddy.GUI.Sections
 {

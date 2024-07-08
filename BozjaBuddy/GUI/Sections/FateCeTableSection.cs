@@ -7,6 +7,7 @@ using System.Linq;
 using Dalamud.Game.ClientState.Fates;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace BozjaBuddy.GUI.Sections
 {

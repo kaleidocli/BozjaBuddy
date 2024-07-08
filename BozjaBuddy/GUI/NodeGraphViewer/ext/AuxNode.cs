@@ -15,6 +15,7 @@ using Dalamud.Interface.Components;
 using System.Text.Json;
 using Lumina.Excel.GeneratedSheets;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 
 namespace BozjaBuddy.GUI.NodeGraphViewer.ext

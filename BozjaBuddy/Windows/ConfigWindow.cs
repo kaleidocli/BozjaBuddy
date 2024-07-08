@@ -19,6 +19,7 @@ using ImGuiScene;
 using NAudio.Wave;
 using static BozjaBuddy.GUI.GUIAssist.GUIAssistManager;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace BozjaBuddy.Windows;
 
@@ -128,14 +129,13 @@ public class ConfigWindow : Window, IDisposable
                         this.mErrors.Add("audio_path_ok");
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     if (!this.mErrors.Contains("audio_path_err"))
                     {
                         this.mErrors.Remove("audio_path_ok");
                         this.mErrors.Add("audio_path_err");
                     }
-                    PluginLog.LogError($"Path might be invalid: {this.mFieldAudioPath}\n{e.Message}");
                 }
             }
             Utils.UtilsGUI.SetTooltipForLastItem("Save the audio path.\nThe audio path setting only applies after pressing save.\nClear the audio path to restore to the previous one.");

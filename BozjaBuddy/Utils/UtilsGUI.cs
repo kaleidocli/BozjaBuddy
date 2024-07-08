@@ -25,6 +25,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Plugin.Services;
 
 namespace BozjaBuddy.Utils
 {
@@ -33,7 +35,7 @@ namespace BozjaBuddy.Utils
         private const float FRAME_ROUNDING = 0;
         private static Vector2 FRAME_PADDING { get; } = new(10f, 2f);
         private static DateTime kTimeSinceLastClipboardCopied = DateTime.Now;
-        private unsafe static readonly AtkStage* stage = AtkStage.GetSingleton();
+        private unsafe static readonly AtkStage* stage = AtkStage.Instance();
 
         private static Dictionary<int, int> _cachedInventoryItemAndCount = new();
         private static Dictionary<int, DateTime> _inventoryItemLastCacheTime = new();
@@ -338,7 +340,7 @@ namespace BozjaBuddy.Utils
                 {
                     pPlugin.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry { Message = pReprItemLink });
                 }
-                catch (Exception e) { PluginLog.LogError(e.Message); }
+                catch (Exception e) { pPlugin.PLog.Error(e.Message); }
             }
             else if (pUseIcon && ImGuiComponents.IconButton(FontAwesomeIcon.Comment))
             {
@@ -355,7 +357,7 @@ namespace BozjaBuddy.Utils
                 {
                     pPlugin.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry { Message = pReprItemLink });
                 }
-                catch (Exception e) { PluginLog.LogError(e.Message); }
+                catch (Exception e) { pPlugin.PLog.Error(e.Message); }
             }
             if ((DateTime.Now - UtilsGUI.kTimeSinceLastClipboardCopied).TotalSeconds < 5)
                 UtilsGUI.SetTooltipForLastItem("Copied to clipboard");
@@ -702,7 +704,7 @@ namespace BozjaBuddy.Utils
                         UseShellExecute = true,
                     });
                 }
-                catch (Exception e) { PluginLog.LogError(e.Message); }
+                catch (Exception e) { }
             }
             else if (ImGui.IsItemHovered() && tInput.mIsMouseRmb)
             {
@@ -998,9 +1000,10 @@ namespace BozjaBuddy.Utils
             unsafe {
                 try
                 {
-                    foreach (var addon in stage->RaptureAtkUnitManager->AtkUnitManager.FocusedUnitsList.EntriesSpan)
+                    foreach (var addon in stage->RaptureAtkUnitManager->AtkUnitManager.FocusedUnitsList.Entries)
                     {
-                        var addonName = Marshal.PtrToStringAnsi(new IntPtr(addon.Value->Name));
+                        //var addonName = Marshal.PtrToStringAnsi(new IntPtr(addon.Value->Name));
+                        var addonName = addon.Value->NameString;
 
                         if (addonName == name)
                         {

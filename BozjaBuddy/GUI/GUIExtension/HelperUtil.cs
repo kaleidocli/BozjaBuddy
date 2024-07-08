@@ -100,7 +100,6 @@ namespace BozjaBuddy.GUI.GUIExtension
             }
             catch (Exception ex)
             {
-                PluginLog.LogError(ex, "Error drawing extension gui");
                 if (isDisabled) { ImGui.PopStyleVar(); }
             }
 

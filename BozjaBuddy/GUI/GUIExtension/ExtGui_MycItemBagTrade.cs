@@ -31,8 +31,6 @@ namespace BozjaBuddy.GUI.GUIExtension
 
         public override void Draw()
         {
-            var tBgDrawList = ImGui.GetBackgroundDrawList();
-
             // Toolbar
             if (!this.mPlugin.Configuration.mGuiAssistConfig.itemBox.isDisabled_Toolbar)
             {
@@ -43,6 +41,8 @@ namespace BozjaBuddy.GUI.GUIExtension
                     pOverlayComboFixedWidth: 200
                 );
             }
+
+            var tBgDrawList = ImGui.GetBackgroundDrawList();
 
             if (this.mPlugin.Configuration.mGuiAssistConfig.itemBox.isDisabled_LoadoutMiniview) return;
 

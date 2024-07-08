@@ -335,7 +335,7 @@ namespace BozjaBuddy.Data.Alarm
                 }
                 catch (Exception e)
                 {
-                    PluginLog.Error(e.Message + "\n" + e.StackTrace ?? "");
+                    this.mPlugin.PLog.Error(e.Message + "\n" + e.StackTrace ?? "");
                 }
                 Thread.Sleep(INTERVAL);
             }
@@ -446,7 +446,7 @@ namespace BozjaBuddy.Data.Alarm
             get { return false; }
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }

@@ -180,7 +180,7 @@ namespace BozjaBuddy.GUI.GUIExtension
                         padding: new Vector2(2, -ImGui.CalcTextSize("A").Y)
                     );
                 }
-                catch (System.Exception e) { PluginLog.LogDebug(e.Message); }
+                catch (System.Exception e) {  }
                 ImGui.PopStyleColor();
             }
         }

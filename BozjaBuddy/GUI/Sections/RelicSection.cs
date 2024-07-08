@@ -9,6 +9,7 @@ using Dalamud.Logging;
 using ImGuiScene;
 using BozjaBuddy.Data;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -192,7 +193,7 @@ namespace BozjaBuddy.GUI.Sections
                         if (ImGui.Selectable(job.ToString()))
                         {
                             this.mPlugin.Configuration.mRelicCurrJob = job;
-                            PluginLog.LogDebug($"> RelicSeciton: cJ={this.mPlugin.Configuration.mRelicCurrJob} j={job}");
+                            this.mPlugin.PLog.Debug($"> RelicSeciton: cJ={this.mPlugin.Configuration.mRelicCurrJob} j={job}");
                         }
                     }
                     ImGui.EndCombo();

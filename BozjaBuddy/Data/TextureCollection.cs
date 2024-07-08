@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures;
+using static FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentDragDrop.Delegates;
 
 namespace BozjaBuddy.Data
 {
@@ -18,14 +21,14 @@ namespace BozjaBuddy.Data
     public class TextureCollection : IDisposable
     {
         private Plugin mPlugin;
-        public Dictionary<Sheet, Dictionary<uint, IDalamudTextureWrap?>> mIcons;
-        private Dictionary<uint, IDalamudTextureWrap?> mStandardIcons = new Dictionary<uint, IDalamudTextureWrap?>();
+        private Dictionary<Sheet, Dictionary<uint, ISharedImmediateTexture?>> mIcons;
+        private Dictionary<uint, ISharedImmediateTexture?> mStandardIcons = new Dictionary<uint, ISharedImmediateTexture?>();
 
         public TextureCollection(Plugin pPlugin)
         {
             this.mPlugin = pPlugin;
             this.mIcons = (new List<Sheet>((Sheet[])Enum.GetValues(typeof(Sheet))))
-                                    .ToDictionary(o => o, o => new Dictionary<uint, IDalamudTextureWrap?>());
+                                    .ToDictionary(o => o, o => new Dictionary<uint, ISharedImmediateTexture?>());
             this.LoadStandardIcons();
         }
 
@@ -64,33 +67,31 @@ namespace BozjaBuddy.Data
             }
         }
 
-        private IDalamudTextureWrap? LoadTexture(uint pIconId)
+        private ISharedImmediateTexture? LoadTexture(uint pIconId)
         {
             try
             {
                 //PluginLog.LogInformation($"Loading texture iconId {pIconId}");
                 TexFile? tTexFile = this.mPlugin.DataManager.GameData.GetIcon(pIconId);
-                var a = this.mPlugin.PluginInterface.UiBuilder.LoadImageRaw(tTexFile.GetRgbaImageData(),
-                                                                                            Convert.ToInt32(tTexFile.Header.Width),
-                                                                                            Convert.ToInt32(tTexFile.Header.Height),
-                                                                                            4);
-                return tTexFile == null
-                    ? null
-                    : this.mPlugin.PluginInterface.UiBuilder.LoadImageRaw(tTexFile.GetRgbaImageData(),
-                                                                                            Convert.ToInt32(tTexFile.Header.Width),
-                                                                                            Convert.ToInt32(tTexFile.Header.Height),
-                                                                                            4);
+                if (tTexFile == null) {
+                    this.mPlugin.PLog.Warning($"Unable to load texture for {pIconId}");
+                    return null; 
+                }
+                RawImageSpecification spec = new();
+                spec.Width = tTexFile.Header.Width;
+                spec.Height = tTexFile.Header.Height;
+                return this.mPlugin.TextureProvider.GetFromGameIcon(new GameIconLookup() { IconId = pIconId });
             }
             catch(Exception e)
             {
-                PluginLog.LogWarning($"Unable to load texture for {pIconId} - {e.Message}");
+                this.mPlugin.PLog.Warning($"Unable to load texture for {pIconId} - {e.Message}");
             }
             return null;
         }
 
         public IDalamudTextureWrap? GetTexture(uint pIconId, Sheet pSheet = Sheet.Action)
         {
-            return this.mIcons[pSheet][pIconId];
+            return this.mIcons[pSheet][pIconId]?.GetWrapOrEmpty();
         }
         public IDalamudTextureWrap? GetTextureFromItemId(uint pItemId, Sheet pSheet = Sheet.Action, bool pTryLoadTexIfFailed = false)
         {
@@ -100,7 +101,7 @@ namespace BozjaBuddy.Data
             if (tIconId != null && this.mIcons[pSheet].ContainsKey(tIconId!.Value))
             {
                 //PluginLog.LogDebug($"GetTextureFromItemId(): Texture found for iconId {tIconId} in sheet {pSheet.ToString()}");
-                return this.mIcons[pSheet][tIconId!.Value];
+                return this.mIcons[pSheet][tIconId!.Value]?.GetWrapOrEmpty();
             }
             else if (pTryLoadTexIfFailed)
             {
@@ -109,7 +110,7 @@ namespace BozjaBuddy.Data
                 // Try getting the texture again
                 if (tIconId != null && this.mIcons[pSheet].ContainsKey(tIconId!.Value))
                 {
-                    return this.mIcons[pSheet][tIconId!.Value];
+                    return this.mIcons[pSheet][tIconId!.Value]?.GetWrapOrEmpty();
                 }
             }
             return null;
@@ -122,12 +123,12 @@ namespace BozjaBuddy.Data
         /// <returns></returns>
         public IDalamudTextureWrap? GetTextureDirect(uint pIconId, Sheet pSheet)
         {
-            if (this.mIcons[pSheet].ContainsKey(pIconId)) return this.mIcons[pSheet][pIconId];
+            if (this.mIcons[pSheet].ContainsKey(pIconId)) return this.mIcons[pSheet][pIconId]?.GetWrapOrEmpty();
             AddTexture(pIconId);
-            return this.mIcons[pSheet][pIconId];
+            return this.mIcons[pSheet][pIconId]?.GetWrapOrEmpty();
         }
         public IDalamudTextureWrap? GetStandardTexture(uint pIconId)
-            => this.mStandardIcons.ContainsKey(pIconId) ? this.mStandardIcons[pIconId] : null;
+            => this.mStandardIcons.ContainsKey(pIconId) ? this.mStandardIcons[pIconId]?.GetWrapOrEmpty() : null;
         public IDalamudTextureWrap? GetStandardTexture(StandardIcon pIcon)
         {
             this.mStandardIcons.TryGetValue((uint)pIcon, out var pTex);
@@ -135,19 +136,19 @@ namespace BozjaBuddy.Data
             {
                 this.mStandardIcons.TryAdd((uint)pIcon, this.LoadTexture((uint)pIcon));
                 this.mStandardIcons.TryGetValue((uint)pIcon, out var pTex2);
-                return pTex2;
+                return pTex2?.GetWrapOrEmpty();
             }
-            return pTex;
+            return pTex?.GetWrapOrEmpty();
         }
 
         public void RemoveTextureFromItemId(uint pItemId, Sheet pSheet = Sheet.Action)
         {
             uint? tIconId = this.GetIconId(pItemId, pSheet);
-            if (tIconId == null) { PluginLog.Warning($"Unable to find Texture for itemId {pItemId} (maybe a standardTexuture?). Aborting disposing..."); return; }
+            if (tIconId == null) { this.mPlugin.PLog.Warning($"Unable to find Texture for itemId {pItemId} (maybe a standardTexuture?). Aborting disposing..."); return; }
             //PluginLog.LogInformation($"Disposing itemId {pItemId}");
             if (this.mIcons[pSheet].ContainsKey(tIconId.Value))
             {
-                this.mIcons[pSheet][tIconId.Value]?.Dispose();
+                //this.mIcons[pSheet][tIconId.Value]?.Dispose();
                 this.mIcons[pSheet].Remove(tIconId.Value);
             }
         }
@@ -203,10 +204,11 @@ namespace BozjaBuddy.Data
                 this.RemoveTextureFromItemId(iId);
             }
             this.mIcons.Clear();
-            foreach (IDalamudTextureWrap? iIconTexture in this.mStandardIcons.Values)
-            {
-                iIconTexture?.Dispose();
-            }
+            // ISharedImmediateTexture cannot be disposed.
+            //foreach (ISharedImmediateTexture? iIconTexture in this.mStandardIcons.Values)
+            //{
+            //    iIconTexture?.Dispose();
+            //}
             this.mStandardIcons.Clear();
         }
 

@@ -3,6 +3,7 @@ using ImGuiScene;
 using System;
 using System.Collections.Generic;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace BozjaBuddy.Data
 {

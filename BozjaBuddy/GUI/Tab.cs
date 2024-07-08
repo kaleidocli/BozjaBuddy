@@ -21,7 +21,7 @@ namespace BozjaBuddy.GUI
         /// </summary>
         public virtual void RearrangeSection()
         {
-            if (this.mPlugin.Configuration.mIsAuxiFocused)
+            if (this.mPlugin.Configuration.isAuxiVisible == 2)          // Auxi-only
             {
                 if (this.mSortedSections.Count < 2) return;
 
@@ -44,7 +44,21 @@ namespace BozjaBuddy.GUI
                 tRes.Add(0, tFocusedSection);
                 this.mSortedSections = tRes;
             }
-            else if (this.mSortedSections_Default != null)
+            else if (this.mPlugin.Configuration.isAuxiVisible == 0)     // Auxi hidden
+            {
+                Dictionary<int, Section> tRes = new();
+                int tResKey = 0;
+                foreach (var iKey in mSortedSections_Default.Keys)
+                {
+                    if (mSortedSections[iKey] is not AuxiliaryViewerSection)
+                    {
+                        tRes[tResKey] = mSortedSections[iKey];
+                        tResKey++;
+                    }
+                }
+                this.mSortedSections = tRes;
+            }
+            else if (this.mSortedSections_Default != null)              // Default
             {
                 this.mSortedSections = this.mSortedSections_Default;
             }

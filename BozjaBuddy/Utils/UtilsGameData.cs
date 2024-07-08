@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.ManagedFontAtlas;
 
 namespace BozjaBuddy.Utils
 {
@@ -68,7 +70,8 @@ namespace BozjaBuddy.Utils
         public static TextureCollection? kTexCol_LostAction = null;
         public static TextureCollection? kTexCol_FieldNote = null;
 
-        public static ImFontPtr kFont_Yuruka = null;
+        //public static ImFontPtr kFont_Yuruka = null;
+        public static IFontHandle? kFontHandle_Yuruka = null;
 
         // dumpster
         /// <summary>

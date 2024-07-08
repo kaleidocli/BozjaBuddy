@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using BozjaBuddy.Windows;
 using System.Security.Cryptography;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace BozjaBuddy.GUI.Sections
 {

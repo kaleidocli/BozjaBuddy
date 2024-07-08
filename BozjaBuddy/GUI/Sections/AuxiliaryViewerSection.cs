@@ -11,6 +11,7 @@ using Dalamud.Logging;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace BozjaBuddy.GUI.Sections
 {
@@ -98,9 +99,10 @@ namespace BozjaBuddy.GUI.Sections
                                                                     : ImGuiTabItemFlags.None))
             {
                 if (pObj.GetGenId() == AuxiliaryViewerSection._mGenIdToTabFocus) AuxiliaryViewerSection._mGenIdToTabFocus = -1;   // Release selected
-                ImGui.BeginChild($"##{pObj.mId}", new Vector2(ImGui.GetWindowWidth(), this.mPlugin.Configuration.mIsAuxiFocused
+                ImGui.BeginChild($"##{pObj.mId}", new Vector2(ImGui.GetWindowWidth(), this.mPlugin.Configuration.isAuxiVisible < 2
                                                                       ? 390
-                                                                      : ImGui.GetWindowHeight() - ImGui.GetStyle().WindowPadding.Y));
+                                                                      : ImGui.GetWindowHeight() - ImGui.GetStyle().WindowPadding.Y
+                                                                      ));
                 if (pObj is Loadout)
                 {
                     this.DrawTabHeaderLoadout(pObj);

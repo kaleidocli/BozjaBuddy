@@ -16,6 +16,7 @@ using BozjaBuddy.GUI.GUIExtension;
 using System.Security.Cryptography;
 using static Lumina.Data.Parsing.Uld.NodeData;
 using Dalamud.Utility;
+using Dalamud.Interface.ManagedFontAtlas;
 
 namespace BozjaBuddy.GUI.GUIAssist
 {
@@ -145,7 +146,7 @@ namespace BozjaBuddy.GUI.GUIAssist
                     isDisabled: (this.mPlugin.Configuration.mGuiAssistConfig.itemInfo.isDisabled_WhenNotFocused && !UtilsGUI.IsAddonFocused("MYCInfo"))
                     );
             }
-            catch (Exception e) { PluginLog.LogDebug(e.Message); }
+            catch (Exception e) { this.mPlugin.PLog.Debug(e.Message); }
         }
         private void Draw_MycInfoAlarm()
         {
@@ -211,7 +212,7 @@ namespace BozjaBuddy.GUI.GUIAssist
                 }
                 catch (Exception e)
                 {
-                    PluginLog.LogError(e.ToString());
+                    this.mPlugin.PLog.Error(e.ToString());
                 }
             }
         }
@@ -254,7 +255,7 @@ namespace BozjaBuddy.GUI.GUIAssist
                         new Vector2(0, ImGui.CalcTextSize("A").Y),
                         padding: new Vector2(0, -ImGui.CalcTextSize("A").Y));
                 }
-                catch (Exception e) { PluginLog.LogDebug(e.Message); }
+                catch (Exception e) { this.mPlugin.PLog.Debug(e.Message); }
                 if (tConfig.mGuiAssistConfig.itemBox.isDisabled_All) return;
 
                 // Applying filters to the GUI
@@ -417,7 +418,7 @@ namespace BozjaBuddy.GUI.GUIAssist
                 }
                 catch (Exception e)
                 {
-                    PluginLog.LogError(e.ToString());
+                    this.mPlugin.PLog.Error(e.ToString());
                 }
 
                 this.Draw_MycItemBagTrade(tLoadout, tItemBoxCfg.userHolsterDataByName);
@@ -453,8 +454,8 @@ namespace BozjaBuddy.GUI.GUIAssist
                         continue;
                     }
                     // Confirmed item node. Check item node for existence and is loadout-included.
-                    if (n->NodeID == 4
-                        || (n->NodeID > 100 && n->NodeID % 100 > 0 && n->NodeID % 100 < 13))        // Check range of node
+                    if (n->NodeId == 4
+                        || (n->NodeId > 100 && n->NodeId % 100 > 0 && n->NodeId % 100 < 13))        // Check range of node
                     {
                         if (nCompNode->Component == null) { continue; }
                         var tTextNode = GetNodeByID<AtkTextNode>(
@@ -636,21 +637,23 @@ namespace BozjaBuddy.GUI.GUIAssist
                 float tSizeY = (tNode_Button->Height - 4) * tAddon->RootNode->GetScaleY();
                 float tScale = tAddon->Scale;
 
-                if (UtilsGameData.kFont_Yuruka.NativePtr == null) { PluginLog.LogDebug("> FONT NULLL!"); return; }
+                if (UtilsGameData.kFontHandle_Yuruka == null || !UtilsGameData.kFontHandle_Yuruka.Available) { this.mPlugin.PLog.Debug("> FONT NULLL!"); return; }
+                ILockedImFont tRawFont = UtilsGameData.kFontHandle_Yuruka.Lock();
                 ImGui.GetBackgroundDrawList().AddText(
-                        UtilsGameData.kFont_Yuruka,
+                        tRawFont.ImFont,
                         23.5f * tScale,
                         new Vector2(tCoordX, tCoordY) + new Vector2(0, tSizeY / 2) + new Vector2(-1, 4),
                         ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NormalText_OrangeDark),
                         pText
                     );
                 ImGui.GetBackgroundDrawList().AddText(
-                        UtilsGameData.kFont_Yuruka,
+                        tRawFont.ImFont,
                         16 * tScale,
                         new Vector2(tCoordX, tCoordY) + new Vector2(2, tSizeY / 2 + 2) + new Vector2(-1, 4),
                         ImGui.ColorConvertFloat4ToU32(UtilsGUI.Colors.NormalText_Orange),
                         pText
                     );
+                tRawFont.Dispose();
             }
         }
 
@@ -660,7 +663,7 @@ namespace BozjaBuddy.GUI.GUIAssist
             for (var i = 0; i < uldManager.NodeListCount; i++)
             {
                 var n = uldManager.NodeList[i];
-                if (n->NodeID != nodeId || type != null && n->Type != type.Value) continue;
+                if (n->NodeId != nodeId || type != null && n->Type != type.Value) continue;
                 return (T*)n;
             }
             return null;

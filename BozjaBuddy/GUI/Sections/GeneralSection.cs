@@ -73,16 +73,22 @@ namespace BozjaBuddy.GUI.Sections
             }
             // Section switch button
             ImGui.SameLine();
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Expand, defaultColor: this.mPlugin.Configuration.mIsAuxiFocused
-                                                                                                         ? UtilsGUI.Colors.MycItemBoxOverlay_Red
-                                                                                                         : null))
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ProjectDiagram, defaultColor: this.mPlugin.Configuration.isAuxiVisible == 0
+                                                                                                         ? null
+                                                                                                         : this.mPlugin.Configuration.isAuxiVisible == 1
+                                                                                                            ? UtilsGUI.AdjustTransparency(UtilsGUI.Colors.MycItemBoxOverlay_Red, 0.15f)
+                                                                                                            : UtilsGUI.Colors.MycItemBoxOverlay_Red))
             {
-                this.mPlugin.Configuration.mIsAuxiFocused = !this.mPlugin.Configuration.mIsAuxiFocused;
+                this.mPlugin.Configuration.isAuxiVisible = this.mPlugin.Configuration.isAuxiVisible == 2 ? 0 : this.mPlugin.Configuration.isAuxiVisible + 1;
                 this.mPlugin.MainWindow.RearrangeSection();
             }
             else
             {
-                UtilsGUI.SetTooltipForLastItem($"Expanding info-viewer: {(this.mPlugin.Configuration.mIsAuxiFocused ? "ON" : "OFF")}");
+                UtilsGUI.SetTooltipForLastItem($"Expanding info-graph: {(this.mPlugin.Configuration.isAuxiVisible == 0 
+                                                                        ? "Hidden" 
+                                                                        : this.mPlugin.Configuration.isAuxiVisible == 0
+                                                                            ? "Half"
+                                                                            : "Full")}");
             }
 
             return true;
@@ -205,14 +211,12 @@ namespace BozjaBuddy.GUI.Sections
                 if (tLv2 == null) return;
                 var tLv3 = tLv2->GetComponent()->UldManager.SearchNodeById(6);
                 if (tLv3 == null) return;
-                PluginLog.LogDebug(String.Format("0x{0:x}", (new IntPtr(tLv3))));
 
                 //ImGui.Text(tTextNode->ToString() ?? "None");
-                PluginLog.LogDebug(tLv3->GetAsAtkTextNode()->NodeText.ToString() ?? "None");
             }
             catch (Exception e)
             {
-                PluginLog.Debug(e.ToString());
+
             }
         }
 

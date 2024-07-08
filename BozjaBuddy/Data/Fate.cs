@@ -31,12 +31,12 @@ namespace BozjaBuddy.Data
         private double mMapCoordX { get; set; }
         private double mMapCoordY { get; set; }
         public DateTime? mLastActive { get; set; } = null;
-        private Dalamud.Game.ClientState.Fates.Fate? _mCSFate = null;
-        public Dalamud.Game.ClientState.Fates.Fate? mCSFate
+        private Dalamud.Game.ClientState.Fates.IFate? _mCSFate = null;
+        public Dalamud.Game.ClientState.Fates.IFate? mCSFate
         {
             get
             {
-                if (this._mCSFate is not null && this._mCSFate.IsValid() && (this._mCSFate.State == FateState.Running || this._mCSFate.State == FateState.Preparation))
+                if (this._mCSFate is not null && (this._mCSFate.State == FateState.Running || this._mCSFate.State == FateState.Preparation))
                     return this._mCSFate;
                 return null;
             }

@@ -12,6 +12,8 @@ using BozjaBuddy.Data.Alarm;
 using System.Linq;
 using ImGuiScene;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
+using FFXIVClientStructs.Interop;
 
 namespace BozjaBuddy.Data
 {
@@ -150,7 +152,8 @@ namespace BozjaBuddy.Data
                 {
                     // get IDalamudTextureWrap
                     var b = File.ReadAllBytes(tImagePath);
-                    var twrap = this.mPlugin.PluginInterface.UiBuilder.LoadImage(b);
+                    //var twrap = this.mPlugin.PluginInterface.UiBuilder.LoadImage(b);
+                    var twrap = this.mPlugin.TextureProvider.CreateFromImageAsync(b).Result;
                     // prep key
                     string fname = tImagePath.Split("\\").LastOrDefault("");
                     if (fname == "") { continue; }
@@ -158,7 +161,7 @@ namespace BozjaBuddy.Data
                     this.mImages.Add( fname, twrap);
                 }
             }
-            catch (Exception e) { PluginLog.LogError(e.Message); }
+            catch (Exception e) { this.mPlugin.PLog.Error(e.Message); }
         }
 
         private Dictionary<int, TDbObj> DbLoader<TDbObj> (out Dictionary<int, TDbObj> pDict, SQLiteCommand pCommand, string pQuery, Func<Plugin, SQLiteDataReader, TDbObj> tDel, string pKeyCollumn = "id")
@@ -492,12 +495,12 @@ namespace BozjaBuddy.Data
                 if (this.mLoadouts.ContainsKey(iLoadoutPreset.mId))
                 {
                     this.mLoadouts[iLoadoutPreset.mId] = iLoadoutPreset.DeepCopy();
-                    PluginLog.Debug($"Updating existed loadout! ({this.mLoadouts[iLoadoutPreset.mId].mName})");
+                    this.mPlugin.PLog.Debug($"Updating existed loadout! ({this.mLoadouts[iLoadoutPreset.mId].mName})");
                 }
                 else
                 {
                     BBDataManager.DynamicAddGeneralObject(this.mPlugin, iLoadoutPreset.DeepCopy(), this.mLoadouts);
-                    PluginLog.Debug($"Creating new loadout! ({iLoadoutPreset.mId})");
+                    this.mPlugin.PLog.Debug($"Creating new loadout! ({iLoadoutPreset.mId})");
                 }
             }
             this.SaveLoadouts();
@@ -584,21 +587,14 @@ namespace BozjaBuddy.Data
         public unsafe static AgentMycBattleAreaInfo* GetAgentMycBattleAreaInfo()
         {
             return (AgentMycBattleAreaInfo*)Framework.Instance()
-                                                            ->GetUiModule()
+                                                            ->GetUIModule()
                                                             ->GetAgentModule()
                                                             ->GetAgentByInternalId(AgentId.MycBattleAreaInfo);
-        }
-        public unsafe static AgentMycInfo* GetAgentMycInfo()
-        {
-            return (AgentMycInfo*)Framework.Instance()
-                                                            ->GetUiModule()
-                                                            ->GetAgentModule()
-                                                            ->GetAgentByInternalId(AgentId.MycInfo);
         }
         public unsafe static AgentMycItemBox* GetAgentMycItemBox()
         {
             return (AgentMycItemBox*)Framework.Instance()
-                                                            ->GetUiModule()
+                                                            ->GetUIModule()
                                                             ->GetAgentModule()
                                                             ->GetAgentByInternalId(AgentId.MycItemBox);
         }
@@ -621,7 +617,7 @@ namespace BozjaBuddy.Data
             else BBDataManager.kFateTableLastUpdate = DateTime.Now;
 
             Span<MycDynamicEvent> tDeSpan = tIsAgentActive
-                                    ? new Span<MycDynamicEvent>(tMycDynamicEventArray->Array, tMycDynamicEventArray->Count)
+                                    ? new Span<MycDynamicEvent>(tMycDynamicEventArray->Array.GetPointer(0), tMycDynamicEventArray->Count)
                                     : Span<MycDynamicEvent>.Empty;
 
             //PluginLog.LogDebug(String.Format("> IsAgentActive={0}", tIsAgentActive));

@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace BozjaBuddy.Utils
 {
@@ -47,7 +48,7 @@ namespace BozjaBuddy.Utils
             var teleport = Telepo.Instance();
             if (teleport == null)
             {
-                PluginLog.LogWarning("Could not check attunement: Telepo is missing.");
+                pPlugin.PLog.Warning("Could not check attunement: Telepo is missing.");
                 return false;
             }
 
@@ -73,7 +74,7 @@ namespace BozjaBuddy.Utils
                 return true;
             }
 
-            PluginLog.LogWarning($"Teleport failed. (aetheryteId={aetheryteId})");
+            pPlugin.PLog.Warning($"Teleport failed. (aetheryteId={aetheryteId})");
             return false;
         }
 

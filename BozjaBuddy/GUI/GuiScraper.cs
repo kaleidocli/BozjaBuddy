@@ -49,7 +49,7 @@ namespace BozjaBuddy.GUI
             unsafe
             {
                 if (!this.mCycles.CheckCycle("mycInfo", 0.2f)) return;
-                if (AtkStage.GetSingleton() == null || AtkStage.GetSingleton()->RaptureAtkUnitManager == null) return;      // null on logging out
+                if (AtkStage.Instance() == null || AtkStage.Instance()->RaptureAtkUnitManager == null) return;      // null on logging out
                 if (this.mCycles.CheckCycle("mycInfo", 5)) this.Scraper_MycInfo();
                 if (this.mCycles.CheckCycle("mycWarResultNotebook", 0.2f)) this.Scraper_MycWarResultNotebook();
                 if (this.mCycles.CheckCycle("save", 60)) this.mPlugin.Configuration.Save();
@@ -63,7 +63,7 @@ namespace BozjaBuddy.GUI
                 while (this.mIsActive)
                 {
                     Thread.Sleep(200);
-                    if (AtkStage.GetSingleton() == null || AtkStage.GetSingleton()->RaptureAtkUnitManager == null) return;      // null on logging out
+                    if (AtkStage.Instance() == null || AtkStage.Instance()->RaptureAtkUnitManager == null) return;      // null on logging out
                     if (this.mCycles.CheckCycle("mycInfo", 5)) this.Scraper_MycInfo();
                     if (this.mCycles.CheckCycle("mycWarResultNotebook", 0.2f)) this.Scraper_MycWarResultNotebook();
                     if (this.mCycles.CheckCycle("save", 60)) this.mPlugin.Configuration.Save();
@@ -137,7 +137,7 @@ namespace BozjaBuddy.GUI
                 {
                     var tPageImgNode = UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCWarResultNotebook", new int[] { id, 5 });     // id of the frame around the page number
                     if (tPageImgNode == null) continue;
-                    if (tPageImgNode->IsVisible) { tCurrPage = id - 18; break; }
+                    if (tPageImgNode->IsVisible()) { tCurrPage = id - 18; break; }
                 }
                 // Note
                 int[] tNoteNodeIds = { 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 };

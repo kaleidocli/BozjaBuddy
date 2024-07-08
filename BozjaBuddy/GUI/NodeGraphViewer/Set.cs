@@ -157,11 +157,9 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
         /// </summary>
         public Tuple<float, float>? FindTwoFurthestEndpoints(float lowerBound, float upperBound, float minThresholdToTriggerRandom = 10)
         {
-            PluginLog.LogDebug($"> Finding furthest endpoints. Subset count: {this.subSets.Count}");
             List<float> endpoints = new();
             foreach (var s in subSets)
             {
-                PluginLog.LogDebug($"> Checking subset: lb={lowerBound} < ({s.negativeSide}, {s.positiveSide}) < ub={upperBound}");
                 // check if the search range is within a subset
                 if (s.negativeSide < lowerBound && s.positiveSide > upperBound) return null;
                 // update upperBound/lowerBound if it's within a subset
@@ -182,7 +180,6 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
             endpoints.Add(upperBound);
             endpoints.Add(lowerBound);
             endpoints.Sort();
-            PluginLog.LogDebug($">>>>> Endpoints found: {string.Join(", ", endpoints)}");
             float? e1 = null;
             float? e2 = null;
             for (int i = 0; i + 1 < endpoints.Count; i += 2)
@@ -202,9 +199,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 int randomEnpointIdx = new Random().Next(0, endpoints.Count / 2);
                 e1 = endpoints[randomEnpointIdx];
                 e2 = endpoints[randomEnpointIdx + 1];
-                PluginLog.LogDebug($"> Random triggered! (endpoint-dist={e2.Value - e1.Value} < {minThresholdToTriggerRandom})");
             }
-            PluginLog.LogDebug($">>>>> Endpoints chosen: left={e1.Value} right={e2.Value}");
             return new(e1.Value, e2.Value);
         }
 

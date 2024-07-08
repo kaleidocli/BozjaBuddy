@@ -10,7 +10,6 @@ using System.Linq;
 using Dalamud.Logging;
 using System.Numerics;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using System.Security.Cryptography;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.GeneratedSheets;
 using System.Runtime.CompilerServices;
@@ -54,7 +53,7 @@ namespace BozjaBuddy
         public bool mIsInGridMode_FieldNoteTableSection = true;
         public bool mIsInGridMode_LostActionTableSection = true;
         public bool mIsAroVisible_LostActionTableSection = true;
-        public bool mIsAuxiFocused = false;
+        public int isAuxiVisible = 1;       // 0:hidden    1:half-window   2:full-window
         public HashSet<int> mCacheAlertIgnoreIds = new();
         public HashSet<int> mUserFieldNotes = new();
         public bool mIsAuxiUsingNGV = true;
@@ -76,9 +75,9 @@ namespace BozjaBuddy
 
         // the below exist just to make saving less cumbersome
         [NonSerialized]
-        private DalamudPluginInterface? PluginInterface;
+        private IDalamudPluginInterface? PluginInterface;
 
-        public void Initialize(DalamudPluginInterface pluginInterface)
+        public void Initialize(IDalamudPluginInterface pluginInterface)
         {
             this.PluginInterface = pluginInterface;
             this.mGuiAssistConfig.itemBox.userCacheData = this._userCacheData;
@@ -164,9 +163,9 @@ namespace BozjaBuddy
                 this.mGuiAssistConfig.itemBox.userCacheData.Clear();
                 this.mGuiAssistConfig.itemBox.userHolsterDataByName.Clear();
 
-                foreach (MycItemCategory iHolster in tData->ItemHolsterArraySpan)
+                foreach (MycItemCategory iHolster in tData->ItemHolsters)
                 {
-                    foreach (MycItem iItem in iHolster.ItemArraySpan)
+                    foreach (MycItem iItem in iHolster.Items)
                     {
                         if (iItem.ActionId == 0) continue;
                         var tActionId = UtilsGameData.ConvertGameIdToInternalId_LostAction(iItem.ActionId);
@@ -189,9 +188,9 @@ namespace BozjaBuddy
                         }
                     }
                 }
-                foreach (MycItemCategory iCache in tData->ItemCacheArraySpan)
+                foreach (MycItemCategory iCache in tData->ItemCaches)
                 {
-                    foreach (MycItem iItem in iCache.ItemArraySpan)
+                    foreach (MycItem iItem in iCache.Items)
                     {
                         var tActionId = UtilsGameData.ConvertGameIdToInternalId_LostAction(iItem.ActionId);
                         if (this.mGuiAssistConfig.itemBox.userCacheData.ContainsKey(tActionId))
