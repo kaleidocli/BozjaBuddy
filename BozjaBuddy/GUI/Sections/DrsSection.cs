@@ -37,7 +37,7 @@ namespace BozjaBuddy.GUI.Sections
         private Dictionary<string, List<List<string>>> mCommunitiesInfo = new() {
             { 
                 "na", new() {
-                    new() { "PEBE", "Primal Eureka/Bozja Enjoyer", "(static/reclears)", "https://discord.gg/PEBE" },
+                    new() { "FOE", "Field Op Enjoyers (formerly PEBE)", "(anyprog/static/reclears)", "https://discord.gg/foexiv" },
                     new() { "ABBA", "Aether Bozja/Baldesion Arsenal", "(anyprog)", "https://discord.gg/abbaffxiv" },
                     new() { "LegoSteppers", "(Aether)", "(anyprog)", "https://discord.gg/YKP76AsMw8" },
                     new() { "CEM", "Crystal Exploratory Missions", "(static/reclears)", "https://discord.gg/cem" },
@@ -64,16 +64,17 @@ namespace BozjaBuddy.GUI.Sections
         public override bool DrawGUI()
         {
             var tHeight = ImGui.GetContentRegionAvail().Y - ImGui.GetStyle().WindowPadding.Y;
-            ImGui.BeginChild("##drsSectionTpcList", new Vector2(ImGui.GetWindowWidth() / 5, tHeight < this.kSectionHeight
-                                                                                            ? tHeight
-                                                                                            : this.kSectionHeight));
+            tHeight = tHeight < this.kSectionHeight ? tHeight : this.kSectionHeight;
+            if (this.mPlugin.Configuration.isAuxiVisible == 0)
+            {
+                tHeight = ImGui.GetContentRegionAvail().Y;
+            }
+            ImGui.BeginChild("##drsSectionTpcList", new Vector2(ImGui.GetWindowWidth() / 5, tHeight));
             this.DrawTopicList();
             ImGui.EndChild();
             ImGui.SameLine();
             ImGui.BeginChild("##drsSectionTpc", new Vector2(
-                ImGui.GetWindowWidth() / 5 * 4 - ImGui.GetStyle().WindowPadding.X * 2, tHeight < this.kSectionHeight
-                                                                                            ? tHeight
-                                                                                            : this.kSectionHeight));
+                ImGui.GetWindowWidth() / 5 * 4 - ImGui.GetStyle().WindowPadding.X * 2, tHeight));
             this.DrawTopic();
             ImGui.EndChild();
             return true;

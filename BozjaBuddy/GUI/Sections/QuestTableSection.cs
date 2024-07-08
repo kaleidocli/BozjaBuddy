@@ -94,7 +94,10 @@ namespace BozjaBuddy.GUI.Sections
                     "##Quest",
                     QuestTableSection.COLUMN_COUNT,
                     QuestTableSection.TABLE_FLAG,
-                    new Vector2(0.0f, this.TABLE_SIZE_Y))
+                    new Vector2(0.0f, 
+                                this.mPlugin.Configuration.isAuxiVisible == 0 
+                                ? ImGui.GetContentRegionAvail().Y 
+                                : this.TABLE_SIZE_Y))
                 )
             {
                 DrawTableHeader();

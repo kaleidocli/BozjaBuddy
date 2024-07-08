@@ -34,16 +34,17 @@ namespace BozjaBuddy.GUI.Sections
         public override bool DrawGUI()
         {
             var tHeight = this.mPlugin.TEXT_BASE_HEIGHT * (15 + 3.48f);
-            ImGui.BeginChild("##rlcSectionTpcList", new Vector2(ImGui.GetWindowWidth() / 10, tHeight < this.kSectionHeight
-                                                                                            ? tHeight
-                                                                                            : this.kSectionHeight));
+            tHeight = tHeight < this.kSectionHeight ? tHeight : this.kSectionHeight;
+            if (this.mPlugin.Configuration.isAuxiVisible == 0)
+            {
+                tHeight = ImGui.GetContentRegionAvail().Y;
+            }
+            ImGui.BeginChild("##rlcSectionTpcList", new Vector2(ImGui.GetWindowWidth() / 10, tHeight));
             this.DrawTopicList();
             ImGui.EndChild();
             ImGui.SameLine();
             ImGui.BeginChild("##rlcSectionTpc", new Vector2(
-                ImGui.GetWindowWidth() / 10 * 9 - ImGui.GetStyle().WindowPadding.X * 2, tHeight < this.kSectionHeight
-                                                                                            ? tHeight
-                                                                                            : this.kSectionHeight));
+                ImGui.GetWindowWidth() / 10 * 9 - ImGui.GetStyle().WindowPadding.X * 2, tHeight));
             this.DrawTopic();
             ImGui.EndChild();
             return true;

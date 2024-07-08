@@ -63,7 +63,14 @@ namespace BozjaBuddy.GUI.Sections
 
         private void DrawTable()
         {
-            if (ImGui.BeginTable("##Mob", MobTableSection.COLUMN_COUNT, MobTableSection.TABLE_FLAG, new System.Numerics.Vector2(0.0f, this.TABLE_SIZE_Y)))
+            if (ImGui.BeginTable("##Mob", 
+                                MobTableSection.COLUMN_COUNT, 
+                                MobTableSection.TABLE_FLAG, 
+                                new System.Numerics.Vector2(0.0f, 
+                                                            this.mPlugin.Configuration.isAuxiVisible == 0
+                                                            ? ImGui.GetContentRegionAvail().Y
+                                                            : this.TABLE_SIZE_Y)
+                                ))
             {
                 DrawTableHeader();
                 List<int> tIDs = SortTableContent(this.mMobIDs, this.mFilters);

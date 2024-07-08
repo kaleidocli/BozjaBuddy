@@ -89,7 +89,9 @@ namespace BozjaBuddy.GUI.Sections
                     FieldNoteTableSection.TABLE_FLAG, 
                     new System.Numerics.Vector2(0.0f, this.mPlugin.Configuration.mIsInGridMode_FieldNoteTableSection
                                                       ? this.TABLE_HEADER_HEIGHT
-                                                      : this.TABLE_SIZE_Y)
+                                                      : this.mPlugin.Configuration.isAuxiVisible == 0
+                                                        ? ImGui.GetContentRegionAvail().Y
+                                                        : this.TABLE_SIZE_Y)
                     ))
             {
                 DrawTableHeader();
@@ -217,7 +219,9 @@ namespace BozjaBuddy.GUI.Sections
                     "##gridfieldnote",
                     tColCount,
                     FieldNoteTableSection.GRID_FLAG,
-                    new Vector2(0.0f, this.TABLE_SIZE_Y - this.TABLE_HEADER_HEIGHT)
+                    new Vector2(0.0f, this.mPlugin.Configuration.isAuxiVisible == 0
+                                        ? ImGui.GetContentRegionAvail().Y
+                                        : this.TABLE_SIZE_Y)
                     ))
             {
                 for (int iRow = 0; iRow < tRowCount; iRow++)

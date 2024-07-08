@@ -79,7 +79,14 @@ namespace BozjaBuddy.GUI.Sections
 
         private void DrawTable()
         {
-            if (ImGui.BeginTable("##Loadout", LoadoutTableSection.COLUMN_COUNT, LoadoutTableSection.TABLE_FLAG, new System.Numerics.Vector2(0.0f, this.TABLE_SIZE_Y)))
+            if (ImGui.BeginTable("##Loadout", 
+                                LoadoutTableSection.COLUMN_COUNT, 
+                                LoadoutTableSection.TABLE_FLAG, 
+                                new System.Numerics.Vector2(0.0f, 
+                                                            this.mPlugin.Configuration.isAuxiVisible == 0
+                                                            ? ImGui.GetContentRegionAvail().Y
+                                                            : this.TABLE_SIZE_Y)
+                                ))
             {
                 DrawTableHeader();
                 List<int> tIDs =  SortTableContent(this.mLoadoutIds, this.mFilters);
@@ -159,7 +166,7 @@ namespace BozjaBuddy.GUI.Sections
             // Overlay
             LoadoutTableSection.DrawOverlayBar(this.mPlugin, this.mTextFilters, this.mTextFiltersCurrVal, pIsCompactMode: tIsCompact);
             ImGui.SameLine();
-            AuxiliaryViewerSection.GUIAlignRight((float)((tIsCompact ? 22 : 36) * ImGui.CalcTextSize("A").X));
+            AuxiliaryViewerSection.GUIAlignRight((float)((tIsCompact ? 23.5 : 37.5) * ImGui.CalcTextSize("A").X));
             // Toggle rec visibility
             ImGui.TextColored(UtilsGUI.Colors.BackgroundText_Grey, tIsCompact ? "Rec." : "Recommended loadouts");
             ImGui.SameLine();

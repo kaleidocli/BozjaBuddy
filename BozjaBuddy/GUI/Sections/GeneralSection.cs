@@ -54,7 +54,7 @@ namespace BozjaBuddy.GUI.Sections
             // Search all box
             string tSearchVal = this.mGuiVars["searchAll"];
             ImGui.SameLine();
-            GeneralSection.DrawSearchAllBox(this.mPlugin, ref tSearchVal, pTextBoxWidth: ImGui.GetContentRegionAvail().X - 52);
+            GeneralSection.DrawSearchAllBox(this.mPlugin, ref tSearchVal, pTextBoxWidth: ImGui.GetContentRegionAvail().X - 65);     // 52
             this.mGuiVars["searchAll"] = tSearchVal;
             // Help button
             ImGui.SameLine();
@@ -76,19 +76,19 @@ namespace BozjaBuddy.GUI.Sections
             if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ProjectDiagram, defaultColor: this.mPlugin.Configuration.isAuxiVisible == 0
                                                                                                          ? null
                                                                                                          : this.mPlugin.Configuration.isAuxiVisible == 1
-                                                                                                            ? UtilsGUI.AdjustTransparency(UtilsGUI.Colors.MycItemBoxOverlay_Red, 0.15f)
-                                                                                                            : UtilsGUI.Colors.MycItemBoxOverlay_Red))
+                                                                                                            ? UtilsGUI.Colors.MycItemBoxOverlay_Red
+                                                                                                            : UtilsGUI.AdjustTransparency(UtilsGUI.Colors.MycItemBoxOverlay_Red, 1f)))
             {
                 this.mPlugin.Configuration.isAuxiVisible = this.mPlugin.Configuration.isAuxiVisible == 2 ? 0 : this.mPlugin.Configuration.isAuxiVisible + 1;
                 this.mPlugin.MainWindow.RearrangeSection();
             }
             else
             {
-                UtilsGUI.SetTooltipForLastItem($"Expanding info-graph: {(this.mPlugin.Configuration.isAuxiVisible == 0 
-                                                                        ? "Hidden" 
-                                                                        : this.mPlugin.Configuration.isAuxiVisible == 0
-                                                                            ? "Half"
-                                                                            : "Full")}");
+                UtilsGUI.SetTooltipForLastItem($"Info-graph: {(this.mPlugin.Configuration.isAuxiVisible == 0 
+                                                                        ? "HIDDEN" 
+                                                                        : this.mPlugin.Configuration.isAuxiVisible == 1
+                                                                            ? "SPLIT"
+                                                                            : "FULL")}");
             }
 
             return true;
