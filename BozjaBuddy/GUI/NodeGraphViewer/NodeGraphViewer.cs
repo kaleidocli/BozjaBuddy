@@ -11,7 +11,7 @@ using BozjaBuddy.Utils;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using QuickGraph.Serialization;
 using static BozjaBuddy.Data.Location;

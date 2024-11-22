@@ -4,7 +4,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Logging;
 using ImGuiNET;
 using ImGuiScene;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,13 +17,13 @@ namespace BozjaBuddy.Utils
 {
     public class UtilsGameData
     {
-        public readonly static Dictionary<Role, List<Job>> kJobToRole = new Dictionary<Role, List<Job>>()
+        public readonly static Dictionary<BozjaBuddy.Data.Role, List<Job>> kJobToRole = new Dictionary<BozjaBuddy.Data.Role, List<Job>>()
         {
-            { Role.Tank, new List<Job> { Job.WAR, Job.PLD, Job.GNB, Job.DRK, Job.GLA, Job.MRD } },
-            { Role.Healer, new List<Job> { Job.WHM, Job.SGE, Job.SCH, Job.AST, Job.CNJ } },
-            { Role.Caster, new List<Job> { Job.BLM, Job.SMN, Job.RDM, Job.THM, Job.ACN } },
-            { Role.Melee, new List<Job> { Job.MNK, Job.DRG, Job.SAM, Job.NIN, Job.PGL, Job.LNC, Job.ROG, Job.RPR } },
-            { Role.Range, new List<Job> { Job.BRD, Job.DNC, Job.MCH, Job.ARC } }
+            { BozjaBuddy.Data.Role.Tank, new List<Job> { Job.WAR, Job.PLD, Job.GNB, Job.DRK, Job.GLA, Job.MRD } },
+            { BozjaBuddy.Data.Role.Healer, new List<Job> { Job.WHM, Job.SGE, Job.SCH, Job.AST, Job.CNJ } },
+            { BozjaBuddy.Data.Role.Caster, new List<Job> { Job.BLM, Job.SMN, Job.RDM, Job.THM, Job.ACN } },
+            { BozjaBuddy.Data.Role.Melee, new List<Job> { Job.MNK, Job.DRG, Job.SAM, Job.NIN, Job.PGL, Job.LNC, Job.ROG, Job.RPR } },
+            { BozjaBuddy.Data.Role.Range, new List<Job> { Job.BRD, Job.DNC, Job.MCH, Job.ARC } }
         };
         public readonly static HashSet<Job> kValidJobs = new() { Job.WAR, Job.PLD, Job.GNB, Job.DRK,
                                                                 Job.WHM, Job.SGE, Job.SCH, Job.AST,
@@ -57,14 +57,14 @@ namespace BozjaBuddy.Utils
             { Job.RPR, 62139 },
             { Job.MCH, 62131 }
         };
-        private static readonly Dictionary<Role, int> kRoleIconIds = new()
+        private static readonly Dictionary<BozjaBuddy.Data.Role, int> kRoleIconIds = new()
         {
-            { Role.Tank, 62581 },
-            { Role.Healer, 62582 },
-            { Role.Melee, 62584 },
-            { Role.Range, 62586 },
-            { Role.Caster, 62587 },
-            { Role.None, 62574 }
+            { BozjaBuddy.Data.Role.Tank, 62581 },
+            { BozjaBuddy.Data.Role.Healer, 62582 },
+            { BozjaBuddy.Data.Role.Melee, 62584 },
+            { BozjaBuddy.Data.Role.Range, 62586 },
+            { BozjaBuddy.Data.Role.Caster, 62587 },
+            { BozjaBuddy.Data.Role.None, 62574 }
         };
         public static TextureCollection? kTextureCollection = null;
         public static TextureCollection? kTexCol_LostAction = null;
@@ -230,7 +230,7 @@ namespace BozjaBuddy.Utils
                 if (!UtilsGameData.kRelicsAndJobs.ContainsKey(step)) UtilsGameData.kRelicsAndJobs.TryAdd(step, new());
                 for (int id = idRange.Value.Item1; id < idRange.Value.Item2; id++)
                 {
-                    Job? job = (Job?)pPlugin.mBBDataManager.mSheetItem?.GetRow(Convert.ToUInt32(id))?.ClassJobUse?.Value?.RowId;
+                    Job? job = (Job?)pPlugin.mBBDataManager.mSheetItem?.GetRowOrDefault(Convert.ToUInt32(id))?.ClassJobUse.ValueNullable?.RowId;
                     if (job == null) continue;
                     UtilsGameData.kRelicsAndJobs[step].TryAdd(job.Value, id);
                 }
@@ -241,8 +241,8 @@ namespace BozjaBuddy.Utils
         {
             if (pPlugin.ClientState.LocalPlayer == null) return null;
             var tJob = pPlugin.ClientState.LocalPlayer!.ClassJob;
-            if (tJob == null || tJob.GameData == null || !Enum.IsDefined(typeof(Job), (int)tJob.Id)) return null;
-            return (Job)tJob.Id switch
+            if (tJob.IsValid || !Enum.IsDefined(typeof(Job), (int)tJob.RowId)) return null;
+            return (Job)tJob.RowId switch
             {
                 Job.GLA => Job.PLD,
                 Job.MRD => Job.WAR,
@@ -252,22 +252,22 @@ namespace BozjaBuddy.Utils
                 Job.PGL => Job.MNK,
                 Job.ARC => Job.BRD,
                 Job.THM => Job.BLM,
-                Job.ACN => tJob.GameData!.Role == 3 ? Job.SMN : Job.SCH,
-                _ => (Job)tJob.Id
+                Job.ACN => tJob.Value.Role == 3 ? Job.SMN : Job.SCH,
+                _ => (Job)tJob.RowId
             };
         }
-        public static Role? GetUserRole(Plugin pPlugin)
+        public static BozjaBuddy.Data.Role? GetUserRole(Plugin pPlugin)
         {
             if (pPlugin.ClientState.LocalPlayer == null) return null;
             var tJob = pPlugin.ClientState.LocalPlayer!.ClassJob;
-            if (tJob == null) return null;
-            Role tRole = Role.None;
-            tRole |= tJob.GameData!.Role switch
+            if (tJob.IsValid) return null;
+            BozjaBuddy.Data.Role tRole = BozjaBuddy.Data.Role.None;
+            tRole |= tJob.Value.Role switch
             {
-                1 => Role.Tank,
-                2 => Role.Melee,
-                3 => tJob.GameData!.PrimaryStat == 2 ? Role.Range : Role.Caster,
-                4 => Role.Healer,
+                1 => BozjaBuddy.Data.Role.Tank,
+                2 => BozjaBuddy.Data.Role.Melee,
+                3 => tJob.Value.PrimaryStat == 2 ? BozjaBuddy.Data.Role.Range : BozjaBuddy.Data.Role.Caster,
+                4 => BozjaBuddy.Data.Role.Healer,
                 _ => ~tRole,
             };
             return tRole;
@@ -288,13 +288,13 @@ namespace BozjaBuddy.Utils
             int tIndex = tTerritoryId!.Value == 920 || tTerritoryId!.Value == 975 ? 2 : 0;
             return (UtilsGameData.kAutoPairingData[tJob!.Value][tIndex], UtilsGameData.kAutoPairingData[tJob!.Value][tIndex + 1]);
         }
-        public static Role ConvertJobToRole(Job pJob)
+        public static BozjaBuddy.Data.Role ConvertJobToRole(Job pJob)
         {
-            foreach (Role iRole in UtilsGameData.kJobToRole.Keys)
+            foreach (BozjaBuddy.Data.Role iRole in UtilsGameData.kJobToRole.Keys)
             {
                 if (UtilsGameData.kJobToRole.ContainsKey(iRole)) { return iRole; }
             }
-            return Role.None;
+            return BozjaBuddy.Data.Role.None;
         }
         public static IDalamudTextureWrap? GetJobIcon(Job pJob)
         {
@@ -302,7 +302,7 @@ namespace BozjaBuddy.Utils
             if (UtilsGameData.kTextureCollection == null) return null;
             return UtilsGameData.kTextureCollection.GetTexture((uint)UtilsGameData.kJobIconIds[pJob], TextureCollection.Sheet.Job);
         }
-        public static IDalamudTextureWrap? GetRoleIcon(Role pRole)
+        public static IDalamudTextureWrap? GetRoleIcon(BozjaBuddy.Data.Role pRole)
         {
             if (!UtilsGameData.kRoleIconIds.ContainsKey(pRole)) return null;
             if (UtilsGameData.kTextureCollection == null) return null;

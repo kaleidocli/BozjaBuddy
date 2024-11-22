@@ -2,7 +2,7 @@
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;

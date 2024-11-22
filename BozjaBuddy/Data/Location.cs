@@ -1,5 +1,5 @@
 using Dalamud.Utility;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -37,36 +37,40 @@ namespace BozjaBuddy.Data
                             .Select(t => t.RowId).ToList();
             this.mTerritoryID = tTemp.Count == 0 ? 0 : tTemp[0];
             tTemp = this.mPlugin.DataManager.GetExcelSheet<Map>()!
-                            .Where(t => (t.TerritoryType.Value?.ToString() ?? "")  == this.mTerritoryType)
+                            .Where(t => (t.TerritoryType.ValueNullable?.ToString() ?? "")  == this.mTerritoryType)
                             .Select(t => t.RowId).ToList();
-            uint? tTemp2 = this.mPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(this.mTerritoryID)?.Map.Row;
+            uint? tTemp2 = this.mPlugin.DataManager
+                                .GetExcelSheet<TerritoryType>()!
+                                .GetRowOrDefault(this.mTerritoryID)?
+                                .Map
+                                .RowId;
             this.mMapID = tTemp2 ?? 0;
-            this.mReprString = this.mPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(this.mTerritoryID)?.PlaceName?.Value?.Name ?? string.Empty;
+            this.mReprString = this.mPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRowOrDefault(this.mTerritoryID)?.PlaceName.ValueNullable?.Name.ToString() ?? string.Empty;
             this.UpdateAreaFlag();
             this.UpdateStringRepr();
         }
         public Location(Plugin pPlugin, Level pLevel)
         {
             this.mPlugin = pPlugin;
-            this.mTerritoryType = pLevel.Territory.Value != null
-                                  ? pLevel.Territory.Value.Name
+            this.mTerritoryType = pLevel.Territory.IsValid
+                                  ? pLevel.Territory.Value.Name.ToString()
                                   : "";
-            this.mTerritoryID = pLevel.Territory.Value != null
+            this.mTerritoryID = pLevel.Territory.IsValid
                                   ? pLevel.Territory.Value.RowId
                                   : 0;
-            this.mMapID = pLevel.Territory.Value != null
-                                  ? pLevel.Territory.Value.Map.Row
+            this.mMapID = pLevel.Territory.IsValid
+                                  ? pLevel.Territory.Value.Map.RowId
                                   : 0;
             var tPayload = new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(this.mTerritoryID, this.mMapID, (int)(pLevel.X * 1000), (int)(pLevel.Z * 1000));
             this.mMapCoordX = tPayload.XCoord;
             this.mMapCoordY = tPayload.YCoord;
             this.mReprString = string.Format(
                     "{0} ({1})",
-                    pLevel.Territory.Value != null
-                                  ? pLevel.Territory.Value.PlaceName.Value?.Name ?? ""
+                    pLevel.Territory.IsValid
+                                  ? pLevel.Territory.Value.PlaceName.ValueNullable?.Name ?? ""
                                   : "",
-                    pLevel.Territory.Value != null
-                                  ? pLevel.Territory.Value.PlaceNameRegion.Value?.Name ?? ""
+                    pLevel.Territory.IsValid
+                                  ? pLevel.Territory.Value.PlaceNameRegion.ValueNullable?.Name ?? ""
                                   : ""
                 );
             this.UpdateAreaFlag();
@@ -75,10 +79,10 @@ namespace BozjaBuddy.Data
         /// <summary> X, Y not given, then use aetheryte's coords. If no aetheryte found, then coord is (20, 20) which is supposed to be the middle of the map. </summary>
         public Location(Plugin pPlugin, string pTerritoryType) : this(pPlugin, pTerritoryType, 20, 20)
         {
-            var tAetheryteLevel = this.mPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(this.mTerritoryID)?.Aetheryte?.Value?.Level.FirstOrDefault()?.Value;
+            var tAetheryteLevel = this.mPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRowOrDefault(this.mTerritoryID)?.Aetheryte.ValueNullable?.Level.FirstOrDefault().ValueNullable;
             if (tAetheryteLevel != null)
             {
-                var tPayload = new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(this.mTerritoryID, this.mMapID, (int)(tAetheryteLevel.X * 1000), (int)(tAetheryteLevel.Z * 1000));
+                var tPayload = new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(this.mTerritoryID, this.mMapID, (int)(tAetheryteLevel?.X * 1000), (int)(tAetheryteLevel?.Z * 1000));
                 this.mMapCoordX = tPayload.XCoord;
                 this.mMapCoordY = tPayload.YCoord;
             }

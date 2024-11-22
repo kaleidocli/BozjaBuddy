@@ -11,7 +11,7 @@ using Dalamud.Logging;
 using System.Numerics;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System.Runtime.CompilerServices;
 using BozjaBuddy.GUI.Sections;
 

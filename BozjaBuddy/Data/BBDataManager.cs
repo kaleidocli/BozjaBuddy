@@ -7,7 +7,7 @@ using System.Text.Json;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using BozjaBuddy.Data.Alarm;
 using System.Linq;
 using ImGuiScene;
@@ -45,10 +45,10 @@ namespace BozjaBuddy.Data
         public Dictionary<int, Quest> mQuests;
         public Dictionary<int, QuestChain> mQuestChains;
         private Dictionary<int, Item> mItems;
-        public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Action>? mSheetAction;
-        public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Item>? mSheetItem;
-        public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.Quest>? mSheetQuest;
-        public Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>? mSheetMycWarResultNotebook;
+        public Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action>? mSheetAction;
+        public Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item>? mSheetItem;
+        public Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Quest>? mSheetQuest;
+        public Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.MYCWarResultNotebook>? mSheetMycWarResultNotebook;
         public Lumina.Excel.ExcelSheet<ENpcResident>? mSheetNpc;
         public List<List<int>> mUiMap_MycItemBox;
         public Dictionary<string, IDalamudTextureWrap?> mImages;
@@ -70,10 +70,10 @@ namespace BozjaBuddy.Data
             this.mItems = new();
 
             // lumina
-            this.mSheetAction = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Action>();
-            this.mSheetItem = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Item>();
-            this.mSheetMycWarResultNotebook = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>();
-            this.mSheetQuest = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.Quest>();
+            this.mSheetAction = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.Action>();
+            this.mSheetItem = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.Item>();
+            this.mSheetMycWarResultNotebook = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.MYCWarResultNotebook>();
+            this.mSheetQuest = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.Quest>();
             this.mSheetNpc = this.mPlugin.DataManager.Excel.GetSheet<ENpcResident>();
 
             // db
@@ -96,7 +96,7 @@ namespace BozjaBuddy.Data
             {
                 foreach (var q in this.mQuests)
                 {
-                    if (q.Value.mLumina.JournalGenre.Value != null
+                    if (q.Value.mLumina.JournalGenre.IsValid
                         && q.Value.mLumina.JournalGenre.Value.RowId != 76) continue;
                     string temp = string.Join(
                             ", ",
@@ -366,9 +366,9 @@ namespace BozjaBuddy.Data
 
             HashSet<Tuple<int, int>>? tLinkers = new();
             // Get selected quests
-            HashSet<Lumina.Excel.GeneratedSheets.Quest> tQuests = this.mSheetQuest.Where(
+            HashSet<Lumina.Excel.Sheets.Quest> tQuests = this.mSheetQuest.Where(
                                                                                         i => i.Expansion.Value.RowId == 3       // ShB
-                                                                                            || (i.JournalGenre.Value != null
+                                                                                            || (i.JournalGenre.IsValid
                                                                                                 && BBDataManager.kAllowedQuestGenre.Contains((int)i.JournalGenre.Value.RowId))
                                                                                         )
                                                                                     .Select(o => o)
@@ -517,7 +517,7 @@ namespace BozjaBuddy.Data
                 // Init data
                 var luminaItem = this.mSheetItem?.GetRow(Convert.ToUInt32(pLuminaItemId));
                 if (luminaItem == null) return null;
-                tItem = new(this.mPlugin, luminaItem);
+                tItem = new(this.mPlugin, luminaItem.Value);
 
                 // Add data
                 this.mItems.TryAdd(pLuminaItemId, tItem);

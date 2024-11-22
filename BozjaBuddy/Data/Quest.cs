@@ -1,6 +1,6 @@
 ﻿using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -25,14 +25,14 @@ namespace BozjaBuddy.Data
         public HashSet<int> mPrevQuestIds { get; set; } = new();
         public HashSet<int> mNextQuestIds { get; set; } = new();
         public HashSet<int> mQuestChains { get; set; } = new();
-        public Lumina.Excel.GeneratedSheets.Quest mLumina { get; set; } = new();
+        public Lumina.Excel.Sheets.Quest mLumina { get; set; } = new();
 
         protected override Plugin mPlugin { get; set; }
 
         /// <summary>
         /// A linker tuple (obj, linkPrev)
         /// </summary>
-        public Quest(Plugin pPlugin, Lumina.Excel.GeneratedSheets.Quest pQuest, ref HashSet<Tuple<int, int>>? pLinkers)
+        public Quest(Plugin pPlugin, Lumina.Excel.Sheets.Quest pQuest, ref HashSet<Tuple<int, int>>? pLinkers)
         {
             this.mPlugin = pPlugin;
             this.mLumina = pQuest;
@@ -56,20 +56,20 @@ namespace BozjaBuddy.Data
         public void SetUpLumina(ref HashSet<Tuple<int, int>>? pLinkers)
         {
             this.mId = (int)this.mLumina.RowId;
-            this.mName = this.mLumina.Name;
-            this.mType = this.mLumina.EventIconType.Value != null
+            this.mName = this.mLumina.Name.ToString();
+            this.mType = this.mLumina.EventIconType.IsValid
                          ? (QuestType)this.mLumina.EventIconType.Value.RowId
                          : QuestType.None;
             this.mType = this.mLumina.IsRepeatable ? QuestType.Repeatable : this.mType;
-            var tNpc = this.mPlugin.DataManager.Excel.GetSheet<ENpcResident>()?.GetRow(this.mLumina.IssuerStart);
-            this.mIssuerName = tNpc == null ? "unknown" : tNpc.Singular;
-            if (this.mLumina.IssuerLocation.Value != null)
+            var tNpc = this.mPlugin.DataManager.Excel.GetSheet<ENpcResident>()?.GetRowOrDefault(this.mLumina.IssuerStart.RowId);
+            this.mIssuerName = tNpc == null ? "unknown" : tNpc.Value.Singular.ToString();
+            if (this.mLumina.IssuerLocation.IsValid)
             {
                 this.mIssuerLocation = new(this.mPlugin, this.mLumina.IssuerLocation.Value);
             }
 
             // quest chain set up (part 1 of 2)
-            this.mPrevQuestIds = this.mLumina.PreviousQuest.Where(i => i.Value != null)
+            this.mPrevQuestIds = this.mLumina.PreviousQuest.Where(i => i.IsValid)
                                                     .Select(o => (int)o.Value!.RowId)
                                                     .ToHashSet();
             // add to linkers

@@ -18,11 +18,11 @@ namespace BozjaBuddy.Data
         protected override Plugin mPlugin { get; set; }
 
         /// <summary> Represents a Lumina row in Lumina Item sheet (excl. Fragment) </summary>
-        public Item(Plugin pPlugin, Lumina.Excel.GeneratedSheets.Item pLuminaItem)
+        public Item(Plugin pPlugin, Lumina.Excel.Sheets.Item pLuminaItem)
         {
             this.mPlugin = pPlugin;
             this.mId = Convert.ToInt32(pLuminaItem.RowId);
-            this.mName = pLuminaItem.Name;
+            this.mName = pLuminaItem.Name.ToString();
 
             this.mTabColor = UtilsGUI.Colors.GenObj_YellowFragment;
 

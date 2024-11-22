@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FFXIVWeather;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System.Numerics;
 using BozjaBuddy.Data.Alarm;
 using Dalamud.Logging;

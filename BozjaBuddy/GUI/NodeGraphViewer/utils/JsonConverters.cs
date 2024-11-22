@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using QuickGraph;
 using static BozjaBuddy.GUI.NodeGraphViewer.Node;
 using System.Numerics;

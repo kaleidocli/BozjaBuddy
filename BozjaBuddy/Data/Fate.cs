@@ -7,7 +7,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System.Linq;
 using System.ComponentModel.Design;
 

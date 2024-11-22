@@ -13,7 +13,7 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImGuiScene;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -412,7 +412,7 @@ namespace BozjaBuddy.Utils
                 // teleport
                 if (pIsTeleporting)
                 {
-                    var tAetheryteId = pPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(pLocation.mTerritoryID)?.Aetheryte?.Value?.RowId;
+                    var tAetheryteId = pPlugin.DataManager.GetExcelSheet<TerritoryType>()!.GetRowOrDefault(pLocation.mTerritoryID)?.Aetheryte.ValueNullable?.RowId;
                     if (tAetheryteId != null)
                     {
                         unsafe
@@ -741,7 +741,7 @@ namespace BozjaBuddy.Utils
         {
             // Retrieve data
             uint tLuminaItemId = Convert.ToUInt32(pLuminaItemId);
-            var tItem = pPlugin.mBBDataManager.mSheetItem?.GetRow(tLuminaItemId);
+            var tItem = pPlugin.mBBDataManager.mSheetItem?.GetRowOrDefault(tLuminaItemId);
             if (tItem == null)
             {
                 ImGui.Text($"<InvItemWdgt_err: lid={pLuminaItemId}>");
@@ -777,18 +777,18 @@ namespace BozjaBuddy.Utils
                     tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage6);
                     tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.RetainerPage7);
                     // Gears
-                    if (tItem.EquipSlotCategory.Value != null)
+                    if (tItem?.EquipSlotCategory.ValueNullable != null)
                     {
-                        if (tItem.EquipSlotCategory.Value.Body == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryBody);
-                        if (tItem.EquipSlotCategory.Value.Ears == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryEar);
-                        if (tItem.EquipSlotCategory.Value.Feet == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryFeets);
-                        if (tItem.EquipSlotCategory.Value.Gloves == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryHands);
-                        if (tItem.EquipSlotCategory.Value.Head == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryHead);
-                        if (tItem.EquipSlotCategory.Value.Legs == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryLegs);
-                        if (tItem.EquipSlotCategory.Value.MainHand == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryMainHand);
-                        if (tItem.EquipSlotCategory.Value.Neck == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryNeck);
-                        if (tItem.EquipSlotCategory.Value.OffHand == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryOffHand);
-                        if (tItem.EquipSlotCategory.Value.FingerL == (sbyte)1 || tItem.EquipSlotCategory.Value.FingerR == (sbyte)1) 
+                        if (tItem?.EquipSlotCategory.Value.Body == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryBody);
+                        if (tItem?.EquipSlotCategory.Value.Ears == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryEar);
+                        if (tItem?.EquipSlotCategory.Value.Feet == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryFeets);
+                        if (tItem?.EquipSlotCategory.Value.Gloves == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryHands);
+                        if (tItem?.EquipSlotCategory.Value.Head == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryHead);
+                        if (tItem?.EquipSlotCategory.Value.Legs == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryLegs);
+                        if (tItem?.EquipSlotCategory.Value.MainHand == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryMainHand);
+                        if (tItem?.EquipSlotCategory.Value.Neck == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryNeck);
+                        if (tItem?.EquipSlotCategory.Value.OffHand == (sbyte)1) tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryOffHand);
+                        if (tItem?.EquipSlotCategory.Value.FingerL == (sbyte)1 || tItem?.EquipSlotCategory.Value.FingerR == (sbyte)1) 
                             tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.ArmoryRings);
                         tCount += ins->GetItemCountInContainer(tLuminaItemId, InventoryType.EquippedItems);
                     }
@@ -837,7 +837,7 @@ namespace BozjaBuddy.Utils
                 else                        // if not, use normal text with lumina data
                 {
                     if (tCount < (pMaxCount ?? -1)) ImGui.PushStyleColor(ImGuiCol.Text, UtilsGUI.Colors.BackgroundText_Grey);
-                    ImGui.Text(tItem.Name);
+                    ImGui.Text(tItem?.Name.ToString());
                     if (tCount < (pMaxCount ?? -1)) ImGui.PopStyleColor();
                 }
                 ImGui.SameLine();

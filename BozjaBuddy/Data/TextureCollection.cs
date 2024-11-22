@@ -176,11 +176,11 @@ namespace BozjaBuddy.Data
             switch (pSheet)
             {
                 case Sheet.Action: 
-                    return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetAction?.GetRow(pItemId)?.Icon);
+                    return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetAction?.GetRowOrDefault(pItemId)?.Icon);
                 case Sheet.Item:
-                    return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetItem?.GetRow(pItemId)?.Icon);
+                    return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetItem?.GetRowOrDefault(pItemId)?.Icon);
                 case Sheet.FieldNote:
-                    return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetMycWarResultNotebook?.GetRow(pItemId)?.Icon);
+                    return Convert.ToUInt32(this.mPlugin.mBBDataManager.mSheetMycWarResultNotebook?.GetRowOrDefault(pItemId)?.Icon);
                 default:
                     //PluginLog.LogDebug($"GetIconId(): Unable to load iconId of {pItemId} from sheet {pSheet.ToString()}");
                     return null;

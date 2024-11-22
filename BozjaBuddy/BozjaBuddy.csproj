@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>kaleidocli</Authors>
     <Company></Company>
-    <Version>1.1.6.1</Version>
+    <Version>1.1.6.2</Version>
     <Description>A plugin for Bozja content.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/kaleidocli/BozjaBuddy</PackageProjectUrl>
@@ -45,7 +45,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="2.1.13" />
+    <PackageReference Include="DalamudPackager" Version="11.0.0" />
     <PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="QuickGraph" Version="3.6.61119.7" />

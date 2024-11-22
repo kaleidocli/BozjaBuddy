@@ -26,11 +26,11 @@ namespace BozjaBuddy.Data
             mDescription = pPackage["description"] is System.DBNull ? string.Empty : (string)pPackage["description"];
             mItemLinkId = (int)(long)pPackage["itemLinkId"];
 
-            var tSheet = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.GeneratedSheets.MYCWarResultNotebook>();
+            var tSheet = this.mPlugin.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.MYCWarResultNotebook>();
             if (tSheet != null)
             {
                 var tLuminaObj = tSheet.FirstOrDefault(o => o.RowId == mId);
-                if (tLuminaObj != null) mNumber = (int)tLuminaObj.Number;
+                mNumber = (int)tLuminaObj.Number;
             }
 
             this.mTabColor = UtilsGUI.Colors.GenObj_BrownFieldNote;

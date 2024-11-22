@@ -13,7 +13,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using System.Text.Json;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 

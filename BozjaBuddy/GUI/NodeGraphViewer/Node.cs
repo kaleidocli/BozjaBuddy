@@ -6,7 +6,7 @@ using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
 using Dalamud.Interface;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using QuickGraph;
 using Newtonsoft.Json;
 using BozjaBuddy.GUI.NodeGraphViewer.ext;

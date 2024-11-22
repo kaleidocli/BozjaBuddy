@@ -2,7 +2,7 @@
 using BozjaBuddy.GUI.NodeGraphViewer.ext;
 using Dalamud.Logging;
 using Dalamud.Utility;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -27,7 +27,7 @@ namespace BozjaBuddy.Data
         private NodeCanvas? mCanvas = null;
 
         protected override Plugin mPlugin { get; set; }
-        public Lumina.Excel.GeneratedSheets.JournalGenre? mLumina { get; set; } = new();
+        public Lumina.Excel.Sheets.JournalGenre? mLumina { get; set; } = new();
 
         public QuestChain(Plugin pPlugin, SQLiteDataReader pPackage)
         {

@@ -7,7 +7,7 @@ using Dalamud.Logging;
 using ImGuiScene;
 using System.Numerics;
 using System.Linq;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using BozjaBuddy.Utils;
 using Lumina.Data.Parsing.Uld;
 using Dalamud.Game.Gui.PartyFinder.Types;
@@ -232,7 +232,7 @@ namespace BozjaBuddy.GUI.GUIAssist
                         && !this.mPlugin.Configuration.mGuiAssistConfig.itemBox.isDisabled_AutoRoleFilter)
                     {
                         RoleFlag tUserRole = new();
-                        tUserRole.SetRoleFlagBit(UtilsGameData.GetUserRole(this.mPlugin) ?? Role.None);
+                        tUserRole.SetRoleFlagBit(UtilsGameData.GetUserRole(this.mPlugin) ?? BozjaBuddy.Data.Role.None);
                         this.mExtGui_MycItemBox.mFilterRole.SetCurrValue(tUserRole);
                         this.mHasAppliedAutoroleFilter = true;
                     }
@@ -269,7 +269,7 @@ namespace BozjaBuddy.GUI.GUIAssist
                         return; 
                     }
                     this._cycle2 = DateTime.MinValue;
-                    Role tRole = UtilsGameData.GetUserRole(this.mPlugin) ?? Role.None;
+                    BozjaBuddy.Data.Role tRole = UtilsGameData.GetUserRole(this.mPlugin) ?? BozjaBuddy.Data.Role.None;
 
                     // Filtering. Overwriting priority: Overlay > Toolbar filter
                     int tTextFilterLevel = tConfig.mGuiAssistConfig.itemBox.isDisabled_FilterText ? 0 : tConfig.mGuiAssistConfig.itemBox.filterTextLevel;
