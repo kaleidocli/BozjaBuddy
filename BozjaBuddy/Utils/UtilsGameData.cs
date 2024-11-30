@@ -241,7 +241,7 @@ namespace BozjaBuddy.Utils
         {
             if (pPlugin.ClientState.LocalPlayer == null) return null;
             var tJob = pPlugin.ClientState.LocalPlayer!.ClassJob;
-            if (tJob.IsValid || !Enum.IsDefined(typeof(Job), (int)tJob.RowId)) return null;
+            if (!tJob.IsValid || !Enum.IsDefined(typeof(Job), (int)tJob.RowId)) return null;
             return (Job)tJob.RowId switch
             {
                 Job.GLA => Job.PLD,
@@ -260,7 +260,8 @@ namespace BozjaBuddy.Utils
         {
             if (pPlugin.ClientState.LocalPlayer == null) return null;
             var tJob = pPlugin.ClientState.LocalPlayer!.ClassJob;
-            if (tJob.IsValid) return null;
+            pPlugin.PLog.Debug($"role: {null}\tclientState: {tJob.Value.Name}");
+            if (!tJob.IsValid) return null;
             BozjaBuddy.Data.Role tRole = BozjaBuddy.Data.Role.None;
             tRole |= tJob.Value.Role switch
             {
@@ -270,6 +271,7 @@ namespace BozjaBuddy.Utils
                 4 => BozjaBuddy.Data.Role.Healer,
                 _ => ~tRole,
             };
+            pPlugin.PLog.Debug($"role: {tRole}\tclientState: {pPlugin.ClientState.LocalPlayer?.ClassJob}");
             return tRole;
         }
         public static int? GetUserTerritoryAsId(Plugin pPlugin)

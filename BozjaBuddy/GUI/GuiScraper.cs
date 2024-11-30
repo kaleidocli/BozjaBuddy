@@ -48,9 +48,12 @@ namespace BozjaBuddy.GUI
         {
             unsafe
             {
-                if (!this.mCycles.CheckCycle("mycInfo", 0.2f)) return;
+                if (!this.mCycles.CheckCycle("masterKey", 0.2f)) return;                                  // originally key='mycInfo'
                 if (AtkStage.Instance() == null || AtkStage.Instance()->RaptureAtkUnitManager == null) return;      // null on logging out
-                if (this.mCycles.CheckCycle("mycInfo", 5)) this.Scraper_MycInfo();
+                if (this.mCycles.CheckCycle("mycInfo", 5))
+                {
+                    this.Scraper_MycInfo();
+                }
                 if (this.mCycles.CheckCycle("mycWarResultNotebook", 0.2f)) this.Scraper_MycWarResultNotebook();
                 if (this.mCycles.CheckCycle("save", 60)) this.mPlugin.Configuration.Save();
             }
@@ -80,12 +83,42 @@ namespace BozjaBuddy.GUI
                 var tAddonMycInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCInfo");
                 if (tAddonMycInfo == null) { return; }
 
-                var tNodeRank = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 7 }); if (tNodeRank == null) { return; }
-                var tNodeMettle = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 14 }); if (tNodeMettle == null) { return; }
-                var tNodeMettleMax = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 17 }); if (tNodeMettleMax == null) { return; }
-                var tNodeProof = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 22 }); if (tNodeProof == null) { return; }
-                var tNodeCluster = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 33 }); if (tNodeCluster == null) { return; }
-                var tNodeNoto = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 26 }); if (tNodeNoto == null) { return; }
+                var tNodeRank = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 7 }); 
+                if (tNodeRank == null) 
+                {
+                    tCharStats.noto = -1;
+                    return; 
+                }
+                var tNodeMettle = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 14 }); 
+                if (tNodeMettle == null)
+                {
+                    tCharStats.noto = -1;
+                    return;
+                }
+                var tNodeMettleMax = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 17 }); 
+                if (tNodeMettleMax == null)
+                {
+                    tCharStats.noto = -1;
+                    return;
+                }
+                var tNodeProof = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 22 }); 
+                if (tNodeProof == null)
+                {
+                    tCharStats.noto = -1;
+                    return;
+                }
+                var tNodeCluster = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 33 }); 
+                if (tNodeCluster == null)
+                {
+                    tCharStats.noto = -1;
+                    return;
+                }
+                var tNodeNoto = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 26 }); 
+                if (tNodeNoto == null)
+                {
+                    tCharStats.noto = -1;
+                    return;
+                }
 
                 tCharStats.isInit = true;
                 if (!int.TryParse(tNodeRank->NodeText.ToString(), out tCharStats.rank)) tCharStats.rank = 0;

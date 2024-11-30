@@ -51,7 +51,13 @@ namespace BozjaBuddy.Windows
             var tCharStats = pPlugin.Configuration.mGuiAssistConfig.charStats;
 
             if (tCharStats.noto != 0) tCharStats.isInit = true;
-            if (!tCharStats.isInit)
+            if (!tCharStats.isInit && tCharStats.noto == -1)
+            {
+                ImGui.PushTextWrapPos();
+                ImGui.TextColored(UtilsGUI.Colors.NormalText_Red, "<!> Error updating stats due to internal game changes!");
+                ImGui.PopTextWrapPos();
+            }
+            else if (!tCharStats.isInit)
             {
                 ImGui.PushTextWrapPos();
                 ImGui.TextColored(UtilsGUI.Colors.NormalText_Red, "<!> Stats not found! Requires character being in Bozja/Zadnor/Delubrum at least once.");
