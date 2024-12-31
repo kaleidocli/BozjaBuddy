@@ -52,7 +52,12 @@ namespace BozjaBuddy.GUI.Sections
                     new() { "SS", "Savage Slimes", "(anyprog)", "https://discord.gg/SavageSlimes" },
                     new() { "LFG", "Light Forays Group", "(anyprog)", "https://discord.gg/LightForays" }
                 }
-            }
+            },
+            {
+                "asia", new() {
+                    new() { "[Elemental] Once upon a DRSC", "DRS and Bozja content", " ", "https://discord.gg/pw4MmnPRkZ" }
+                }
+            },
         };
 
         public DrsSection(Plugin pPlugin)
@@ -180,6 +185,28 @@ namespace BozjaBuddy.GUI.Sections
             if (ImGui.BeginTable("cinfo2", 4, ImGuiTableFlags.SizingStretchProp))
             {
                 foreach (var tRow in this.mCommunitiesInfo["eu"])
+                {
+                    ImGui.TableNextRow();
+
+                    ImGui.TableNextColumn();
+                    ImGui.Text(tRow[0]);
+                    ImGui.TableNextColumn();
+                    UtilsGUI.GreyText(tRow[1]);
+                    ImGui.TableNextColumn();
+                    UtilsGUI.GreyText(tRow[2]);
+                    ImGui.TableNextColumn();
+                    UtilsGUI.UrlButton(tRow[3]);
+                }
+                ImGui.EndTable();
+            }
+
+            ImGui.Text("");
+
+            ImGui.Text("ASIA region");
+            ImGui.Separator();
+            if (ImGui.BeginTable("cinfo3", 4, ImGuiTableFlags.SizingStretchProp))
+            {
+                foreach (var tRow in this.mCommunitiesInfo["asia"])
                 {
                     ImGui.TableNextRow();
 
