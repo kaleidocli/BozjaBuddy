@@ -134,7 +134,7 @@ namespace BozjaBuddy.GUI
                     Dictionary<int, int> tStatusList = new();
                     foreach (Dalamud.Game.ClientState.Statuses.Status s in this.mPlugin.ClientState.LocalPlayer.StatusList)
                     {
-                        tStatusList.TryAdd((int)s.StatusId, (int)s.StackCount);
+                        tStatusList.TryAdd((int)s.StatusId, (int)s.Param);
                     }
                     foreach (int iStatusId in new int[] { 2625, 2626, 2627 })
                     {

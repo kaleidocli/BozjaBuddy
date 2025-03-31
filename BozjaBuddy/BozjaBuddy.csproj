@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Dalamud.NET.Sdk/12.0.2">
   <PropertyGroup>
     <Authors>kaleidocli</Authors>
     <Company></Company>
-    <Version>1.1.6.4</Version>
+    <Version>1.1.6.6</Version>
     <Description>A plugin for Bozja content.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/kaleidocli/BozjaBuddy</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <Platforms>x64;AnyCPU</Platforms>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -45,13 +45,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="11.0.0" />
+    <PackageReference Include="DalamudPackager" Version="12.0.0" />
     <PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="QuickGraph" Version="3.6.61119.7" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
-    <PackageReference Include="FFXIVWeather" Version="1.0.16" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
+    <PackageReference Include="FFXIVWeather" Version="1.0.17" />
     <Reference Include="FFXIVClientStructs">
       <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
       <Private>false</Private>
@@ -82,32 +82,40 @@
     </Reference>
   </ItemGroup>
 
+
   <ItemGroup>
     <Folder Include="db\audio\" />
     <Folder Include="db\img\" />
   </ItemGroup>
+
+  <Target Name="db" AfterTargets="Build">
+    <MakeDir Directories="$(OutDir)db" />
+    <MakeDir Directories="$(OutDir)db\audio" />
+    <MakeDir Directories="$(OutDir)db\img" />
+  </Target>
+
   <ItemGroup>
-	<None Update="db\img\**">
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
-    <None Update="db\LostAction.db">
+    <Content Include="db\img\**">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+    <Content Include="db\LostAction.db">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="db\LostAction.json">
+    </Content>
+    <Content Include="db\LostAction.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="db\loadout_preset.json">
+    </Content>
+    <Content Include="db\loadout_preset.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+	  <Content Include="db\UIMap_LostAction.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+    <Content Include="db\audio\epicsaxguy.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-	<None Update="db\UIMap_LostAction.json">
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
-    <None Update="db\audio\epicsaxguy.mp3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-	<None Update="db\YurukaStd-UB-AlphaNum.otf">
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
+    </Content>
+	  <Content Include="db\YurukaStd-UB-AlphaNum.otf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
   </ItemGroup>
 	
 	<Target Name="Prune" AfterTargets="Build">
