@@ -1,5 +1,5 @@
 ﻿using BozjaBuddy.Data;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System;
 using System.Collections.Generic;
 using System.Linq;

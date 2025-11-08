@@ -1,6 +1,6 @@
 ﻿using BozjaBuddy.Data;
 using BozjaBuddy.Utils;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using System;
 using System.Collections.Generic;

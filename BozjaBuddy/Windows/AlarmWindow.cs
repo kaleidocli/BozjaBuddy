@@ -12,7 +12,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace BozjaBuddy.Windows
 {

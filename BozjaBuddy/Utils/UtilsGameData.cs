@@ -2,7 +2,7 @@
 using BozjaBuddy.GUI.Sections;
 using Dalamud.Game.ClientState;
 using Dalamud.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using Lumina.Excel.Sheets;
 using System;

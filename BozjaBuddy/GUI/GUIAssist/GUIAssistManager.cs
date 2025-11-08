@@ -2,7 +2,7 @@
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using System;
 using System.Collections.Generic;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Logging;
 using ImGuiScene;
 using System.Numerics;
@@ -180,8 +180,8 @@ namespace BozjaBuddy.GUI.GUIAssist
             {
                 try
                 {
-                    var tAddonMycInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCInfo");
-                    var tAddonMycBattleAreaInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCBattleAreaInfo");
+                    var tAddonMycInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCInfo").Address;
+                    var tAddonMycBattleAreaInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCBattleAreaInfo").Address;
                     if (tAddonMycInfo == null || tAddonMycBattleAreaInfo != null) return;
 
                     var tNode_Button = Utils.UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new[] { 36 });
@@ -221,7 +221,7 @@ namespace BozjaBuddy.GUI.GUIAssist
             if ((DateTime.Now - this._cycle2).TotalSeconds < this.mPlugin.Configuration.mGuiAssistConfig.itemBox.refreshRate) return;
             unsafe
             {
-                var tAddonMycItemBox = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCItemBox");
+                var tAddonMycItemBox = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCItemBox").Address;
                 if (tAddonMycItemBox == null)
                 {
                     this.mHasAppliedAutoroleFilter = false;
@@ -429,7 +429,7 @@ namespace BozjaBuddy.GUI.GUIAssist
             //if (pLoadout == null) { return; }
             unsafe
             {
-                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCItemBagTrade");
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCItemBagTrade").Address;
                 if (tAddon == null) { return; }
                 var tTreeList = (AtkComponentNode*)tAddon->GetNodeById(18);
                 if (tTreeList == null) { return; }
@@ -559,7 +559,7 @@ namespace BozjaBuddy.GUI.GUIAssist
         {
             unsafe
             {
-                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(pUiNode.mAddonName);
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(pUiNode.mAddonName).Address;
                 if (tAddon == null) { return; }
                 var tNode_Button = UtilsGUI.GetNodeByIdPath(this.mPlugin, pUiNode.mAddonName, new int[] { pUiNode.mNodePath[^1] });
                 if (tNode_Button == null) { return; }
@@ -585,7 +585,7 @@ namespace BozjaBuddy.GUI.GUIAssist
         {
             unsafe
             {
-                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(pUiNode.mAddonName);
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(pUiNode.mAddonName).Address;
                 if (tAddon == null) { return; }
                 var tNode_Button = UtilsGUI.GetNodeByIdPath(this.mPlugin, pUiNode.mAddonName, new int[] { pUiNode.mNodePath[^1] });
                 if (tNode_Button == null) { return; }
@@ -598,7 +598,7 @@ namespace BozjaBuddy.GUI.GUIAssist
         {
             unsafe
             {
-                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(pUiNode.mAddonName);
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(pUiNode.mAddonName).Address;
                 if (tAddon == null) { return; }
                 var tNode_Button = UtilsGUI.GetNodeByIdPath(this.mPlugin, pUiNode.mAddonName, new int[] { pUiNode.mNodePath[^1] });
                 if (tNode_Button == null) { return; }
@@ -626,7 +626,7 @@ namespace BozjaBuddy.GUI.GUIAssist
         {
             unsafe
             {
-                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(pUiNode.mAddonName);
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(pUiNode.mAddonName).Address;
                 if (tAddon == null) { return; }
                 var tNode_Button = UtilsGUI.GetNodeByIdPath(this.mPlugin, pUiNode.mAddonName, new int[] { pUiNode.mNodePath[^1] });
                 if (tNode_Button == null) { return; }

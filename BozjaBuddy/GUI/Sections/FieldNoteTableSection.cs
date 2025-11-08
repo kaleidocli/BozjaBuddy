@@ -3,7 +3,7 @@ using BozjaBuddy.Utils;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using System;
 using System.Collections.Generic;

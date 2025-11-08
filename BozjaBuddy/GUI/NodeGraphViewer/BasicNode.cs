@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using BozjaBuddy.Utils;
 using Dalamud.Interface;
 using Dalamud.Logging;

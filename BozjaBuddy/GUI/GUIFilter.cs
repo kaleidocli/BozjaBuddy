@@ -1,4 +1,4 @@
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System;
 using BozjaBuddy.Data;
 using BozjaBuddy.Utils;
@@ -70,7 +70,7 @@ namespace BozjaBuddy.GUI
                 ImGui.PushItemWidth(ImGui.GetFontSize() * 12);
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, new System.Numerics.Vector2(1, 0));
 
-                ImGui.InputInt2("", ref pCurrValue[0], ImGuiInputTextFlags.CharsDecimal);
+                ImGui.InputInt("", ref pCurrValue[0], 0,0,default(ImU8String),ImGuiInputTextFlags.CharsDecimal);
                 if (tIsFiltering)
                 {
                     ImGui.SameLine();
@@ -114,7 +114,7 @@ namespace BozjaBuddy.GUI
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(0, 0));
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, new System.Numerics.Vector2(0, 0));
                 if (ImGui.ImageButton(
-                    UtilsGameData.GetRoleIcon(pRoleFlag.mRoleFlagArray[i] ? tRoles[i] : Role.None)!.ImGuiHandle,
+                    UtilsGameData.GetRoleIcon(pRoleFlag.mRoleFlagArray[i] ? tRoles[i] : Role.None)!.Handle,
                     new System.Numerics.Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
                 {
                     pRoleFlag.mRoleFlagArray[i] = !pRoleFlag.mRoleFlagArray[i];

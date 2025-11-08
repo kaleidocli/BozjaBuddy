@@ -14,7 +14,7 @@ using BozjaBuddy.Utils.UtilsAudio;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using NAudio.Wave;
 using static BozjaBuddy.GUI.GUIAssist.GUIAssistManager;
@@ -40,8 +40,8 @@ public class ConfigWindow : Window, IDisposable
     private int mLastActiveTab = 0;
     unsafe private Dictionary<string, ImGuiTextFilterPtr> mTextFilters = new();
 
-    unsafe ImGuiTextFilterPtr mFilter_CacheAlert1 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
-    unsafe ImGuiTextFilterPtr mFilter_CacheAlert2 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+    unsafe ImGuiTextFilterPtr mFilter_CacheAlert1 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null));
+    unsafe ImGuiTextFilterPtr mFilter_CacheAlert2 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null));
 
     private float mGuiButtonsPadding = 32 * 3;
 
@@ -63,8 +63,8 @@ public class ConfigWindow : Window, IDisposable
     {
         unsafe
         {
-            ImGuiNative.ImGuiTextFilter_destroy(this.mFilter_CacheAlert1.NativePtr);
-            ImGuiNative.ImGuiTextFilter_destroy(this.mFilter_CacheAlert2.NativePtr);
+            this.mFilter_CacheAlert1.Destroy();
+            this.mFilter_CacheAlert2.Destroy();
         }
     }
 
@@ -585,7 +585,7 @@ public class ConfigWindow : Window, IDisposable
                 if (!UtilsGameData.kValidJobs.Contains(iJob)) continue;
                 IDalamudTextureWrap? tJobIcon = UtilsGameData.GetJobIcon(iJob);
                 // Job icon
-                if (tJobIcon != null) { ImGui.Image(tJobIcon.ImGuiHandle, Utils.Utils.ResizeToIcon(pPlugin, tJobIcon)); }
+                if (tJobIcon != null) { ImGui.Image(tJobIcon.Handle, Utils.Utils.ResizeToIcon(pPlugin, tJobIcon)); }
                 else { ImGui.Text(iJob.ToString()); }   // Job abbv
                                                         // Combo
                 ImGui.SameLine();

@@ -1,4 +1,4 @@
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using BozjaBuddy.Data;
 using System;
@@ -132,7 +132,7 @@ namespace BozjaBuddy.GUI.Sections
                     switch (i)
                     {
                         case 0:
-                            if (tIconWrap != null) ImGui.Image(tIconWrap.ImGuiHandle, Utils.Utils.ResizeToIcon(this.mPlugin, tIconWrap!));
+                            if (tIconWrap != null) ImGui.Image(tIconWrap.Handle, Utils.Utils.ResizeToIcon(this.mPlugin, tIconWrap!));
                             break;
                         case 1:
                             UtilsGUI.SelectableLink_WithPopup(mPlugin, tMob.mName, tMob.GetGenId());

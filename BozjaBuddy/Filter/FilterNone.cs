@@ -1,5 +1,5 @@
 ﻿using BozjaBuddy.Data;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace BozjaBuddy.Filter
 {

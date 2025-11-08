@@ -1,7 +1,7 @@
 ﻿using BozjaBuddy.Data;
 using BozjaBuddy.GUI;
 using Dalamud.Utility;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System;
 using System.Collections.Generic;
 using System.Linq;

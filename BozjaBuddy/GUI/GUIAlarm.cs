@@ -4,7 +4,7 @@ using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,7 +41,7 @@ namespace BozjaBuddy.GUI
         private static int kComboCurrLabel = 0;
         private static string kComboCurrTerritoryId = "";
         private static int kComboCurrWeatherId = 0;
-        unsafe private static ImGuiTextFilterPtr kFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+        unsafe private static ImGuiTextFilterPtr kFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null));
         private static int kComboCurrFateId = 0;
         
         /// <summary>Do nothing if pop-up has already been opened.</summary>
@@ -193,12 +193,12 @@ namespace BozjaBuddy.GUI
             ImGui.InputText("##name", ref GUIAlarm.kFieldName, 120);
             ImGui.PopItemWidth();
             ImGui.PushItemWidth(ImGui.GetFontSize() * 6);
-            ImGui.InputInt("##duration", ref GUIAlarm.kFieldDuration, 10, 10, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.AutoSelectAll);
+            ImGui.InputInt("##duration", ref GUIAlarm.kFieldDuration, 10, 10, default(ImU8String), ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.AutoSelectAll);
             ImGui.SameLine(); UtilsGUI.TextWithHelpMarker(
                                                 "Audio duration [s]",
                                                 $"The duration that the alarm's audio will play.\nRange from {Alarm.kDurationMin} to {Alarm.kDurationMax}",
                                                 UtilsGUI.Colors.BackgroundText_Grey);
-            ImGui.InputInt("##offset", ref GUIAlarm.kFieldOffset, 10, 10, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.AutoSelectAll);
+            ImGui.InputInt("##offset", ref GUIAlarm.kFieldOffset, 10, 10, default(ImU8String), ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.AutoSelectAll);
             ImGui.SameLine(); UtilsGUI.TextWithHelpMarker(
                                                 "Offset [s]",
                                                 $"Offset to alarm.\ne.g. An alarm for Raining will trigger X seconds before it actually rain. X is its offset.\nRange from {Alarm.kOffsetMin} to {Alarm.kOffsetMax}.",

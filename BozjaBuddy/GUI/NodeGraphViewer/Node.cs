@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
 using Dalamud.Interface;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using QuickGraph;
 using Newtonsoft.Json;
@@ -178,7 +178,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
                 ImGui.SetCursorScreenPos(tEnd - tGripSize * (pIsActive ? 0.425f : 0.57f));
                 ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(this.mStyle.colorFg));
                 ImGui.Button($"##{this.mId}", tGripSize);
-                if (ImGui.IsItemHovered()) { ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNWSE); }
+                if (ImGui.IsItemHovered()) { ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNwse); }
                 //else { ImGui.SetMouseCursor(ImGuiMouseCursor.Arrow); }
                 if (ImGui.IsItemActive())
                 {

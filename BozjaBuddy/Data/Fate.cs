@@ -6,7 +6,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using System.Linq;
 using System.ComponentModel.Design;

@@ -1,5 +1,5 @@
 using BozjaBuddy.Data;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -55,7 +55,7 @@ namespace BozjaBuddy.Filter.LostActionTableSection
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, new System.Numerics.Vector2(1, 0));
 
-                ImGui.InputInt2("", ref mCurrValue[0], ImGuiInputTextFlags.CharsDecimal);
+                ImGui.InputInt("", ref mCurrValue[0], 0,0,default(ImU8String),ImGuiInputTextFlags.CharsDecimal);
                 if (this.IsFiltering())
                 {
                     ImGui.SameLine();

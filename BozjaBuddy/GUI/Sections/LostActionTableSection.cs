@@ -1,4 +1,4 @@
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using BozjaBuddy.Data;
 using System;
@@ -36,8 +36,8 @@ namespace BozjaBuddy.GUI.Sections
         private List<int> mActionIDs;
         private Filter.Filter[] mFilters;
         private TextureCollection mTextureCollection;
-        unsafe ImGuiTextFilterPtr mFilter_CacheAlert1 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
-        unsafe ImGuiTextFilterPtr mFilter_CacheAlert2 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+        unsafe ImGuiTextFilterPtr mFilter_CacheAlert1 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null));
+        unsafe ImGuiTextFilterPtr mFilter_CacheAlert2 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null));
 
         protected override Plugin mPlugin { get; set; }
         private float FIXED_LINE_HEIGHT
