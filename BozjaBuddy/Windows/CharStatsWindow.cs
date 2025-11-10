@@ -3,7 +3,7 @@ using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
@@ -16,9 +16,9 @@ namespace BozjaBuddy.Windows
         public static string kHandle = "Character Stats - Bozja Buddy";
 
         private Plugin mPlugin;
-        unsafe ImGuiTextFilterPtr mFilter_Cache = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
-        unsafe ImGuiTextFilterPtr mFilter_CacheAlert1 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
-        unsafe ImGuiTextFilterPtr mFilter_CacheAlert2 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+        unsafe ImGuiTextFilterPtr mFilter_Cache = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null));
+        unsafe ImGuiTextFilterPtr mFilter_CacheAlert1 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null));
+        unsafe ImGuiTextFilterPtr mFilter_CacheAlert2 = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null));
 
         public CharStatsWindow(Plugin plugin) : base("Character Stats - Bozja Buddy")
         {
@@ -35,9 +35,9 @@ namespace BozjaBuddy.Windows
         {
             unsafe
             {
-                ImGuiNative.ImGuiTextFilter_destroy(this.mFilter_Cache.NativePtr);
-                ImGuiNative.ImGuiTextFilter_destroy(this.mFilter_CacheAlert1.NativePtr);
-                ImGuiNative.ImGuiTextFilter_destroy(this.mFilter_CacheAlert2.NativePtr);
+                this.mFilter_Cache.Destroy();
+                this.mFilter_CacheAlert1.Destroy();
+                this.mFilter_CacheAlert2.Destroy();
             }
         }
 

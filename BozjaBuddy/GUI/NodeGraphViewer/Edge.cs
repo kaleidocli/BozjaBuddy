@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Numerics;
 using QuickGraph;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using BozjaBuddy.Utils;
 using Dalamud.Logging;
 using Dalamud.Interface.Components;

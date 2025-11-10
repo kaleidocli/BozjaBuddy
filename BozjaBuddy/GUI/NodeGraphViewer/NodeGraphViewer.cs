@@ -10,7 +10,7 @@ using BozjaBuddy.GUI.NodeGraphViewer.utils;
 using BozjaBuddy.Utils;
 using Dalamud.Interface.Components;
 using Dalamud.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using QuickGraph.Serialization;
@@ -326,7 +326,7 @@ namespace BozjaBuddy.GUI.NodeGraphViewer
 
             // Canvas tab bar   ================================================
             float tTabBarW = ImGui.GetContentRegionMax().X / 10 * 4.4f - 10;
-            if (ImGui.BeginTabBar("##ngvCanvasTabbar", ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton))
+            if (ImGui.BeginTabBar("##ngvCanvasTabbar", ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.ListPopupButton))
             {
                 List<int> tCanvasToRemove = new();
                 foreach (var canvasId in this._canvasOrder)

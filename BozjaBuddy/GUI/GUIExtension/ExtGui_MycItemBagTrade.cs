@@ -1,6 +1,6 @@
 ﻿using BozjaBuddy.GUI.Sections;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Collections.Generic;
 using System.Numerics;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -52,7 +52,7 @@ namespace BozjaBuddy.GUI.GUIExtension
             float tScale = 0;
             unsafe
             {
-                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(this.mAddonName);
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(this.mAddonName).Address;
                 if (tAddon != null)
                 {
                     tOrigin.X = tAddon->X; tOrigin.Y = tAddon->Y;
@@ -121,7 +121,7 @@ namespace BozjaBuddy.GUI.GUIExtension
                     if (tIcon == null) { continue; }
                     // Icon
                     tBgDrawList.AddImage(
-                            tIcon.ImGuiHandle,
+                            tIcon.Handle,
                             tOrigin2 + new Vector2(0, tCurrOffset) + new Vector2(4, 0),
                             tOrigin2 + new Vector2(tLineHeight, tCurrOffset + tLineHeight) + new Vector2(4, 0)
                         );

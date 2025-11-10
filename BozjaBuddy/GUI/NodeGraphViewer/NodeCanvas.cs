@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using BozjaBuddy.Utils;
 using System.Linq;
 using static BozjaBuddy.Utils.UtilsGUI;

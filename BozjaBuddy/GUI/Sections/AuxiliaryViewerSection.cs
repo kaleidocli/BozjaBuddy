@@ -1,4 +1,4 @@
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using BozjaBuddy.Data;
 using System;
@@ -23,9 +23,9 @@ namespace BozjaBuddy.GUI.Sections
         public static bool mIsRefreshRequired = false;
         public static TextureCollection? mTextureCollection = null;
         public static int _mGenIdToTabFocus = -1;
-        private static ImGuiTabBarFlags AUXILIARY_TAB_FLAGS = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
+        private static ImGuiTabBarFlags AUXILIARY_TAB_FLAGS = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.ListPopupButton;
         public static GUIFilter mGUIFilter = new GUIFilter();
-        unsafe static ImGuiTextFilterPtr mFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null));
+        unsafe static ImGuiTextFilterPtr mFilter = new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null));
 
         private LostActionTableSection mLostActionTableSection;
 
@@ -163,7 +163,7 @@ namespace BozjaBuddy.GUI.Sections
             }
             if (tIconWrap != null)
             {
-                ImGui.Image(tIconWrap.ImGuiHandle, tSize ?? new System.Numerics.Vector2(tIconWrap.Width, tIconWrap.Height));
+                ImGui.Image(tIconWrap.Handle, tSize ?? new System.Numerics.Vector2(tIconWrap.Width, tIconWrap.Height));
                 ImGui.SameLine();           // Do not Sameline() if there's no image, since it'll Sameline() to the TabItem above
             }
             // Name and Details and Location
@@ -708,7 +708,7 @@ namespace BozjaBuddy.GUI.Sections
         {
             unsafe 
             {
-                ImGuiNative.ImGuiTextFilter_destroy(AuxiliaryViewerSection.mFilter.NativePtr);
+                AuxiliaryViewerSection.mFilter.Destroy();
             }
         }
     }

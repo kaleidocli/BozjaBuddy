@@ -3,7 +3,7 @@ using System.Numerics;
 using BozjaBuddy.Windows;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using BozjaBuddy.Utils;
 using BozjaBuddy.Data;
 using System.Collections.Generic;
@@ -202,7 +202,7 @@ namespace BozjaBuddy.GUI.Sections
         {
             try
             {
-                AtkUnitBase* tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCItemBox");
+                AtkUnitBase* tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCItemBox").Address;
                 if (tAddon == null || !tAddon->IsVisible) return;
 
                 var tLv1 = tAddon->UldManager.SearchNodeById(201);

@@ -1,7 +1,7 @@
 ﻿using FFXIVClientStructs.FFXIV.Component.GUI;
 using System.Numerics;
 using System.Collections.Generic;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using BozjaBuddy.GUI.Sections;
 using Dalamud.Logging;
 using BozjaBuddy.Utils;
@@ -34,7 +34,7 @@ namespace BozjaBuddy.GUI.GUIExtension
             float tScale = 0;
             unsafe
             {
-                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(this.mAddonName);
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(this.mAddonName).Address;
                 if (tAddon != null)
                 {
                     var tNode = (AtkResNode*)tAddon->RootNode;

@@ -6,7 +6,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace BozjaBuddy.GUI.GUIExtension
 {
@@ -109,7 +109,7 @@ namespace BozjaBuddy.GUI.GUIExtension
         }
         internal static unsafe void DrawHelper(Plugin plugin, ExtGui extGui, Vector2? extSize, Vector2? padding = null, bool right = false, bool isDisabled = false)
         {
-            var tAddon = (AtkUnitBase*)plugin.GameGui.GetAddonByName(extGui.mAddonName);
+            var tAddon = (AtkUnitBase*)plugin.GameGui.GetAddonByName(extGui.mAddonName).Address;
             if (tAddon == null) { return; }
             HelperUtil.DrawHelper(
                 tAddon, 

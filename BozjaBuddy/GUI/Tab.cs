@@ -1,4 +1,4 @@
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using BozjaBuddy.Interface;
 using System.Collections.Generic;
 using BozjaBuddy.Utils;

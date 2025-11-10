@@ -11,7 +11,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Logging;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using Lumina.Excel.Sheets;
 using System;
@@ -574,7 +574,7 @@ namespace BozjaBuddy.Utils
             ImGui.SetCursorPos(pLinkPadding == null ? tAnchor : tAnchor - pLinkPadding.Value);
             // Draw image
             ImGui.Image(
-                pImage.ImGuiHandle, 
+                pImage.Handle, 
                 new Vector2(pImage.Width * pImageScaling, pImage.Height * pImageScaling),
                 new Vector2(0f, 0f),
                 new Vector2(1f, 1f),
@@ -871,7 +871,7 @@ namespace BozjaBuddy.Utils
                 }
                 UtilsGUI.InputPayload tInput = new();
                 ImGui.Image(
-                    tImg.ImGuiHandle, 
+                    tImg.Handle, 
                     new Vector2(
                         tImg.Width * tScale, 
                         tImg.Height * tScale
@@ -913,7 +913,7 @@ namespace BozjaBuddy.Utils
             {
                 if (iIcon == null) continue;
                 if (tDrawCounter != 0) ImGui.SameLine();
-                ImGui.Image(iIcon.ImGuiHandle, Utils.ResizeToIcon(pPlugin, ImGui.GetTextLineHeight() / 2, ImGui.GetTextLineHeight() / 2));
+                ImGui.Image(iIcon.Handle, Utils.ResizeToIcon(pPlugin, ImGui.GetTextLineHeight() / 2, ImGui.GetTextLineHeight() / 2));
                 UtilsGUI.SetTooltipForLastItem(tDrawCounter switch
                 {
                     0 => "Tank",
@@ -934,7 +934,7 @@ namespace BozjaBuddy.Utils
         {
             var tTex = UtilsGameData.kTextureCollection?.GetStandardTexture(pGameIcon);
             if (tTex == null) return false;
-            ImGui.Image(tTex.ImGuiHandle, new Vector2(ImGui.GetTextLineHeight() * pScaling));
+            ImGui.Image(tTex.Handle, new Vector2(ImGui.GetTextLineHeight() * pScaling));
             return true;
         }
         public static bool DrawIcon(FontAwesomeIcon pFontAwesomeIcon)
@@ -959,7 +959,7 @@ namespace BozjaBuddy.Utils
         }
         private unsafe static AtkResNode* GetNodeByIdPath(Plugin pPlugin, string pAddonName, Queue pNoteIdPath)
         {
-            AtkUnitBase* tAddon = (AtkUnitBase*)pPlugin.GameGui.GetAddonByName(pAddonName);
+            AtkUnitBase* tAddon = (AtkUnitBase*)pPlugin.GameGui.GetAddonByName(pAddonName).Address;
 
             return UtilsGUI.GetNodeByIdPath(tAddon, pNoteIdPath);
         }

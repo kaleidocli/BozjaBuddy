@@ -8,7 +8,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Numerics;
 
 namespace BozjaBuddy.GUI.GUIExtension
@@ -61,7 +61,7 @@ namespace BozjaBuddy.GUI.GUIExtension
             Vector2 tAnchor1;
             unsafe
             {
-                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(this.mAddonName);
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName(this.mAddonName).Address;
                 if (tAddon != null)
                 {
                     var tNode = (AtkResNode*)tAddon->RootNode;

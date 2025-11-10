@@ -1,6 +1,6 @@
 ﻿using BozjaBuddy.Data;
 using Dalamud.Interface.Components;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Text.Json;
 using System;
 using System.Collections.Generic;
@@ -309,7 +309,7 @@ namespace BozjaBuddy.GUI.Sections
             {
                 ImGui.SameLine();
                 if (tCurrJobIcon != null)
-                    ImGui.Image(tCurrJobIcon!.ImGuiHandle, Utils.Utils.ResizeToIcon(pPlugin, tCurrJobIcon!) + new Vector2(3.7f));
+                    ImGui.Image(tCurrJobIcon!.Handle, Utils.Utils.ResizeToIcon(pPlugin, tCurrJobIcon!) + new Vector2(3.7f));
                 else
                     ImGui.Text(((Job)pGuiVar_TextFiltersCurrVal[tGuiKey]).ToString());
             }
@@ -394,7 +394,7 @@ namespace BozjaBuddy.GUI.Sections
                 var tLoadouts = pPlugin.mBBDataManager.mLoadouts;
                 if (!pGuiVar_TextFilters.ContainsKey(pGuiKey))
                 {
-                    pGuiVar_TextFilters.Add(pGuiKey, new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter_ImGuiTextFilter(null)));
+                    pGuiVar_TextFilters.Add(pGuiKey, new ImGuiTextFilterPtr(ImGuiNative.ImGuiTextFilter(null)));
                 }
                 if (ImGui.BeginCombo($"##{pGuiKey}", pSelectedLoadoutId == null ? "-----------" : tLoadouts[pSelectedLoadoutId!.Value].mName))
                 {

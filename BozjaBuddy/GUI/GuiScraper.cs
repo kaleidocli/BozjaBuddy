@@ -80,7 +80,7 @@ namespace BozjaBuddy.GUI
                 var tCharStats = this.mPlugin.Configuration.mGuiAssistConfig.charStats;
 
                 // Mettle, ranks, etc.
-                var tAddonMycInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCInfo");
+                var tAddonMycInfo = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCInfo").Address;
                 if (tAddonMycInfo == null) { return; }
 
                 var tNodeRank = (AtkTextNode*)UtilsGUI.GetNodeByIdPath(this.mPlugin, "MYCInfo", new int[] { 7 }); 
@@ -159,7 +159,7 @@ namespace BozjaBuddy.GUI
         {
             unsafe
             {
-                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCWarResultNotebook");
+                var tAddon = (AtkUnitBase*)this.mPlugin.GameGui.GetAddonByName("MYCWarResultNotebook").Address;
                 if (tAddon == null) return;
                 HashSet<int> tUserFieldNotes = this.mPlugin.Configuration.mUserFieldNotes;
 

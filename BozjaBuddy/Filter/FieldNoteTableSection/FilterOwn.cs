@@ -1,7 +1,7 @@
 ﻿using BozjaBuddy.Data;
 using BozjaBuddy.Utils;
 using Dalamud.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Runtime.CompilerServices;
 
 namespace BozjaBuddy.Filter.FieldNoteTableSection

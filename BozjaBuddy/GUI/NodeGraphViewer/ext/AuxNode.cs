@@ -3,7 +3,7 @@ using BozjaBuddy.GUI.NodeGraphViewer.utils;
 using BozjaBuddy.GUI.Sections;
 using BozjaBuddy.Utils;
 using Dalamud.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using QuickGraph;
 using System;

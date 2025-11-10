@@ -1,6 +1,6 @@
 ﻿using BozjaBuddy.Data;
 using BozjaBuddy.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace BozjaBuddy.Filter.LoadoutTableSection
 {

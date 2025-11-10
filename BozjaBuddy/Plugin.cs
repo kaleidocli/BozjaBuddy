@@ -5,7 +5,7 @@ using Dalamud.Interface.Windowing;
 using BozjaBuddy.Windows;
 using BozjaBuddy.Data;
 using BozjaBuddy.Data.Alarm;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Logging;
 using Dalamud.Data;
 using Dalamud.Game.Gui;
