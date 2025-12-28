@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Plugin.Services;
 using static Lumina.Data.Parsing.Uld.NodeData;
 
 namespace BozjaBuddy.GUI
@@ -129,10 +130,10 @@ namespace BozjaBuddy.GUI
                 if (!int.TryParse(tNodeNoto->NodeText.ToString(), out tCharStats.noto)) tCharStats.noto = 0;
 
                 // Rays
-                if (this.mPlugin.ClientState.LocalPlayer != null)
+                if (this.mPlugin.ObjectTable.LocalPlayer != null)
                 {
                     Dictionary<int, int> tStatusList = new();
-                    foreach (Dalamud.Game.ClientState.Statuses.Status s in this.mPlugin.ClientState.LocalPlayer.StatusList)
+                    foreach (Dalamud.Game.ClientState.Statuses.IStatus s in this.mPlugin.ObjectTable.LocalPlayer.StatusList)
                     {
                         tStatusList.TryAdd((int)s.StatusId, (int)s.Param);
                     }
