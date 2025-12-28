@@ -24,7 +24,7 @@ namespace BozjaBuddy.Data
         private static HashSet<int> kAllowedQuest = new();
         private static HashSet<int> kAllowedQuestGenre = new()
         {
-            76,      // Resistance weapons
+            90,      // Resistance weapons
             21,      // Return to Ivalice
             8,       // ShB
             9,       // ShB post 1
@@ -367,9 +367,9 @@ namespace BozjaBuddy.Data
             HashSet<Tuple<int, int>>? tLinkers = new();
             // Get selected quests
             HashSet<Lumina.Excel.Sheets.Quest> tQuests = this.mSheetQuest.Where(
-                                                                                        i => i.Expansion.Value.RowId == 3       // ShB
+                                                                                        i => i.Expansion.RowId == 3       // ShB
                                                                                             || (i.JournalGenre.IsValid
-                                                                                                && BBDataManager.kAllowedQuestGenre.Contains((int)i.JournalGenre.Value.RowId))
+                                                                                                && BBDataManager.kAllowedQuestGenre.Contains((int)i.JournalGenre.RowId))
                                                                                         )
                                                                                     .Select(o => o)
                                                                                     .ToHashSet();

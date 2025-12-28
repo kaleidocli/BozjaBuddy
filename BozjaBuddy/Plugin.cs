@@ -64,6 +64,8 @@ namespace BozjaBuddy
         public IFramework Framework { get; init; }
 
         public IUiBuilder UIBuilder { get; set; }
+        
+        public IObjectTable ObjectTable { get; init; }
 
         public Plugin(
             IDalamudPluginInterface pluginInterface,
@@ -76,7 +78,8 @@ namespace BozjaBuddy
             IKeyState keyState,
             IFramework framework,
             ITextureProvider textureProvider,
-            IPluginLog pLog)
+            IPluginLog pLog,
+            IObjectTable objectTable)
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
@@ -91,6 +94,7 @@ namespace BozjaBuddy
             this.UIBuilder = this.PluginInterface.UiBuilder;
             PluginLog = pLog;
             this.PLog = pLog;
+            this.ObjectTable = objectTable;
             
 
             string tDir = PluginInterface.AssemblyLocation.DirectoryName!;
