@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>kaleidocli</Authors>
     <Company></Company>
-    <Version>1.1.6.7</Version>
+    <Version>1.1.6.8</Version>
     <Description>A plugin for Bozja content.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/kaleidocli/BozjaBuddy</PackageProjectUrl>
