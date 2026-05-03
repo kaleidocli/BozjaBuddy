@@ -22,7 +22,7 @@ namespace BozjaBuddy
     {
         // Sys
         public int Version { get; set; } = 0;
-        public Dalamud.Interface.Windowing.Window.WindowSizeConstraints SizeConstraints = new()
+        public Dalamud.Interface.Windowing.WindowSizeConstraints SizeConstraints = new()
         {
             MinimumSize = new Vector2(675, 509),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
