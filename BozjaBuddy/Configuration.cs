@@ -22,6 +22,8 @@ namespace BozjaBuddy
     {
         // Sys
         public int Version { get; set; } = 0;
+        
+        [NonSerialized]
         public Dalamud.Interface.Windowing.WindowSizeConstraints SizeConstraints = new()
         {
             MinimumSize = new Vector2(675, 509),
