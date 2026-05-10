@@ -160,10 +160,10 @@ namespace BozjaBuddy.GUI.GUIAssist
                 return;         // Abort when Main window is not active + AlarmManager is not requesting GUIAssist
             }
             // abort if user is in a raid, or a Fate/CE
-            if ((DateTime.Now - this._cycleOneSecond).TotalSeconds > 1 && this.mPlugin.ClientState.LocalPlayer != null)
+            if ((DateTime.Now - this._cycleOneSecond).TotalSeconds > 1 && this.mPlugin.ObjectTable.LocalPlayer != null)
             {
                 this._cycleOneSecond = DateTime.Now;
-                var tStatusList = this.mPlugin.ClientState.LocalPlayer.StatusList.Select(s => s.StatusId);
+                var tStatusList = this.mPlugin.ObjectTable.LocalPlayer.StatusList.Select(s => s.StatusId);
                 if (tStatusList.Contains((uint)StatusId.DutyAsAssigned))
                 {
                     this.mStatus |= GUIAssistStatusFlag.InRaidCe;

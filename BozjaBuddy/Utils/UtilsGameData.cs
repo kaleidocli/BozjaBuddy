@@ -239,8 +239,8 @@ namespace BozjaBuddy.Utils
 
         public static Job? GetUserJob(Plugin pPlugin)
         {
-            if (pPlugin.ClientState.LocalPlayer == null) return null;
-            var tJob = pPlugin.ClientState.LocalPlayer!.ClassJob;
+            if (pPlugin.ObjectTable.LocalPlayer == null) return null;
+            var tJob = pPlugin.ObjectTable.LocalPlayer!.ClassJob;
             if (!tJob.IsValid || !Enum.IsDefined(typeof(Job), (int)tJob.RowId)) return null;
             return (Job)tJob.RowId switch
             {
@@ -258,8 +258,8 @@ namespace BozjaBuddy.Utils
         }
         public static BozjaBuddy.Data.Role? GetUserRole(Plugin pPlugin)
         {
-            if (pPlugin.ClientState.LocalPlayer == null) return null;
-            var tJob = pPlugin.ClientState.LocalPlayer!.ClassJob;
+            if (pPlugin.ObjectTable.LocalPlayer == null) return null;
+            var tJob = pPlugin.ObjectTable.LocalPlayer!.ClassJob;
             pPlugin.PLog.Debug($"role: {null}\tclientState: {tJob.Value.Name}");
             if (!tJob.IsValid) return null;
             BozjaBuddy.Data.Role tRole = BozjaBuddy.Data.Role.None;
@@ -271,7 +271,7 @@ namespace BozjaBuddy.Utils
                 4 => BozjaBuddy.Data.Role.Healer,
                 _ => ~tRole,
             };
-            pPlugin.PLog.Debug($"role: {tRole}\tclientState: {pPlugin.ClientState.LocalPlayer?.ClassJob}");
+            pPlugin.PLog.Debug($"role: {tRole}\tclientState: {pPlugin.ObjectTable.LocalPlayer?.ClassJob}");
             return tRole;
         }
         public static int? GetUserTerritoryAsId(Plugin pPlugin)

@@ -36,7 +36,7 @@ namespace BozjaBuddy.Data
         {
             get
             {
-                if (this._mCSFate is not null && (this._mCSFate.State == FateState.Running || this._mCSFate.State == FateState.Preparation))
+                if (this._mCSFate is not null && (this._mCSFate.State == FateState.Running || this._mCSFate.State == FateState.Preparing))
                     return this._mCSFate;
                 return null;
             }

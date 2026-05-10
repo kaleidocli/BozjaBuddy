@@ -52,7 +52,7 @@ namespace BozjaBuddy.Utils
                 return false;
             }
 
-            if (pPlugin.ClientState.LocalPlayer == null)
+            if (pPlugin.ObjectTable.LocalPlayer == null)
                 return true;
             teleport->UpdateAetheryteList();
 
